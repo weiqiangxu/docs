@@ -7,15 +7,15 @@ export default sidebar({
       text: "Linux",
       icon: "laptop-code",
       prefix: "posts/linux",
-      link: "/posts/linux",
+      link: "/posts/linux/常用命令.md",
       children: "structure",
       collapsible: true,
       expanded: false
     },
     {
-      text: "文章",
+      text: "Golang",
       icon: "book",
-      prefix: "posts/",
+      prefix: "posts/go/",
       children: "structure",
       collapsible: true
     },
