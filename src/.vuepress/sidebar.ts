@@ -6,8 +6,8 @@ export default sidebar({
     {
       text: "Linux",
       icon: "laptop-code",
-      prefix: "demo/",
-      link: "demo/",
+      prefix: "posts/linux",
+      link: "/posts/linux",
       children: "structure",
       collapsible: true,
       expanded: false
