@@ -1,0 +1,84 @@
+<mxfile host="Electron" modified="2023-05-08T06:27:46.230Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.1 Chrome/112.0.5615.87 Electron/24.1.2 Safari/537.36" etag="87CXVgiattYwGhaqM6-Z" version="21.2.1" type="device">
+  <diagram name="第 1 页" id="henShwF21m3lj7XvA5T3">
+    <mxGraphModel dx="893" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="17XxlfEA221lMaTGFJlo-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-1" target="17XxlfEA221lMaTGFJlo-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-9" value="system call" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="17XxlfEA221lMaTGFJlo-5">
+          <mxGeometry x="-0.1714" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-1" target="17XxlfEA221lMaTGFJlo-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-8" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;system call&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="17XxlfEA221lMaTGFJlo-6">
+          <mxGeometry x="0.4381" relative="1" as="geometry">
+            <mxPoint y="19" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-1" target="17XxlfEA221lMaTGFJlo-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-10" value="system call" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="17XxlfEA221lMaTGFJlo-7">
+          <mxGeometry x="0.5636" y="-2" relative="1" as="geometry">
+            <mxPoint x="2" y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-1" value="Application" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="340" y="140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-2" target="17XxlfEA221lMaTGFJlo-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-2" value="VMM ( kvm or Xen)&lt;br&gt;Virtual Hareware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="170" y="270" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-3" target="17XxlfEA221lMaTGFJlo-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-3" value="seccomp&lt;br&gt;SElinux&lt;br&gt;AppArmor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="270" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-4" target="17XxlfEA221lMaTGFJlo-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-4" value="gvisor sanbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="270" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-16" target="17XxlfEA221lMaTGFJlo-25">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="570" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-16" value="机器级虚拟化&lt;br&gt;依赖cpu虚拟化技术" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="160" y="380" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-17" target="17XxlfEA221lMaTGFJlo-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-17" value="依赖linux&lt;br&gt;模块限制" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="385" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="17XxlfEA221lMaTGFJlo-18" target="17XxlfEA221lMaTGFJlo-25">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="570" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-18" value="创建沙箱模拟&lt;br&gt;机器级虚拟化&lt;br&gt;用户态内核&lt;br&gt;转发系统调用" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="515" y="372.5" width="130" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="17XxlfEA221lMaTGFJlo-25" value="Host kernel&lt;br&gt;Hard ware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="340" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

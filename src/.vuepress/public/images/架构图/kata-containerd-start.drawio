@@ -1,0 +1,90 @@
+<mxfile host="Electron" modified="2023-05-08T08:06:47.403Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.1 Chrome/112.0.5615.87 Electron/24.1.2 Safari/537.36" etag="ky-AzseQC8uK6RuF1Efj" version="21.2.1" type="device">
+  <diagram name="第 1 页" id="T9FBuqgXzTkQOz0qbLqd">
+    <mxGraphModel dx="1114" dy="765" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-1" target="8AY_pJ1ztm7PIgtTsODF-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-1" value="ctr run --runtime &quot;kata.v2&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="340" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-2" target="8AY_pJ1ztm7PIgtTsODF-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-7" value="&lt;div style=&quot;text-align: start;&quot;&gt;&lt;font face=&quot;-apple-system, system-ui, Segoe UI, Noto Sans, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji&quot; color=&quot;#1f2328&quot;&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;containerd-shim-kata-v2&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="8AY_pJ1ztm7PIgtTsODF-5">
+          <mxGeometry x="-0.125" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-2" value="containerd" style="whiteSpace=wrap;html=1;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-4" target="8AY_pJ1ztm7PIgtTsODF-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-14" value="launch" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="8AY_pJ1ztm7PIgtTsODF-13">
+          <mxGeometry x="-0.2923" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-4" value="kata-runtime" style="whiteSpace=wrap;html=1;rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-8" value="/etc/containerd.yml&lt;br&gt;register&lt;br&gt;plugins.cri.kata&lt;br&gt;plugin.cri.runc" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="540" y="180" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-9" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-8" target="8AY_pJ1ztm7PIgtTsODF-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="410" as="sourcePoint" />
+            <mxPoint x="440" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-10" value="/etc/kata/configuration.toml&lt;br&gt;register&lt;br&gt;hypervisor.qemu&lt;br&gt;hypervisor.firecracker&lt;br&gt;hypervisor.dragonball" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="550" y="290" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-11" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.413;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-4" target="8AY_pJ1ztm7PIgtTsODF-10">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="390" as="sourcePoint" />
+            <mxPoint x="440" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-12" target="8AY_pJ1ztm7PIgtTsODF-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-17" value="if qemu" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="8AY_pJ1ztm7PIgtTsODF-16">
+          <mxGeometry x="-0.0753" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-12" value="hypervisor 管理程序&lt;br&gt;(qemu \ firecracker)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="340" y="485" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="8AY_pJ1ztm7PIgtTsODF-15" target="8AY_pJ1ztm7PIgtTsODF-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-22" value="images 挂载 vm rootfs 等&lt;br&gt;create a VM" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="8AY_pJ1ztm7PIgtTsODF-21">
+          <mxGeometry x="-0.2267" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-15" value="/opt/kata/bin/qemu-system-x86_64" style="whiteSpace=wrap;html=1;rounded=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="125" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-18" value="VM" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="141" y="343" width="88" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-23" value="ps -ef | grep kata&lt;br&gt;pstree -p $pid&lt;br&gt;查看进程有&lt;br&gt;qemu-system-x86&lt;br&gt;virtiofsd&lt;br&gt;containerd-shim" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="128" y="122" width="150" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="8AY_pJ1ztm7PIgtTsODF-24" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;entryX=0.453;entryY=0.933;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="8AY_pJ1ztm7PIgtTsODF-23">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="188" y="343" as="sourcePoint" />
+            <mxPoint x="238" y="293" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
