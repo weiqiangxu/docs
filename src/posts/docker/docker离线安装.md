@@ -1,16 +1,4 @@
----
-title: docker离线安装
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
-  - docker
-  - linux
-categories:
-  - docker
-date: 2023-04-18 18:40:12
-excerpt: 离线安装docker engine
-sticky: 1
----
+# docker离线安装
 
 ### 方式一：导出rpm包或者deb包进行离线安装 - 推荐
 

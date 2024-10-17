@@ -1,16 +1,4 @@
----
-title: DockerHub私服Registry搭建与使用
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
-  - docker
-  - registry
-categories:
-  - docker
-date: 2023-04-18 18:40:12
-excerpt: 安装docker-registry建私有镜像仓库
-sticky: 1
----
+# DockerHub私服Registry搭建与使用
 
 ### 1.本地创建私服镜像目录
 

@@ -1,6 +1,4 @@
----
-hide: true
----
+# Dind配置docker私服
 
 ### 进入镜像
 

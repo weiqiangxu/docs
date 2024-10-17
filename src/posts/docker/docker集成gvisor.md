@@ -1,15 +1,4 @@
----
-title: docker集成gvisor
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
-  - kubernetes
-categories:
-  - docker
-date: 2023-04-23 18:40:12
-excerpt: 如何使用gvisor替换runc创建容器
-sticky: 1
----
+# docker集成gvisor
 
 ### 一、安装gvisor
 
