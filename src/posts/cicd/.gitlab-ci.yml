@@ -1,0 +1,16 @@
+image: registry.company.net/devops/builder:v1
+variables:
+  REGISTRY_IP: "127.0.0.1"
+stages:
+  - cni-image
+cni:
+  when: manual
+  stage: cni-image
+  tags:
+    - docker-test
+  script:
+    - git config --global url."git@gitlab.company.net:".insteadOf "https://gitlab.company.net/"
+    - echo "$REGISTRY_IP registry.company.net" >> /etc/hosts
+    - echo "$CI_COMMIT_REF_NAME"
+    - docker buildx create --config /etc/buildkit/buildkitd.toml --append --driver-opt network=host --use
+    - ./run.sh

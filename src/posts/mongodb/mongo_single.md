@@ -1,0 +1,5 @@
+---
+hide: true
+---
+
+# mongo single

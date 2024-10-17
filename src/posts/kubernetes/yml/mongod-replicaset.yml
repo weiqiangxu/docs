@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mongopod
+  namespace: dev
+spec:
+  containers:
+    - name: mongo-containers
+      image: nginx:1.17.1

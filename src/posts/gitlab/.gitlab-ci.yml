@@ -1,0 +1,19 @@
+stages:
+  - build
+  - deploy
+
+image: alpine
+
+build:
+  stage: build
+  tags :
+    - test
+  script:
+    - echo "build success"
+
+deploy:
+  stage: deploy
+  tags :
+    - test
+  script:
+    - echo "deploy success"

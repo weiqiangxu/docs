@@ -1,0 +1,185 @@
+stages:
+  - run-linter
+  - build-k8s
+  - deploy-k8s
+  - notify
+
+services:
+  - name: aliyuncs.com/public/docker:20.10.12-dind
+    command: ["--tls=false"]
+
+image: aliyuncs.com/public/docker:20.10.12-go1.17.5
+
+.script_before: &go_with_cache_before |
+  echo "---------------------------- begin before_script"
+
+  if [[ -d go ]]; then
+    echo "---------------------------- after cache get# move cwd go to ${GOPATH}"
+    if [ "${DEBUG_GITLAB_CI_COMMAND}" = "true" ]; then
+      du -sh go
+    fi
+    rm -rf "${GOPATH}" && mv go /
+  else
+    echo "no cache!!!"
+  fi
+  echo "---------------------------- end before_script"
+
+.init_git_credentials: &init_git_credentials
+  - git config --global user.name "gitops"
+  - git config --global user.email "jack@github.com"
+  - echo "machine github.com login $CI_USERNAME password $CI_PASSWORD " > $HOME/.netrc
+  - chmod 600 $HOME/.netrc
+
+.script_after: &go_with_cache_after |
+  echo "---------------------------- begin after_script"
+
+  if [[ -d "${GOPATH}" ]]; then
+    echo "---------------------------- before cache put# move ${GOPATH} to cwd"
+    mv "${GOPATH}" .
+  else
+    echo "no ${GOPATH} dir, this is OK if no cache defined"
+  fi
+
+
+  echo "---------------------------- end after_script"
+
+variables:
+#  DOCKER_DRIVER: overlay2
+  GOLANGCI_LINT_CACHE: /go/.cache/golangci-lint
+  GOCACHE: /go/.cache/go-build
+  GOMODCACHE: /go/pkg/mod
+  GOPATH: /go
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://localhost:2375
+  TZ: "Asia/Shanghai"
+
+before_script:
+  - *init_git_credentials
+  - *go_with_cache_before
+
+after_script:
+  - *go_with_cache_after
+
+golangci-lint:
+  stage: run-linter
+  image: aliyuncs.com/public/docker:20.10.12-go1.17.5
+  tags:
+    - develop
+  script:
+    - make ci/lint
+  cache:
+    key: go-cache-${CI_PROJECT_PATH_SLUG}
+    paths:
+      - go/
+
+# 开发环境
+build-k8s-develop:
+  stage: build-k8s
+  tags:
+    - develop
+  script:
+    - make build-k8s-develop
+  cache:
+    key: go-cache-${CI_PROJECT_PATH_SLUG}
+    paths:
+      - go/
+  only:
+    refs:
+      - develop
+      - /^feature\/.*/
+
+## 测试环境
+build-k8s-release:
+  stage: build-k8s
+  tags:
+    - testing
+  script:
+    - make build-k8s/release
+  cache:
+    key: go-cache-${CI_PROJECT_PATH_SLUG}
+    paths:
+      - go/
+  only:
+    - /^release\/.*/
+    - /^hotfix\/.*/
+
+## 预生产&&正式环境
+build-k8s-prod:
+  stage: build-k8s
+  tags:
+    - ack-runner
+  script:
+    - make build-k8s/prod
+  cache:
+    key: go-cache-${CI_PROJECT_PATH_SLUG}
+    paths:
+      - go/
+  only:
+    refs:
+      - tags
+
+deploy-k8s-develop:
+  stage: deploy-k8s
+  image: aliyuncs.com/public/kustomize:4.5.2
+  tags:
+    - develop
+  script:
+    - make deploy-k8s/develop -e ARGO_USER=${ARGO_USER} ARGO_PWD=${ARGO_PWD}
+  only:
+    refs:
+      - develop
+      - /^feature\/.*/
+
+deploy-k8s-release:
+  stage: deploy-k8s
+  image: aliyuncs.com/public/kustomize:4.5.2
+  tags:
+    - testing
+  script:
+    - make deploy-k8s/release -e ARGO_USER=${ARGO_USER} ARGO_PWD=${ARGO_PWD_TEST}
+  only:
+    - /^release\/.*/
+    - /^hotfix\/.*/
+
+deploy-k8s-prod:
+  stage: deploy-k8s
+  image: aliyuncs.com/public/kustomize:4.5.2
+  tags:
+    - ack-runner
+  script:
+    - make deploy-k8s/prod
+  only:
+    - tags
+
+notifyFailWeWork:
+  stage: notify
+  script:
+    - curl 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=abc' -H 'Content-Type:application/json' -d "{\"msgtype\":\"markdown\",\"markdown\":{\"content\":\"项目名称：$CI_PROJECT_NAME\n构建结果：<font color=\\\"warning\\\">失败</font>\n>此构建由：$GITLAB_USER_NAME 触发\n>提交SHA：$CI_COMMIT_SHORT_SHA\n>提交日志：$CI_COMMIT_MESSAGE>构建分支：$CI_COMMIT_BRANCH\n>构建TAG：$CI_COMMIT_TAG\n>pipline地址：[点击访问]($CI_PIPELINE_URL) \"}}"
+  tags:
+    - ack-runner
+  when: on_failure
+  only:
+    - /^release\/.*/
+    - /^hotfix\/.*/
+    - /^feature\/.*/
+    - develop
+    - tags
+  except:
+    - main
+
+# 构建成功时的通知消息
+notifySuccessWeWork:
+  stage: notify
+  script:
+    - curl 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=abc' -H 'Content-Type:application/json' -d "{\"msgtype\":\"markdown\",\"markdown\":{\"content\":\"项目名称：$CI_PROJECT_NAME\n构建结果：<font color=\\\"info\\\">成功</font>\n>此构建由：$GITLAB_USER_NAME 触发\n>提交SHA：$CI_COMMIT_SHORT_SHA\n>提交日志：$CI_COMMIT_MESSAGE>构建分支：$CI_COMMIT_BRANCH\n>构建TAG：$CI_COMMIT_TAG\n>pipline地址：[点击访问]($CI_PIPELINE_URL) \"}}"
+  tags:
+    - ack-runner
+  when: on_success
+  only:
+    - /^release\/.*/
+    - /^hotfix\/.*/
+    - /^feature\/.*/
+    - develop
+    - tags
+  except:
+    - main
