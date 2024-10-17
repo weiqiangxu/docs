@@ -33,7 +33,27 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
-
+    {
+      text: "prometheus",
+      icon: "book",
+      prefix: "posts/prometheus/",
+      children: "structure",
+      collapsible: true
+    },
+    {
+      text: "java",
+      icon: "book",
+      prefix: "posts/java/",
+      children: "structure",
+      collapsible: true
+    },
+    {
+      text: "Etcd",
+      icon: "book",
+      prefix: "posts/etcd/",
+      children: "structure",
+      collapsible: true
+    },
     "intro"
   ],
 });
