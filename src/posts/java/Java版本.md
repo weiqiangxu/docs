@@ -1,5 +1,9 @@
 ---
-hide: true
+title: Java版本
+tags:
+  - java
+categories:
+  - java
 ---
 
 在 Mac 上更改 Java 版本通常涉及更新 `JAVA_HOME` 和 `PATH` 环境变量。以下是在 Mac 上更改 Java 版本的一般步骤：

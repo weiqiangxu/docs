@@ -1,12 +1,9 @@
 ---
 title: docker安装maven仓库
 tags:
-  - Maven
+  - java
 categories:
-  - maven
-date: 2024-03-09 06:40:12
-index_img: /images/bg/computer.jpeg
-hide: false
+  - java
 ---
 
 ### 1. maven仓库安装

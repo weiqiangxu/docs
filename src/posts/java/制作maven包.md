@@ -1,12 +1,9 @@
 ---
 title: Maven包制作与使用
 tags:
-  - Maven
+  - java
 categories:
-  - maven
-date: 2024-03-09 06:40:12
-index_img: /images/bg/computer.jpeg
-hide: false
+  - java
 ---
 
 ### 1.IDEA创建一个Maven工具包
