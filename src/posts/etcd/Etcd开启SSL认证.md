@@ -1,8 +1,11 @@
 ---
-hide: true
+title: Etcd开启SSL认证
+category:
+  - etcd
+tag:
+  - etcd
 ---
 
-# docker生成证书开启ssl验证
 
 ### 1. docker生成证书
 ### 2. 使用生成的证书和密钥启动客户端

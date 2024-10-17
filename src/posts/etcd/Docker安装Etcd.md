@@ -1,6 +1,11 @@
 ---
-hide: true
+title: Docker安装Etcd
+category:
+  - etcd
+tag:
+  - etcd
 ---
+
 
 # docker install
 
