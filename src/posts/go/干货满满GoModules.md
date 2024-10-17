@@ -1,13 +1,9 @@
 ---
 title: 干货满满的GoModules
-index_img: /images/bg/文章通用.png
-tags:
-  - golang
-categories:
-  - golang
-date: 2023-04-11 09:40:12
-excerpt: 腾讯内部的代码风格要求
-hide: true
+category:
+  - go
+tag:
+  - go
 ---
 
 # 干货满满的 Go Modules

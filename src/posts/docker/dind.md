@@ -1,8 +1,12 @@
 ---
-hide: true
+title: dind
+icon: object-group
+order: 2
+category:
+  - docker
+tag:
+  - docker
 ---
-
-### docker in docker
 
 1. 官网
 
