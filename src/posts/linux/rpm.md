@@ -1,6 +1,4 @@
----
-hide: true
----
+# RPM
 
 1. 如何安装rpm包
 

@@ -1,6 +1,11 @@
 ---
-title: cpu架构
-hide: true
+title: CPU架构
+icon: object-group
+order: 2
+category:
+  - linux
+tag:
+  - Linux
 ---
 
 ### CPU两大派系

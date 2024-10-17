@@ -1,14 +1,4 @@
----
-title: uname
-index_img: /images/bg/linux.jpeg
-banner_img: /images/bg/5.jpg
-tags:
-  - linux
-categories:
-  - linux
-date: 2023-04-12 18:40:12
-excerpt: 查看linux系统详细信息
----
+# uname
 
 ### 一、实例
 

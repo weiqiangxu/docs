@@ -1,7 +1,4 @@
----
-title: Linux服务器SSH密钥
-hide: true
----
+# Linux服务器SSH密钥
 
 ### 一、本地机器（创建公钥私钥）
 

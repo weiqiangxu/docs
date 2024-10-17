@@ -1,7 +1,13 @@
 ---
-title: float浮点数精度丢失
-hide: true
+title: float浮点精度
+icon: object-group
+order: 2
+category:
+  - linux
+tag:
+  - Linux
 ---
+
 
 [float浮点数精度丢失问题分析](https://zhuanlan.zhihu.com/p/375156201)
 

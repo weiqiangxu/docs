@@ -19,6 +19,21 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
+    {
+      text: "Docker",
+      icon: "book",
+      prefix: "posts/docker/",
+      children: "structure",
+      collapsible: true
+    },
+    {
+      text: "网络",
+      icon: "book",
+      prefix: "posts/network/",
+      children: "structure",
+      collapsible: true
+    },
+
     "intro"
   ],
 });

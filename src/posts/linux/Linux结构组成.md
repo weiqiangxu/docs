@@ -1,16 +1,6 @@
----
-title: Linux结构组成
-index_img: /images/bg/linux.jpeg
-banner_img: /images/bg/5.jpg
-tags:
-  - linux
-categories:
-  - linux
-date: 2023-05-19 11:40:12
-excerpt: Linux的文件系统目录结构理解，从内核到应用程序大致组成
-sticky: 1
-hide: false
----
+# 结构组成
+
+> Linux的文件系统目录结构理解，从内核到应用程序大致组成
 
 ### 一、操作系统结构图
 
