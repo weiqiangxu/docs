@@ -1,15 +1,9 @@
 ---
 title: 如何使用GRE隧道通信
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
 categories:
   - network
-date: 2023-07-06 18:40:12
-excerpt: 部署多个网络命名空间并使用GRE隧道通讯
-sticky: 1
-hide: false
 ---
 
 ### 一、概念

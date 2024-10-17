@@ -1,16 +1,12 @@
 ---
 title: NAT配置公网访问
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
 categories:
-  - kubernetes
-date: 2023-08-20 15:50:12
-excerpt: 使用NAT实现数据转发其中包括DNAT和SNAT实验实现公网访问后转发到局域网的服务以及从内部网络命名空间配置SNAT访问公网服务
-sticky: 1
-hide: false
+  - network
 ---
+
+> 使用NAT实现数据转发其中包括DNAT和SNAT实验实现公网访问后转发到局域网的服务以及从内部网络命名空间配置SNAT访问公网服务
 
 ### 一、概念
 

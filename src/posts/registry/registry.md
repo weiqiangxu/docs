@@ -1,16 +1,12 @@
 ---
 title: registry
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - registry
 categories:
   - kubernetes
-date: 2023-07-05 18:40:12
-excerpt: 了解registry仓库的安装和使用
-sticky: 1
-hide: false
 ---
+
+# registry
 
 ### 1.docker单机启动镜像服务
 

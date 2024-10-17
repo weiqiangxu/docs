@@ -1,16 +1,11 @@
 ---
 title: ipip隧道通讯
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
 categories:
   - network
-date: 2023-08-25 13:40:12
-excerpt: 底层原理位tun设备的Linux原生支持的三层隧道之一的ipip隧道如何配置通讯
-sticky: 1
-hide: false
 ---
+
 
 ### 一、概念
 

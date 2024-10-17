@@ -1,16 +1,12 @@
 ---
 title: chartmuseum
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - chartmuseum
 categories:
   - kubernetes
-date: 2023-07-05 18:40:12
-excerpt: 了解chart仓库的安装和使用
-sticky: 1
-hide: false
 ---
+
+# chartmuseum
 
 ### 1.docker启动单机的chart仓库服务
 

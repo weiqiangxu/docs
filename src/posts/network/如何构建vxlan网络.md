@@ -1,15 +1,9 @@
 ---
 title: 如何构建vxlan网络
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
 categories:
   - network
-date: 2023-08-20 15:40:12
-excerpt: 使用network namespace构建vxlan网络
-sticky: 1
-hide: false
 ---
 
 ### 一、概念

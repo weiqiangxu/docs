@@ -1,16 +1,11 @@
 ---
-title: DNS服务配置有哪些
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: DNS
 tags:
   - network
 categories:
-  - kubernetes
-date: 2023-09-15 15:50:12
-excerpt: 什么是DNS，在Linux上相关的配置有哪些，怎么使用
-sticky: 1
-hide: false
+  - network
 ---
+
 
 ### 一、什么是DNS
 

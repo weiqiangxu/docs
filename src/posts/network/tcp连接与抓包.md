@@ -1,17 +1,9 @@
 ---
-title: tcp连接与抓包
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
+title: TCP连接与抓包
 tags:
   - network
-  - tcp
-  - tcpdump
 categories:
   - network
-date: 2023-06-29 18:40:12
-excerpt: 学习抓包详解tcp连接过程
-sticky: 1
-hide: true
 ---
 
 # tcp连接与抓包

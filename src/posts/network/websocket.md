@@ -1,18 +1,12 @@
 ---
 title: websocket
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
-  - tcp
-  - tcpdump
 categories:
   - network
-date: 2023-06-29 18:40:12
-excerpt: 理解什么是websocket，使用场景以及如何使用
-sticky: 1
-hide: true
 ---
+
+> 理解什么是websocket，使用场景以及如何使用
 
 # websocket
 

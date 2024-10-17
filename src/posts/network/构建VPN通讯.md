@@ -1,16 +1,11 @@
 ---
 title: 构建VPN通讯
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
 categories:
   - network
-date: 2023-08-23 15:40:12
-excerpt: 详解什么是VPN并且使用Golang搭建VPN
-sticky: 1
-hide: true
 ---
+
 
 ### 一、VPN通讯原理
 

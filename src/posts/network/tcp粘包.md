@@ -1,18 +1,12 @@
 ---
 title: tcp粘包
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - network
-  - tcp
-  - tcpdump
 categories:
   - network
-date: 2023-06-29 18:40:12
-excerpt: 理解什么是tcp粘包以及如何解决粘包的问题
-sticky: 1
-hide: true
 ---
+
+> 理解什么是tcp粘包以及如何解决粘包的问题
 
 # tcp 粘包
 

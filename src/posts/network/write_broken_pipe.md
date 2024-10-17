@@ -1,13 +1,9 @@
 ---
 title: broken pipe异常解析
-index_img: /images/bg/文章通用.png
 tags:
-  - golang
+  - network
 categories:
-  - golang
-date: 2023-04-11 09:40:12
-excerpt: 理解什么是在golang和tcp层视角的broken pipe以及如何解决
-hide: true
+  - network
 ---
 
 

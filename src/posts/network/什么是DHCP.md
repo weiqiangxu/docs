@@ -1,16 +1,11 @@
 ---
-title: 什么是DHCP
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: DHCP
 tags:
   - network
 categories:
-  - kubernetes
-date: 2023-09-14 15:50:12
-excerpt: 什么是DHCP，如何分配静态IP，linux上相关的配置有哪些
-sticky: 1
-hide: false
+  - network
 ---
+
 
 ### DHCP概念
 

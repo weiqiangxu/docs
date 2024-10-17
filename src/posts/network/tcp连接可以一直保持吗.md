@@ -1,5 +1,9 @@
 ---
-hide: true
+title: TCP连接可以一直保持吗
+tags:
+  - network
+categories:
+  - network
 ---
 
 1. 建立连接后双方持有socket，在linux文件系统上的表现是什么
