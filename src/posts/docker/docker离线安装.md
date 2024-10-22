@@ -1,4 +1,12 @@
-# docker离线安装
+---
+title: docker离线安装
+icon: object-group
+order: 2
+category:
+  - docker
+tag:
+  - docker
+---
 
 ### 方式一：导出rpm包或者deb包进行离线安装 - 推荐
 

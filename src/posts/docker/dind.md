@@ -8,6 +8,10 @@ tag:
   - docker
 ---
 
+### 什么是dind
+
+> kubernetes的编译需要用到dind，就是docker内部启动一个容器用于编译镜像，在gitlab的CI的时候可以使用
+
 1. 官网
 
 [https://github.com/jpetazzo/dind](https://github.com/jpetazzo/dind)
@@ -34,13 +38,14 @@ $ docker run --privileged -d docker:dind
 - docker buildx create 创建builder如何指定配置
 
 使用 `docker buildx create --config path/to/config.toml`指定配置设置
+
 ``` yml
 [registry."registry.tencent.net"]
     http = true
     insecure = true
 ```
-可以防止出现SSL验证错误的问题
 
+可以防止出现SSL验证错误的问题
 
 - runner的内部容器执行 go mod 拉取go私有库依赖错误如何解决
 

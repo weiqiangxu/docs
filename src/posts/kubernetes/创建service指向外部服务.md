@@ -1,15 +1,11 @@
 ---
 title: 创建service和endpoints指向外部服务
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
+icon: object-group
+order: 2
+category:
   - kubernetes
-categories:
+tag:
   - kubernetes
-date: 2023-04-18 18:40:12
-excerpt: 如何在k8s之中集成kata
-sticky: 1
-hide: true
 ---
 
 

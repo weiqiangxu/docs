@@ -1,9 +1,9 @@
 ---
-title: 配置Nginx服务SSL
+title: 开启SSL验证
 tags:
-  - docker
+  - Nginx
 categories:
-  - docker
+  - Nginx
 ---
 
 > 如何生成SSL证书并且应用于Nginx服务开启https
@@ -57,7 +57,8 @@ server {
     ssl_prefer_server_ciphers on;
     location / {
         #网站主页路径。此路径仅供参考，具体请您按照实际目录操作。
-        #例如，您的网站主页在 Nginx 服务器的 /etc/www 目录下，则请修改 root 后面的 html 为 /etc/www。
+        #例如，您的网站主页在 Nginx 服务器的 /etc/www 目录下，
+        # 则请修改 root 后面的 html 为 /etc/www。
         root   /usr/share/nginx/html;
         index  index.html index.htm;
     }

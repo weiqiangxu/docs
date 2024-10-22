@@ -1,8 +1,14 @@
 ---
-hide: true
+title: buildx
+icon: object-group
+order: 2
+category:
+  - docker
+tag:
+  - docker
 ---
 
-1. 官网
+### 1.官网
 
 [https://github.com/docker/buildx](https://github.com/docker/buildx)
 [https://github.com/moby/buildkit](https://github.com/moby/buildkit)
@@ -12,7 +18,7 @@ hide: true
 本质上是 buildx 调用 buildkit 实现多架构编译，例如linux/amd64，linux/arm64、 或 darwin/amd64，--platform 指定目标架构。
 
 
-2. 如何进行多架构编译
+### 2.如何进行多架构编译
 
 ``` bash
 # 基础镜像
@@ -25,7 +31,7 @@ EOF
 ```
 
 ``` bash
-$ docker buildx build --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/386,linux/ppc64le,linux/s390x -t 435861851/buildx:v0.0.1 .
+$ docker buildx build --platform linux/amd64,linux/arm64/v8 -t 435861851/buildx:v0.0.1 .
 # 查看镜像信息
 $ docker buildx imagetools inspect 435861851/buildx:v0.0.1
 ```

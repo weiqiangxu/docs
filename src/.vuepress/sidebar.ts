@@ -55,9 +55,16 @@ export default sidebar({
       collapsible: true
     },
     {
-      text: "CNI",
+      text: "Nginx",
       icon: "book",
-      prefix: "posts/cni/",
+      prefix: "posts/nginx/",
+      children: "structure",
+      collapsible: true
+    },
+    {
+      text: "Kubernetes",
+      icon: "book",
+      prefix: "posts/kubernetes/",
       children: "structure",
       collapsible: true
     },

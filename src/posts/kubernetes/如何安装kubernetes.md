@@ -1,15 +1,15 @@
 ---
 title: 如何安装kubernetes
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
+icon: object-group
+order: 2
+category:
   - kubernetes
-categories:
+tag:
   - kubernetes
-date: 2023-04-18 18:40:12
-excerpt: 使用kubeadm搭建kubenertes环境
-sticky: 1
 ---
+
+> 使用kubeadm搭建kubenertes环境
+
 
 ### 一、环境准备
 

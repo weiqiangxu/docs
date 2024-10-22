@@ -1,18 +1,8 @@
 ---
 title: 制作镜像编译kata
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - golang
   - cicd
-  - dockerfile
-  - image
-  - katacontainers
-categories:
-  - docker
-date: 2023-04-21 18:40:12
-excerpt: 基于centos制作一个具备编译kata环境的镜像，golang\gcc\git，以及镜像推送步骤
-sticky: 1
 ---
 
 ### 一、编写Dockerfile

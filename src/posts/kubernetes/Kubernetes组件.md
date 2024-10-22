@@ -1,5 +1,11 @@
 ---
-hide: true
+title: Kubernetes组件
+icon: object-group
+order: 2
+category:
+  - docker
+tag:
+  - docker
 ---
 
 # Kubernetes 组件介绍

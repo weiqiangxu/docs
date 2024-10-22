@@ -1,15 +1,9 @@
 ---
 title: 制作helm包和自建Chart仓库
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - helm
 categories:
   - kubernetes
-date: 2023-06-01 16:28:12
-excerpt: 介绍如何使用image镜像制作helm包，自建仓库，以及使用自建仓库部署
-sticky: 1
-hide: false
 ---
 
 ### 一、Helm相关概念

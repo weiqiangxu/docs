@@ -1,5 +1,5 @@
 ---
-title: 安装nginx-ingress访问pod-nginx服务
+title: Nginx-Ingress安装
 tags:
   - kubernetes
 categories:
@@ -8,7 +8,7 @@ categories:
 
 ### 1. nginx pod
 
-```yml
+``` yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -21,7 +21,6 @@ spec:
    image: nginx:latest
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -48,11 +47,11 @@ $ helm upgrade --install ingress-nginx ingress-nginx \
 
 
 # 更改镜像地址
-# image: k8s.gcr.io/ingress-nginx/controller:v1.1.1@sha256:0bc88eb15f9e7f84e8e56c14fa5735aaa488b840983f87bd79b1054190e660de
+# image: k8s.gcr.io/ingress-nginx/controller:v1.1.1@sha256:xxx
 # 变成
 # image: registry.cn-hangzhou.aliyuncs.com/google_containers/nginx-ingress-controller:v1.1.1
 
-# image: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1@sha256:64d8c73dca984af206adf9d6d7e46aa550362b1d7a01f3a0a91b20cc67868660
+# image: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1@sha256:xxx
 # 变成
 # image: registry.cn-hangzhou.aliyuncs.com/google_containers/kube-webhook-certgen:v1.1.1
 

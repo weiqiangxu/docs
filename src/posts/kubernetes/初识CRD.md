@@ -1,18 +1,14 @@
 ---
 title: 初识CRD
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
+icon: object-group
+order: 2
+category:
   - kubernetes
-categories:
+tag:
   - kubernetes
-date: 2023-04-23 18:40:12
-excerpt: 介绍如何使用CRD
-sticky: 1
-hide: false
 ---
 
-### quick start
+### 1.创建自定义资源
 
 ``` bash
 $ touch resourcedefinition.yaml
@@ -99,12 +95,12 @@ $ kubectl get ct -o yaml
 $ kubectl delete -f resourcedefinition.yaml
 ```
 
-### 相关资料
+### 2.相关资料
 
 [Kubernetes文档/概念/扩展Kubernetes/扩展KubernetesAPI/定制资源](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
 [Kubernetes文档/使用CustomResourceDefinition扩展KubernetesAPI](https://kubernetes.io/zh-cn/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
 
-### Q&A
+### QA
 
 - k8s的spec.scope干嘛的
    Kubernetes中的spec.scope用于指定资源对象的范围，例如Pod的范围可以是cluster（集群级别）或namespace（命名空间级别）。这个参数通常用于为用户控制资源对象的访问范围，以确保安全性和隔离性。
@@ -124,3 +120,7 @@ $ kubectl delete -f resourcedefinition.yaml
     `spec` 是 Kubernetes 控制器的核心输入对象。Kubernetes 控制器根据 `spec` 中的规范，将 Kubernetes 对象的实际状态调整为用户期望的状态。如果实际状态与 `spec` 中规定的状态不匹配，则 Kubernetes 控制器会根据设定的策略进行自动修复，以达到用户期望的状态。
     总之，`spec` 提供了 Kubernetes 对象的期望状态和属性，是 Kubernetes 控制器自动管理和操作 Kubernetes 对象的关键输入。
 
+
+[github/code-generator](https://github.com/kubernetes/code-generator)
+[code-generator简单介绍](https://juejin.cn/post/7096484178128011277)
+[kubernetes/sample-controller](https://github.com/kubernetes/sample-controller)

@@ -1,16 +1,14 @@
 ---
-title: 在docker之中集成kata
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
-tags:
+title: 集成kata
+icon: object-group
+order: 2
+category:
   - docker
-  - kata
-categories:
-  - kubernetes
-date: 2023-04-18 18:40:12
-excerpt: 如何在docker之中使用kata
-sticky: 1
+tag:
+  - docker
 ---
+
+> 理解CRI标准
 
 
 ### 一、离线安装Docker

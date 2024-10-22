@@ -1,18 +1,10 @@
 ---
-title: 制作镜像编译k8s以及CICD流程
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: CI制作多架构镜像
 tags:
-  - golang
   - cicd
   - dockerfile
-  - image
-  - katacontainers
 categories:
   - docker
-date: 2023-04-21 18:40:12
-excerpt: 制作镜像支持golang编译环境\git认证\go mod私有库环境\dind\buildx多架构编译\harbor环境
-sticky: 1
 ---
 
 ### 一、总览
@@ -43,7 +35,7 @@ project
     └── .ssh
 ```
 
-2. Dockerfile
+2. 编写Dockerfile制作构建的基础镜像
 
 ``` bash
 FROM docker:dind
@@ -77,7 +69,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && mv /tmp/.ssh ~
 ```
 
-3. buildkitd.toml
+3. 开启buildkitd支持多架构镜像制作
 
 ``` yml
 [registry."registry.company.net"]
@@ -85,7 +77,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     insecure = true
 ```
 
-4. daemon.json
+4. 配置daemon.json开启buildkit和
 
 ``` json
 {
@@ -98,7 +90,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 }
 ```
 
-5. docker-config.json
+5. 配置docker-config.json跳过registry私服SSL验证
 
 ``` json
 {
@@ -110,7 +102,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 }
 ```
 
-5. .ssh是git库认证的密钥
+> .ssh是git库认证的密钥
 
 ### 三、构建镜像
 
@@ -137,18 +129,22 @@ $ docker push registry.company.net/devops/my-builder:v0.0.1
 2. 在容器之中编译
 
 ``` bash
-# 注意 docker run 后面不能带上 /bin/bash 否则会导致 ENTRYPOINT 被覆盖从而 docker daemon无法启动
+# 注意 docker run 后面不能带上 /bin/bash 否则会
+# 导致 ENTRYPOINT 被覆盖从而 docker daemon无法启动
 # 因为会覆盖镜像内部的CMD指令
 # 跟在镜像名后面的是 command，运行时会替换 CMD 的默认值
-$ docker run -itd --privileged=true registry.company.net/devops/my-builder:v0.0.1
+$ docker run -itd --privileged=true \
+  registry.company.net/devops/my-builder:v0.0.1
 
-$ docker run -v "/Users/xuweiqiang/Documents/project:/home/project" -itd --privileged=true registry.company.net/devops/my-builder:v0.0.1
+$ docker run -v "/Users/xuweiqiang/Documents/project:/home/project" \
+  -itd --privileged=true registry.company.net/devops/my-builder:v0.0.1
 
 # 创建一个新的 buildx 构建器，并将其设置为当前正在使用的构建器
 # 以便在运行 Docker 构建命令时可以使用该构建器进行构建
 # 通过 network=host 指定共享主机网络
 # 在容器containerd内部执行的
-$ docker buildx create --config /etc/buildkit/buildkitd.toml --append --driver-opt network=host --use
+$ docker buildx create --config /etc/buildkit/buildkitd.toml \
+  --append --driver-opt network=host --use
 
 $ cd /home/project
 $ ./build.sh start

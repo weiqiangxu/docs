@@ -43,7 +43,7 @@ $ kubectl apply -f <add-on.yaml>
 
 ### 五、只有 [CNI/plugins](https://github.com/containernetworking/plugins) 可以安装好k8s的网络吗
 
-   不是的，除了 https://github.com/containernetworking/plugins 还有很多其他的网络插件可以用于Kubernetes，比如：Calico、Flannel、Weave Net、Cilium等等。可以根据自己的需求选择适合的网络插件来部署Kubernetes集群。
+不是的，除了 https://github.com/containernetworking/plugins 还有很多其他的网络插件可以用于Kubernetes，比如：Calico、Flannel、Weave Net、Cilium等等。可以根据自己的需求选择适合的网络插件来部署Kubernetes集群。
 
 ### 六、CNI如何工作的
 

@@ -1,9 +1,9 @@
 ---
-title: 如何使用CNI给docker容器分配网络
+title: 用CNI给docker容器分配网络
 tags:
-  - docker
+  - kubernetes
 categories:
-  - docker
+  - kubernetes
 ---
 
 > 使用docker创建无网络的容器，然后使用CNI插件手动分配网卡和网桥等
@@ -77,12 +77,15 @@ EOF
 
 ``` bash
 $ sudo ip netns add 1234567890
-$ sudo CNI_COMMAND=ADD CNI_CONTAINERID=1234567890 CNI_NETNS=/var/run/netns/1234567890 CNI_IFNAME=eth12 CNI_PATH=`pwd` ./bridge <mybridge.conf
+$ sudo CNI_COMMAND=ADD CNI_CONTAINERID=1234567890 \
+    CNI_NETNS=/var/run/netns/1234567890 CNI_IFNAME=eth12 \
+    CNI_PATH=`pwd` ./bridge <mybridge.conf
 # 查看我们的主机 iptables 规则，我们将看到伪装和接受规则.
 $ sudo iptables-save | grep mybridge
 # 通常情况下，容器运行时会创建netns，这里我们手动创建
 $ sudo ip netns exec 1234567890 ifconfig
-#　设备eth12的IP地址配置为10.15.20.2，子网掩码为255.255.255.0（/24表示子网掩码），并将该设备的网络范围设置为本地链接（scope link）
+# 设备eth12的IP地址配置为10.15.20.2，子网掩码为255.255.255.0（/24表示子网掩码）
+# 并将该设备的网络范围设置为本地链接（scope link）
 $ sudo ip netns exec 1234567890 ip route
 
 # 命名空间有一个名为“eth12”的接口，IP 地址为 10.15.20.2/24
@@ -104,9 +107,13 @@ eth12: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 # "proto kernel"表示该路由是由内核自动生成的。 "scope link" 表示该路由只适用于本地链路
 $ sudo ip netns exec 1234567890 ip route
 
-default via 10.15.20.1 dev eth12                                 #  "dev" 是指指定该路由器的出口网络接口，即数据包是从哪个网络接口发送出去的, 默认路由通过 eth12 网络接口，经过 10.15.20.1 这个下一跳地址进行转发
-1.1.1.1 via 10.15.20.1 dev eth12                                 #  "via" 是指默认路由的下一跳地址，即数据包需要经过哪个路由器进行转发
-10.15.20.0/24 dev eth12 proto kernel scope link src 10.15.20.2   #  "src" 是指源IP地址，即指定该路由器发送数据包的源IP地址
+# "dev" 是指指定该路由器的出口网络接口，即数据包是从哪个网络接口发送出去的
+# 默认路由通过 eth12 网络接口，经过 10.15.20.1 这个下一跳地址进行转发
+default via 10.15.20.1 dev eth12                    
+#  "via" 是指默认路由的下一跳地址，即数据包需要经过哪个路由器进行转发             
+1.1.1.1 via 10.15.20.1 dev eth12                              
+#  "src" 是指源IP地址，即指定该路由器发送数据包的源IP地址   
+10.15.20.0/24 dev eth12 proto kernel scope link src 10.15.20.2
 
 # 查看网桥配置可以看到netns内部网卡eth12的veth pair对端网卡是vethb4336cfa
 $ brctl show
@@ -148,3 +155,6 @@ CNI_PATH=`pwd`  – 我们总是需要告诉 CNI 插件可执行文件所在的�
 您需要命令 pwd 周围的刻度线才能正确评估。此处的格式似乎正在删除它们，但它们在上面的命令中正确
 我们使用 STDIN 将网络配置文件提供给插件
 ```
+
+[什么是 Service Mesh](https://zhuanlan.zhihu.com/p/61901608)
+[istio是什么](https://istio.io/latest/zh/docs/concepts/what-is-istio/)
