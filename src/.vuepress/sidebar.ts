@@ -68,6 +68,13 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
+    {
+      text: "Network",
+      icon: "book",
+      prefix: "posts/network/",
+      children: "structure",
+      collapsible: true
+    },
     "intro"
   ],
 });
