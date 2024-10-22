@@ -54,6 +54,13 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
+    {
+      text: "CNI",
+      icon: "book",
+      prefix: "posts/cni/",
+      children: "structure",
+      collapsible: true
+    },
     "intro"
   ],
 });

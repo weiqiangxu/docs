@@ -1,16 +1,13 @@
 ---
 title: 配置Nginx服务SSL
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - docker
 categories:
   - docker
-date: 2024-01-19 18:40:12
-excerpt: 如何生成SSL证书并且应用于Nginx服务开启https
-sticky: 1
-hide: false
 ---
+
+> 如何生成SSL证书并且应用于Nginx服务开启https
+
 
 ### 1.创建证书
 

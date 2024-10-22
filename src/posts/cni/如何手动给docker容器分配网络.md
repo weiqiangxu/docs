@@ -1,15 +1,12 @@
 ---
 title: 如何手动给docker容器分配网络
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
-  - kubernetes
+  - docker
 categories:
-  - kubernetes
-date: 2023-06-29 18:40:12
-excerpt: 创建无网络的docker容器然后手动分配网络
-sticky: 1
+  - docker
 ---
+
+> 创建无网络的docker容器然后手动分配网络
 
 ### 一、环境准备
 

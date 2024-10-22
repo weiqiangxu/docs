@@ -1,15 +1,12 @@
 ---
 title: 如何配置静态路由
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
-  - network
+  - kubernetes
 categories:
-  - linux
-date: 2023-04-23 18:40:12
-excerpt: 熟悉常用的指令比如ip\route\ping\telnet\netestat等
-sticky: 1
+  - kubernetes
 ---
+
+> 熟悉常用的指令比如ip\route\ping\telnet\netestat等
 
 ### 一、什么是静态路由
 

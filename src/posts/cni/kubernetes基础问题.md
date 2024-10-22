@@ -1,15 +1,12 @@
 ---
 title: kubernetes基础问题
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-01-19 18:40:12
-excerpt: 常见的k8s问题汇总巩固基础
-sticky: 1
 ---
+
+> 常见的k8s问题汇总巩固基础
 
 1. 集群的cluser ip 可以直接访问吗
 2. network policy

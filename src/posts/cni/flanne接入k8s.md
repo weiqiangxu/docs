@@ -1,15 +1,12 @@
 ---
 title: flannel接入k8s
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
-  - flannel
+  - kubernetes
 categories:
   - kubernetes
-date: 2023-07-05 18:40:12
-excerpt: kubernetes网络解决方案flannel如何使用，拓扑图理解
-sticky: 1
 ---
+
+> kubernetes网络解决方案flannel如何使用，拓扑图理解
 
 ### 1.kubernetes如何接入flannale
 

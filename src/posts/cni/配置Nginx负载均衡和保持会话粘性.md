@@ -1,15 +1,12 @@
 ---
 title: 配置Nginx负载均衡和保持会话粘性
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - docker
 categories:
   - docker
-date: 2023-08-19 18:40:12
-excerpt: 配置Nginx实现负载均衡转发请求和保持会话粘性
-sticky: 1
 ---
+
+> 配置Nginx实现负载均衡转发请求和保持会话粘性
 
 ### 一、如何配置负载均衡同一个域名均衡给多个服务
 

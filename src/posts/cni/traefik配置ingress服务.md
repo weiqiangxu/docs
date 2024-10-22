@@ -1,15 +1,12 @@
 ---
 title: 配置traefik的ingress服务
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-01-19 18:40:12
-excerpt: 在docker或者k8s集群内部安装traefik并且配置ingress访问内部服务
-sticky: 1
 ---
+
+> 在docker或者k8s集群内部安装traefik并且配置ingress访问内部服务
 
 ### 一、docker配置traefik访问Nginx服务
 

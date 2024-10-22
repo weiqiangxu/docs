@@ -1,15 +1,12 @@
 ---
 title: iperf用法
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
-  - iperf
+  - kubernetes
 categories:
   - kubernetes
-date: 2023-04-23 18:40:12
-excerpt: iperf压测网速
-sticky: 1
 ---
+
+> iperf压测网速
 
 ### 一、工具用途
 

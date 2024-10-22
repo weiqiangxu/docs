@@ -1,15 +1,12 @@
 ---
 title: 配置Nginx域名指向不同的服务
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - docker
 categories:
   - docker
-date: 2024-01-19 18:40:12
-excerpt: 通过Nginx使用不同的域名指向不同的服务
-sticky: 1
 ---
+
+> 通过Nginx使用不同的域名指向不同的服务
 
 ### 1.配置和启动Nginx
 

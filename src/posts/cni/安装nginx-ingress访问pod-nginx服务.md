@@ -1,14 +1,9 @@
 ---
 title: 安装nginx-ingress访问pod-nginx服务
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-01-19 18:40:12
-excerpt: 创建nginx-pod和相关service
-sticky: 1
 ---
 
 ### 1. nginx pod

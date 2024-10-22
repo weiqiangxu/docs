@@ -1,5 +1,9 @@
 ---
-hide: true
+title: cilium
+tags:
+  - kubernetes
+categories:
+  - kubernetes
 ---
 
 #### 1.如何kubeadm创建集群的时候默认添加节点污点

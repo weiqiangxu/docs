@@ -1,15 +1,12 @@
 ---
 title: 如何使用CNI给docker容器分配网络
-index_img: /images/bg/network.png
-banner_img: /images/bg/computer.jpeg
 tags:
-  - kubernetes
+  - docker
 categories:
-  - kubernetes
-date: 2023-06-29 18:40:12
-excerpt: 使用docker创建无网络的容器，然后使用CNI插件手动分配网卡和网桥等
-sticky: 1
+  - docker
 ---
+
+> 使用docker创建无网络的容器，然后使用CNI插件手动分配网卡和网桥等
 
 ### 1.安装docker和cni plugins
 

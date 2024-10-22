@@ -1,5 +1,9 @@
 ---
-hide: true
+title: eBPF工具库
+tags:
+  - kubernetes
+categories:
+  - kubernetes
 ---
 
 1. 工具库
