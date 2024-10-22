@@ -1,5 +1,9 @@
 ---
-hide: true
+title: MySQL集群搭建
+tags:
+  - kubernetes
+categories:
+  - kubernetes
 ---
 
 ### 开源安装包

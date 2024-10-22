@@ -1,14 +1,9 @@
 ---
-title: containerd和kata&firecracker环境搭建
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: kata&firecracker环境搭建
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-04-23 18:40:12
-excerpt: 安装containerd和kata，测试kata-qemu和kata-firecracker
-sticky: 1
 ---
 
 ### 一、环境

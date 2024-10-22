@@ -1,11 +1,9 @@
 ---
-title: kubectl一些常用的命令
+title: kubectl常用的命令
 tags:
   - kubectl
 categories:
   - kubernetes
-date: 2023-04-08 06:40:12
-index_img: /images/bg/computer.jpeg
 ---
 
 ### 命令式对象管理
@@ -380,14 +378,4 @@ $ kubectl  delete  -f  svc-nginx.yaml
 ``` bash
 $ kubectl get po -o wide -n github
 ```
-
-
-
-
-
-
-
-
-
-
 
