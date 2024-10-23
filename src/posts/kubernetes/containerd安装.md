@@ -1,14 +1,9 @@
 ---
 title: containerd安装
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-05-06 18:40:12
-excerpt: 安装containerd和扩展
-sticky: 1
 ---
 
 ### 一、环境

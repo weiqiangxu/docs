@@ -1,7 +1,5 @@
 ---
 title: CPU架构
-icon: object-group
-order: 2
 category:
   - linux
 tag:

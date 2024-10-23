@@ -6,7 +6,7 @@ export default defineUserConfig({
   base: "/",
 
   lang: "zh-CN",
-  title: "QuickStart程序员",
+  title: "笔记本",
   description: "这是一个笔记本",
 
   theme,

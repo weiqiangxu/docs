@@ -1,21 +1,20 @@
 ---
-title: runner 在docker中安装
-hide: true
+title: Runner安装应用到CI
 ---
-# runner
 
-1. docker安装
+### 1.安装docker
+
 ``` bash
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
 sudo systemctl start docker
 ```
 
-2. 登录gitlab获取token
+### 2.登录gitlab获取token
 
 > http://localhost:8899/admin/runners
 
-3. 安装runner [本地卷]
+### 3.安装runner [本地卷]
 
 ``` bash
 mkdir -p /home/gitlab-runner/config
@@ -35,8 +34,9 @@ docker run -d --name gitlab-runner --restart always \
 $ docker run --rm -it  -v /home/runner:/home/runner -v /home/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register
 ```
 
-4. 详细的配置过程
 ``` bash
+# runner配置注册到gitlab过程
+
 docker run --rm -it -v /home/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register
 
 Enter the GitLab instance URL (for example, https://gitlab.com/):
@@ -61,7 +61,7 @@ Enter the default Docker image (for example, ruby:2.6):
 Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
 ```
 
-5. 注册成功后在gitlab可以看到runner
+### 5.注册成功后在gitlab可以看到runner
 
 > http://43.156.75.90:8899/admin/runners
 
@@ -141,7 +141,7 @@ check_interval = 0
 docker restar {$container_id}
 ```
 
-# gitlab ci 编写
+#### gitlab ci 编写
 ``` bash
 image: docker:git
 services:
@@ -156,22 +156,98 @@ job_build_prod:
     - docker version
 ```
 
-# 报错信息
-``` bash
-------
- > [internal] load metadata for registry.bingosoft.net/bingokube/kube-cross:v1.22.0-go1.16.15-buster.0:
-------
-------
- > [1/13] FROM registry.bingosoft.net/bingokube/kube-cross:v1.22.0-go1.16.15-buster.0:
-------
-ERROR: failed to solve: failed to solve with frontend dockerfile.v0: failed to build LLB: failed to load cache key: failed to do request: Head https://registry.bingosoft.net/v2/bingokube/kube-cross/manifests/v1.22.0-go1.16.15-buster.0: x509: certificate is valid for i-8F7F43E8, not registry.bingosoft.net
-```
-[Kubernetes学习(解决x509 certificate is valid for xxx, not yyy)](https://izsk.me/2021/01/20/Kubernetes-x509-not-ip/)
 
+#### Go的CI的镜像
+
+```Dockerfile
+FROM golang:latest
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.49.0
+RUN golangci-lint --version
+```
+
+#### Gitlab的CI编写
+
+1. 编写.gitlab-ci.yml文件
+
+2. 通过tags和runner关联
+
+```yaml
+stages:
+  - build
+  - deploy
+
+image: alpine
+
+build:
+  stage: build
+  tags :
+    - test
+  script:
+    - echo "build success"
+
+deploy:
+  stage: deploy
+  tags :
+    - test
+  script:
+    - echo "deploy success"
+```
+
+3. k8s build && deploy
+
+```yaml
+# 开发环境
+build-k8s-develop:
+  stage: build-k8s
+  tags:
+    - ack-runner
+  script:
+    - make build-k8s-develop
+  cache:
+    key: go-cache-${CI_PROJECT_PATH_SLUG}
+    paths:
+      - go/
+  only:
+    refs:
+      - develop
+      - /^feature\/.*/
+```
+
+```bash
+build-k8s-develop: ci/binary Dockerfile
+	@docker login -u $(TRI_USER) -p $(TRI_PWD) $(TRI_HOST)
+	@docker build -q -t $(DOCKER_IMAGE_DEVELOP):$(DEV_TAG) .
+	@docker push $(DOCKER_IMAGE_DEVELOP):$(DEV_TAG)
+	@rm $(NAME) Dockerfile
+```
+
+```bash
+deploy-k8s/develop:
+	@cd /builds &&\
+	git clone https://$(CI_USERNAME):$(CI_PASSWORD)@git.net/devops/kustomize.git &&\
+	cd kustomize/develop/overlays/$(NAME) &&\
+	/usr/local/bin/kustomize edit set image default_image=$(DOCKER_IMAGE_DEVELOP):$(DEV_TAG) &&\
+	git add . &&\
+	git commit -am "update $(PROJECT_NAME) develop kustomize config " &&\
+	git pull &&\
+	git push origin main || sleep 1 && git pull && git push origin main || echo "nothing to commit" &&\
+	echo "xxxx->$(ARGO_HOST)" &&\
+	echo y | /usr/local/bin/argocd --grpc-web --insecure login $(ARGO_HOST)  --username $(ARGO_USER) --password $(ARGO_PWD) &&\
+	/usr/local/bin/argocd  app sync $(NEW_NAME) || echo "argo sync failed"
+```
 
 ### 参考文章
 
-[GitLab Runner介绍及安装](https://zhuanlan.zhihu.com/p/441581000)
-[docker中安装runner](https://docs.gitlab.cn/runner/install/docker.html)
-[注册docker.runner到gitlab](https://docs.gitlab.cn/runner/register/index.html#docker)
-[简书gitlab+GitLab Runner注册](https://www.jianshu.com/p/a096ebd62275)
+- [GitLab Runner介绍及安装](https://zhuanlan.zhihu.com/p/441581000)
+- [docker中安装runner](https://docs.gitlab.cn/runner/install/docker.html)
+- [注册docker.runner到gitlab](https://docs.gitlab.cn/runner/register/index.html#docker)
+- [简书gitlab+GitLab Runner注册](https://www.jianshu.com/p/a096ebd62275)
+- [runner概念](https://docs.gitlab.cn/runner/)
+- [官方手册CI概念](https://docs.gitlab.cn/jh/ci/index.html)
+- [Gitlab的CICD的QuickStart](https://docs.gitlab.cn/jh/ci/quick_start/index.html)
+- [官方手册build_your_application](https://docs.gitlab.cn/jh/topics/build_your_application.html)
+- [https://docs.gitlab.com/ee/ci/](https://docs.gitlab.com/ee/ci/)
+- [基本管道](https://docs.gitlab.com/ee/ci/pipelines/pipeline_architectures.html#basic-pipelines)
+- [gitlab_ci_yaml编写规则](https://docs.gitlab.cn/jh/ci/yaml/gitlab_ci_yaml.html)
+- [手把手教学编写gitlab-ci.yml文件以及应用](https://blog.csdn.net/qq_27759825/article/details/124691745)
+- [Kubernetes学习(解决x509 certificate is valid for xxx, not yyy)](https://izsk.me/2021/01/20/Kubernetes-x509-not-ip/)

@@ -27,13 +27,6 @@ export default sidebar({
       collapsible: true
     },
     {
-      text: "网络",
-      icon: "book",
-      prefix: "posts/network/",
-      children: "structure",
-      collapsible: true
-    },
-    {
       text: "prometheus",
       icon: "book",
       prefix: "posts/prometheus/",
@@ -72,6 +65,13 @@ export default sidebar({
       text: "Network",
       icon: "book",
       prefix: "posts/network/",
+      children: "structure",
+      collapsible: true
+    },
+    {
+      text: "Git",
+      icon: "book",
+      prefix: "posts/git/",
       children: "structure",
       collapsible: true
     },

@@ -1,20 +1,18 @@
----
-hide: true
----
 # 如何安装gitlab
 
-### Linux上安装gitlab
+### 一、Linux上安装gitlab
 
 [gitlab.cn/install中文安装手册](https://gitlab.cn/install/)
 
 1. install in CentOS [其他安装看相关文章的“官方install手册”]
 
-```
+```bash
 gitlab/gitlab-ee：完整的 GitLab 软件包，包含所有社区版功能以及 企业版功能
 gitlab/gitlab-ce：一个精简的包，仅包含社区版功能
 gitlab/unstable: 发布候选版本和其他不稳定版本
 ```
-```
+
+```bash
 # RHEL/CentOS 6 and 7
 
 $ curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
@@ -24,7 +22,7 @@ $ The repository is setup! You can now install packages.
 $ sudo EXTERNAL_URL="http://127.0.0.1:8899" yum install -y gitlab-jh
 ```
 
-```
+```bash
 # 更新配置
 gitlab-ctl reconfigure
 
@@ -34,23 +32,20 @@ gitlab-ctl restart
 
 2. 查看并修改密码
 
-```
+```bash
 cat /etc/gitlab/initial_root_password
 ```
 
 3. 访问gitlab
 
-
-### 内容配置
-
-```
+```bash
 # https://docs.gitlab.com/ee/administration/operations/puma.html
 puma['per_worker_max_memory_mb'] = 1024
 ```
 
-### 常用的一些命令
+### 二、常用的一些命令
 
-```
+```bash
 # 启动服务
 gitlab-ctl start
 
@@ -83,9 +78,9 @@ gitlab-ctl stop sidekiq
 gitlab-rake gitlab:env:info
 ```
 
-### GitLab-2.配置外网映射之后clone地址还是内网地址
+### 三、GitLab-2.配置外网映射之后clone地址还是内网地址
 
-```
+```bash
 cd /opt/gitlab/embedded/service/gitlab-rails/config
 
 vim gitlab.yml
@@ -98,11 +93,10 @@ gitlab_rails['initial_root_password'] = '<my_strong_password>'
 
 ```
 
-### 极狐查看用户信息
+### 四、极狐查看用户信息
 
-```
+```bash
 curl http://127.0.0.1:8899/api/v4/users?username=root
-
 
 vim /etc/gitlab/gitlab.rb
 
