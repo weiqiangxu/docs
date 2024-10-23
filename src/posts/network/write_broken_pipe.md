@@ -1,5 +1,5 @@
 ---
-title: broken pipe异常解析
+title: write_broken_pipe
 tags:
   - network
 categories:

@@ -1,11 +1,10 @@
 ---
-title: 使用tun设备隧道通信
+title: VPN通讯
 tags:
   - network
 categories:
   - network
 ---
-
 
 ### 一、概念
 
@@ -84,7 +83,7 @@ vti：即虚拟隧道接口（Virtual Tunnel Interface），是 cisco 提出的�
 
 
 
-### 二、VPN
+### 二、Go程序搭建VPN服务器
 
 1. 创建Tun设备
 
@@ -174,6 +173,9 @@ func main() {
 
 ### 五、tun设备数据转tap经vrouter三层转发
 
+
+### 六、常用的开源VPN软件搭建VPN
+
 ### 相关疑问
 
 - 客户端使用openvpn访问web服务流程
@@ -237,3 +239,4 @@ ip netns exec <namespace> ip route add default via <gateway>
 - [Linux 网络虚拟化技术（五）隧道技术](https://www.rectcircle.cn/posts/linux-net-virual-05-tunnel/)
 - [Linux虚拟网络设备之tun/tap](https://segmentfault.com/a/1190000009249039)
 - [https://github.com/go-gost/gost](https://github.com/go-gost/gost)
+- [https://gost.run/getting-started/quick-start/](https://gost.run/getting-started/quick-start/)
