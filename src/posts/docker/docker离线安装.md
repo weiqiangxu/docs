@@ -1,7 +1,5 @@
 ---
 title: docker离线安装
-icon: object-group
-order: 2
 category:
   - docker
 tag:

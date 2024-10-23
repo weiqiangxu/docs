@@ -1,17 +1,12 @@
 ---
-title: k8s之中使用loki存档审计日志
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: k8s审计日志
 tags:
   - loki
-  - promtail
-  - audit
 categories:
   - kubernetes
-date: 2023-06-12 09:40:12
-excerpt: 如何开启k8s的审计日志以及如何配置审计日志记录策略、解读k8s的apiserver关于审计日志的源码逻辑，了解loki如何采集日志并且http API接口查看日志
-sticky: 1
 ---
+
+> 如何开启k8s的审计日志以及如何配置审计日志记录策略、解读k8s的apiserver关于审计日志的源码逻辑，了解loki如何采集日志并且http API接口查看日志.
 
 ### 一、loki存档审计日志架构图
 
@@ -83,18 +78,14 @@ func (p *policyRuleEvaluator) EvaluatePolicyRule(attrs authorizer.Attributes)
 type audit.PolicyRule
 ```
 
-[apiserver handler request过滤器校验审计日志规则源码](https://github.com/kubernetes/apiserver/blob/v0.27.2/pkg/audit/policy/checker.go)
-[xuweiqiang's blog 如何配置静态pod apiserver开启审计日志](https://weiqiangxu.github.io/2023/05/23/k8s/kubernetes%E5%AE%A1%E8%AE%A1%E6%97%A5%E5%BF%97/)
-
 ### 三、日志写入策略
 
 日志写入标准输出，标准输出默认挂载至宿主机目录 `/var/log/containers/` 的文件 `<POD-NAME>_<CONTAINER-NAME>_<CONTAINER-ID>.log` 之中，比如 `kube-apiserver-k8s-master_kube-system_kube-apiserver-xxx.log` 日志文件。
 
 ### 四、创建loki\promtail采集日志
 
-[xuweiqiang's blog 在k8s之中部署loki服务存储日志](https://weiqiangxu.github.io/2023/06/03/loki/%E5%9C%A8k8s%E5%88%9B%E5%BB%BAloki%E6%9C%8D%E5%8A%A1%E9%87%87%E9%9B%86%E6%97%A5%E5%BF%97/)
-
-[xuweiqiang's blog docker安装loki采集日志](https://weiqiangxu.github.io/2023/06/12/loki/docker%E5%AE%89%E8%A3%85loki%E9%87%87%E9%9B%86%E6%97%A5%E5%BF%97/)
+- k8s之中安装loki
+- docker安装loki
 
 
 ### 五、已经搭建好审计日志的服务器
@@ -196,6 +187,29 @@ http://localhost:3101/loki/api/v1/query_range?query={container=%22evaluate-loki-
 $ curl http://localhost:3101/loki/api/v1/series
 ```
 
+
+### 七、使用docker搭建loki
+
+1. 如何搭建loki服务
+
+``` bash
+
+mkdir evaluate-loki
+
+cd evaluate-loki
+
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/loki-config.yaml -O loki-config.yaml
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/promtail-local-config.yaml -O promtail-local-config.yaml
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/docker-compose.yaml -O docker-compose.yaml
+
+docker-compose up -d
+
+http://localhost:3101/ready.
+http://localhost:3000
+
+{container="evaluate-loki-flog-1"}
+```
+
 ### Q&A
 
 1. 范围查询的start时间格式
@@ -287,3 +301,6 @@ $ curl http://localhost:3101/loki/api/v1/query?query=count(count_over_time({cont
 
 - [Grafana Loki 查询语言 LogQL 使用](https://zhuanlan.zhihu.com/p/535482931)
 - [https://grafana.com/docs/loki/latest/getting-started/](https://grafana.com/docs/loki/latest/getting-started/)
+- [https://grafana.com/docs/loki/latest/v2.8x](https://grafana.com/docs/loki/latest/)
+- [https://grafana.com/docs/loki/latest/getting-started/](https://grafana.com/docs/loki/latest/getting-started/)
+- [apiserver handler request过滤器校验审计日志规则源码](https://github.com/kubernetes/apiserver/blob/v0.27.2/pkg/audit/policy/checker.go)

@@ -1,17 +1,12 @@
 ---
-title: docker搭建loki && promtail服务
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: loki采集日志
 tags:
   - loki
-  - promtail
 categories:
   - docker
-date: 2023-06-12 18:40:12
-excerpt: 使用docker compose搭建loki和promtail服务，支持自定义采集目标，并且通过 loki http API查看日志数据
-sticky: 1
 ---
 
+> 使用docker compose搭建loki和promtail服务，支持自定义采集目标，并且通过 loki http API查看日志数据
 
 ### 一、使用compose搭建loki服务
 

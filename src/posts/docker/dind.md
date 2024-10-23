@@ -1,7 +1,5 @@
 ---
 title: dind
-icon: object-group
-order: 2
 category:
   - docker
 tag:

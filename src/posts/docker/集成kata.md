@@ -1,7 +1,5 @@
 ---
 title: 集成kata
-icon: object-group
-order: 2
 category:
   - docker
 tag:

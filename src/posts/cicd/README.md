@@ -1,7 +1,3 @@
----
-hide: true
----
-
 # CICD示例
 
 1. 配置git环境支持GO私服moudle同步

@@ -1,5 +1,0 @@
----
-hide: true
----
-
-# mongo single

@@ -1,15 +1,9 @@
 ---
-title: 在k8s之中部署loki服务存储日志
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
+title: Loki服务安装
 tags:
   - loki
-  - promtail
 categories:
   - kubernetes
-date: 2023-06-03 09:40:12
-excerpt: 如何使用loki helm包搭建日志服务，并且自定义采集目标，搭建的架构是 loki && promtail
-sticky: 1
 ---
 
 ### 一、安装步骤
