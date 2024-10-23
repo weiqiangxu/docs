@@ -1,12 +1,9 @@
 ---
-title: map原理解析
+title: map
 tags:
-  - GO原理
+  - go
 categories:
   - go
-date: 2023-04-08 06:40:12
-index_img: /images/bg/computer.jpeg
-hide: true
 ---
 
 ### 术语

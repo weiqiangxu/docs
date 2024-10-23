@@ -1,7 +1,5 @@
 ---
 title: 创建service和endpoints指向外部服务
-icon: object-group
-order: 2
 category:
   - kubernetes
 tag:

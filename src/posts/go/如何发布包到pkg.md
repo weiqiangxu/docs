@@ -1,14 +1,9 @@
 ---
 title: 如何发布包到pkg
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
 tags:
   - golang
 categories:
   - golang
-date: 2020-08-20 17:43:12
-excerpt: 如何发布开源包
-hide: true
 ---
 
 

@@ -1,15 +1,10 @@
 ---
 title: golang导出docker镜像
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
 tags:
   - golang
-  - docker
 categories:
   - golang
-date: 2023-04-20 17:43:12
 excerpt: 通过golang执行shell命令导出镜像到tar文件
-hide: true
 ---
 
 ### 一、下载镜像

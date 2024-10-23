@@ -1,7 +1,5 @@
 ---
 title: mongodb自定义排序
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
 tags:
   - golang
   - mongodb

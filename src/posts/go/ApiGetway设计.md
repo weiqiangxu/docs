@@ -53,10 +53,7 @@ gRPC使用proto作为描述文件
 资源路径（Resource Path）  = 业务域 + 资源相对路径
 ```
 
-[轻量级微服务框架 go-kratos/kratos](https://github.com/go-kratos/kratos/blob/main/README_zh.md)
-
-[proto文件放哪里合适](https://mp.weixin.qq.com/s/cBXZjg_R8MLFDJyFtpjVVQ)
-
-[google API设计指南中文版](https://www.bookstack.cn/read/API-design-guide/API-design-guide-README.md)
-
-[protobuf规范](https://go-kratos.dev/docs/guide/api-protobuf/)
+- [轻量级微服务框架 go-kratos/kratos](https://github.com/go-kratos/kratos/blob/main/README_zh.md)
+- [proto文件放哪里合适](https://mp.weixin.qq.com/s/cBXZjg_R8MLFDJyFtpjVVQ)
+- [google API设计指南中文版](https://www.bookstack.cn/read/API-design-guide/API-design-guide-README.md)
+- [protobuf规范](https://go-kratos.dev/docs/guide/api-protobuf/)

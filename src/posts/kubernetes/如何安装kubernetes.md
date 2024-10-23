@@ -1,7 +1,5 @@
 ---
 title: 如何安装kubernetes
-icon: object-group
-order: 2
 category:
   - kubernetes
 tag:

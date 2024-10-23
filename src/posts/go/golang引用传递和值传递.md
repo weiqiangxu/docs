@@ -44,6 +44,6 @@ golang都是值传递，但有些时候函数内部可以改变到函数外部�
 
 ### 参考资料
 
-[kancloud.cn/pshizhsysu/值类型和引用类型是什么](https://www.kancloud.cn/pshizhsysu/golang/2139494)
-[又拍云知乎-Golang是值传递还是引用传递](https://zhuanlan.zhihu.com/p/509431611)
-[码农在新加坡-Golang是值传递还是引用传递](https://zhuanlan.zhihu.com/p/542218435)
+- [kancloud.cn/pshizhsysu/值类型和引用类型是什么](https://www.kancloud.cn/pshizhsysu/golang/2139494)
+- [又拍云知乎-Golang是值传递还是引用传递](https://zhuanlan.zhihu.com/p/509431611)
+- [码农在新加坡-Golang是值传递还是引用传递](https://zhuanlan.zhihu.com/p/542218435)

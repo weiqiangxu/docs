@@ -1,14 +1,9 @@
 ---
-title: 如何配置go私有库
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
+title: 配置go私有库
 tags:
   - golang
 categories:
   - golang
-date: 2021-06-05 18:40:12
-excerpt: 配置git和go env
-sticky: 1
 ---
 
 ### 一、配置golang环境

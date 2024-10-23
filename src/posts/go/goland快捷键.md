@@ -30,3 +30,12 @@ hide: true
 
 [jetbrains.com/Mac-Shortcuts](https://resources.jetbrains.com/storage/products/goland/docs/GoLand_ReferenceCard_macOS.pdf)
 
+
+### Code
+
+- 步过: 逐行（不进入函数）
+- 步入: 逐行（会跳进函数内部逐行）
+- 步出: 跳出当前函数
+- 恢复程序: 继续运行程序直至断点
+- 暂停程序|停止|查看断点|静音断点|运行到光标: 故名思义
+

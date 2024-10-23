@@ -1,12 +1,9 @@
 ---
-title: 如何优雅的依据结构体拼接URL
-index_img: /images/bg/文章通用.png
+title: 优雅地拼接URL
 tags:
   - golang
 categories:
   - golang
-date: 2023-04-11 09:40:12
-excerpt: 使用结构体拼接URL请求路径，优化写法，提升代码质量
 ---
 
 ### 一、代码
@@ -115,4 +112,5 @@ config_test.go:74: www.baidu.com?end=2&query=cpu_counter&start=1&step=15
 
 ### 开源包推荐
 
-[github.com/google/go-querystring](https://github.com/google/go-querystring)
+- [github.com/google/go-querystring](https://github.com/google/go-querystring)
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)

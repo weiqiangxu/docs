@@ -1,7 +1,5 @@
 ---
 title: 初识CRD
-icon: object-group
-order: 2
 category:
   - kubernetes
 tag:

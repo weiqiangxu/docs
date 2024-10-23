@@ -63,6 +63,70 @@ main.main > runtime.main -> runtime.exit or runtime.main finish
 1. M是动态的不够用的时候就会创建 （随时创建） 只能限定最大数量
 2. P是固定数量的 GOMAXPROCS配置 （启动时候就创建）
 
+### GMP-hello的执行过程
+
+### 关键术语
+1. 进程虚拟地址空间中的代码段
+2. 程序执行入口 runtime.main 创建 main.goroutine （call main.main）
+3. 协程对应的数据结构是runtime.g，工作线程对应的数据结构是runtime.m，处理器P对应的数据结构是 runtime.p (本地runq)
+4. 全局runq 存储在 全局变量 sched （调度器，对应的数据结构是 runtime.schedt）
+5. P程序初始化过程之中进行调度器初始化，初始化固定数量的 P (GOMAXPROCS)
+6. start函数开启调度循环schedule()函数
+7. time.sleep 调用 gopark函数
+```
+协程的状态从 _Grunning修改为_Gwaiting 
+
+
+(main.goroutine就不会因为执行完成回到P之中而是timer之中等待) 
+然后使用 schedule() 调度执行其他的goroutine
+
+
+时间到了以后 _Grunnable 状态然后G被访问P的runq之中，main.main结束
+```
+
+
+> M 可以去 P 获取 G，所以不用再去全局队列和其他M争抢G了
+> 全局变量 sched 调度器记录所有空闲的m 和空闲的p 等 以及全局 runq
+> M 优先从关联的 P 获取 G，没有的话去全局变量 sched 调度器的全局runq领取 G ， 如果调度器也没有那么从别的 P 的runq 获取G 
+
+### 抢占式调度
+
+1. time.sleep后 _Grunning 和 _Gwaiting，timer之中的回调函数将g变成Grunnable状态放回runq
+2. 以上谁负责执行timer之中的回调函数呢 (schedule()->checkTimers)
+3. 监控线程（重复执行某一个任务） - 不依赖GMP、main.goroutine创建 ， 监控timer可以创建线程执行
+4. IO时间监听队列 - 主动轮询netpoll
+
+[Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+
+### GMP的让出创建恢复
+
+1. newproc函数
+
+
+### 协程状态
+
+1. running
+2. runable
+3. waiting
+4. syscall 
+5. dead
+
+### 备注
+
+``` bash
+$ OS系统调用前，先调用runtime·entersyscall函数将自己的状态置为Gsyscall
+```
+
+[Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+
+### 协程创建后会加入 P 的本地队列runq之中
+### main.main运行结束以后runtime.main会调用exit函数结束进程
+
+
+- [Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+
 ### M 执行 G 的时候发生阻塞，那么 M 会失去原有的 P（摘除），然后创建新的 M 服务这个 P
 
-[GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+- [GMP 原理与调度 - 简单易懂](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)

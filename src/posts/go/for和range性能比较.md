@@ -1,6 +1,3 @@
----
-hide: true
----
 # FOR 和 Range 的性能比较
 
 ### range 对每一个迭代值都创建 1 个拷贝 而 For 不会
