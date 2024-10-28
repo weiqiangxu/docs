@@ -1,12 +1,9 @@
 ---
 title: module冲突
-index_img: /images/bg/文章通用.png
 tags:
   - golang
 categories:
   - golang
-date: 2023-03-12 09:40:12
-excerpt: 记录一次包版本不兼容导致的冲突和解决办法
 ---
 
 ### 一、由于依赖包k8s.io/apimachinery@latest不兼容company/client-go/cache导致的冲突

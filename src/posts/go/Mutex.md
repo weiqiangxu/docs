@@ -4,9 +4,6 @@ tags:
   - GO原理
 categories:
   - go
-date: 2023-04-08 06:40:12
-index_img: /images/bg/computer.jpeg
-hide: true
 ---
 
 ### goroutine 获得锁的逻辑
