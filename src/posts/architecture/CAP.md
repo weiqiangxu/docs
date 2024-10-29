@@ -9,6 +9,7 @@ index_img: /images/bg/computer.jpeg
 ---
 
 ### 分布式和微服务什么意思
+
 ```
 单机系统就是程序部署到一台机器，所有的服务由这一台机器提供
 
@@ -16,6 +17,7 @@ index_img: /images/bg/computer.jpeg
 
 分布式系统是多个机器共同提供服务
 ```
+
 ```
 分布式系统拆分模式
 
