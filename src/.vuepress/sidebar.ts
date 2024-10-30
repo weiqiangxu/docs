@@ -75,6 +75,13 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
+    {
+      text: "kafka",
+      icon: "book",
+      prefix: "posts/kafka/",
+      children: "structure",
+      collapsible: true
+    },
     "intro"
   ],
 });

@@ -1,12 +1,9 @@
 ---
 title: kafka高可用相关问题
 tags:
-  - kafka原理
+  - kafka
 categories:
   - kafka
-date: 2023-04-08 06:40:12
-index_img: /images/bg/computer.jpeg
-hide: true
 ---
 
 ### 基础问题
