@@ -113,8 +113,8 @@ consumer订阅topic以后，底层的逻辑是怎么样的呢
 ```
 Record 消息
 Topic 主题
-Producer  生产者
-Consumer  消费者
+Producer 生产者
+Consumer 消费者
 Broker  kafka服务器
 Partition 分区，一个主题可以分布在多个分区，可以理解为append log文件，通过分区，消息读写可以落到多个节点
 Leader/Follower  分区副本，leader负责读写，follower只负责和leader保持同步不对外提供服务
@@ -159,6 +159,12 @@ Controller 控制器，本质上是1个broker，负责协调和管理集群（le
 ```
 没有分区的话，消息就会都写到一个节点上了
 ```
+
+### kafka的一个topic，生产了2条数据，如果有2个分区，那么这两条数据是会在这两个分区分别存储2个副本吗，还是每个分区存储一条消息
+
+首先，这两条数据不是每个分区存储两个副本；
+
+每个分区存储一条消息的可能性比较大，取决于分区策略；
 
 ### 关于rebalance
 
@@ -466,6 +472,9 @@ LEO和HW
 
 ### 我的 client_A 目前占有1个topic的2个分区(p1,p2)，pull了500条数据(offset = 10~510)正在消费，消费到50%的时候260，重新加入了一个 client_B订阅该topic，那么这个时候会把client_A正在消费的另一个分区给p2 rebalance给 client_B 吗，如果会的话，会把 10~510的数据给 client_B 消费吗
 
+p2分区有可能给client B 
+
+但是10~510的数据，会不会给client B重复消费，取决于clientA 提交的offset
 
 ### rebalance的触发情形有哪些，rebalance的底层原理是什么
 
