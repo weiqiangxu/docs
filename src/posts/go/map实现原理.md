@@ -14,6 +14,7 @@ delete(m, "key1")
 ##### 1.hmap结构体
 
 ```go
+// runtime\map.go
 type hmap struct {
 	count     int // # Map的元素数量
 	B         uint8  // 桶数量是 2^B，其中 元素数量 （count） / 桶数量 （2^B） = 负载因子
