@@ -87,6 +87,6 @@ spec:
               number: 8989
 ```
 
-``` bash：q
+``` bash
 $ kubectl get service -n ingress-nginx
 ```

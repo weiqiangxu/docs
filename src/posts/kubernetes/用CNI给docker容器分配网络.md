@@ -156,5 +156,5 @@ CNI_PATH=`pwd`  – 我们总是需要告诉 CNI 插件可执行文件所在的�
 我们使用 STDIN 将网络配置文件提供给插件
 ```
 
-[什么是 Service Mesh](https://zhuanlan.zhihu.com/p/61901608)
-[istio是什么](https://istio.io/latest/zh/docs/concepts/what-is-istio/)
+- [什么是 Service Mesh](https://zhuanlan.zhihu.com/p/61901608)
+- [istio是什么](https://istio.io/latest/zh/docs/concepts/what-is-istio/)

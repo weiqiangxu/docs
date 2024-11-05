@@ -95,8 +95,8 @@ $ kubectl delete -f resourcedefinition.yaml
 
 ### 2.相关资料
 
-[Kubernetes文档/概念/扩展Kubernetes/扩展KubernetesAPI/定制资源](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
-[Kubernetes文档/使用CustomResourceDefinition扩展KubernetesAPI](https://kubernetes.io/zh-cn/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
+- [Kubernetes文档/概念/扩展Kubernetes/扩展KubernetesAPI/定制资源](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
+- [Kubernetes文档/使用CustomResourceDefinition扩展KubernetesAPI](https://kubernetes.io/zh-cn/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
 
 ### QA
 
@@ -119,6 +119,6 @@ $ kubectl delete -f resourcedefinition.yaml
     总之，`spec` 提供了 Kubernetes 对象的期望状态和属性，是 Kubernetes 控制器自动管理和操作 Kubernetes 对象的关键输入。
 
 
-[github/code-generator](https://github.com/kubernetes/code-generator)
-[code-generator简单介绍](https://juejin.cn/post/7096484178128011277)
-[kubernetes/sample-controller](https://github.com/kubernetes/sample-controller)
+- [github/code-generator](https://github.com/kubernetes/code-generator)
+- [code-generator简单介绍](https://juejin.cn/post/7096484178128011277)
+- [kubernetes/sample-controller](https://github.com/kubernetes/sample-controller)

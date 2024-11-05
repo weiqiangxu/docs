@@ -226,7 +226,7 @@ Fedora、RedHat、Ubuntu、CentOS和Debian都是常见的Linux发行版，它们
 
 ### 相关资料
 
-[kata-firecracker和docker的集成](https://github.com/kata-containers/documentation/wiki/Initial-release-of-Kata-Containers-with-Firecracker-support)
-[kata-containers/3.0.2/crictl创建容器](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/run-kata-with-crictl.md)
-[ubuntu安装使用yum-更新yumde软件源地址即可](https://blog.csdn.net/m0_70885101/article/details/127271416)
-[清华大学开源软件镜像站](https://mirrors.tuna.tsinghua.edu.cn/)
+- [kata-firecracker和docker的集成](https://github.com/kata-containers/documentation/wiki/Initial-release-of-Kata-Containers-with-Firecracker-support)
+- [kata-containers/3.0.2/crictl创建容器](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/run-kata-with-crictl.md)
+- [ubuntu安装使用yum-更新yumde软件源地址即可](https://blog.csdn.net/m0_70885101/article/details/127271416)
+- [清华大学开源软件镜像站](https://mirrors.tuna.tsinghua.edu.cn/)

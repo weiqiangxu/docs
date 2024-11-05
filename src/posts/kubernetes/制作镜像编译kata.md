@@ -85,7 +85,7 @@ $ kata-runtime version
 
 ### 相关文档
 
-[官方文档kata-containers-v1.3.0开发者向导](https://github.com/kata-containers/kata-containers/blob/3.1.0/docs/Developer-Guide.md)
-[官方文档kata-containers-v1.3.0二进制包下载链接](https://github.com/kata-containers/kata-containers/releases/tag/3.1.0)
-[官方文档kata-containers-v1.3.0手动安装文档](https://github.com/kata-containers/kata-containers/blob/3.1.0/docs/install/container-manager/containerd/containerd-install.md)
+- [官方文档kata-containers-v1.3.0开发者向导](https://github.com/kata-containers/kata-containers/blob/3.1.0/docs/Developer-Guide.md)
+- [官方文档kata-containers-v1.3.0二进制包下载链接](https://github.com/kata-containers/kata-containers/releases/tag/3.1.0)
+- [官方文档kata-containers-v1.3.0手动安装文档](https://github.com/kata-containers/kata-containers/blob/3.1.0/docs/install/container-manager/containerd/containerd-install.md)
 

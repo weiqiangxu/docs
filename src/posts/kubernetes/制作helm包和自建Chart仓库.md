@@ -167,10 +167,10 @@ Get "https://10.76.138.115:6443/version": dial tcp 10.76.138.115:6443: connect: 
 
 ### 相关资料
 
-[自定义chart](https://helm.sh/zh/docs/intro/using_helm/#%E5%AE%89%E8%A3%85%E5%89%8D%E8%87%AA%E5%AE%9A%E4%B9%89-chart)
-[Helm 命令集合](https://helm.sh/zh/docs/helm/helm/)
-[chart 语法大全](https://helm.sh/zh/docs/chart_template_guide/getting_started/)
-[helm究竟是什么](https://bbs.huaweicloud.com/blogs/280351)
-[https://artifacthub.io/](https://artifacthub.io/)
-[https://pkg.go.dev/text/template](https://pkg.go.dev/text/template)
-[helm自建Chart仓库指南](https://helm.sh/zh/docs/topics/chart_repository/)
+- [自定义chart](https://helm.sh/zh/docs/intro/using_helm/#%E5%AE%89%E8%A3%85%E5%89%8D%E8%87%AA%E5%AE%9A%E4%B9%89-chart)
+- [Helm 命令集合](https://helm.sh/zh/docs/helm/helm/)
+- [chart 语法大全](https://helm.sh/zh/docs/chart_template_guide/getting_started/)
+- [helm究竟是什么](https://bbs.huaweicloud.com/blogs/280351)
+- [https://artifacthub.io/](https://artifacthub.io/)
+- [https://pkg.go.dev/text/template](https://pkg.go.dev/text/template)
+- [helm自建Chart仓库指南](https://helm.sh/zh/docs/topics/chart_repository/)

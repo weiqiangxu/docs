@@ -255,5 +255,5 @@ jobs:
 
 ### 相关资料
 
-[ENTRYPOINT 入口点](https://docker-practice.github.io/zh-cn/image/dockerfile/entrypoint.html)
-[如何用Github轻松拉取谷歌容器镜像](https://developer.aliyun.com/article/875641)
+- [ENTRYPOINT 入口点](https://docker-practice.github.io/zh-cn/image/dockerfile/entrypoint.html)
+- [如何用Github轻松拉取谷歌容器镜像](https://developer.aliyun.com/article/875641)

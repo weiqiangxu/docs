@@ -68,7 +68,7 @@ telepresence connect
 
 ### 参考资料
 
-[阿里云开发者社区/Kubecm:管理你的kubeconfig](https://developer.aliyun.com/article/738438)
-[github telepresence](https://github.com/telepresenceio/telepresence)
-[本机连接到远程 Kubernetes 集群](https://kubernetes.io/zh-cn/docs/tasks/debug/debug-cluster/local-debugging/)
+- [阿里云开发者社区/Kubecm:管理你的kubeconfig](https://developer.aliyun.com/article/738438)
+- [github telepresence](https://github.com/telepresenceio/telepresence)
+- [本机连接到远程 Kubernetes 集群](https://kubernetes.io/zh-cn/docs/tasks/debug/debug-cluster/local-debugging/)
 

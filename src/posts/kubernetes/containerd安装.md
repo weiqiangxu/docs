@@ -17,9 +17,9 @@ categories:
 
 ### 二、官网地址
 
-[containerd-v1.7.0/docs/getting-started](https://github.com/containerd/containerd/blob/v1.7.0/docs/getting-started.md)
-[runc/v1.1.7](https://github.com/opencontainers/runc/releases/tag/v1.1.7)
-[containernetworking/plugins-CNI-v1.2.0](https://github.com/containernetworking/plugins/releases/tag/v1.2.0)
+- [containerd-v1.7.0/docs/getting-started](https://github.com/containerd/containerd/blob/v1.7.0/docs/getting-started.md)
+- [runc/v1.1.7](https://github.com/opencontainers/runc/releases/tag/v1.1.7)
+- [containernetworking/plugins-CNI-v1.2.0](https://github.com/containernetworking/plugins/releases/tag/v1.2.0)
 
 ### 三、下载并安装runc\CNI\containerd
 
@@ -144,7 +144,7 @@ $ go version
 
 ### 相关文章
 
-[https://www.cni.dev/](https://www.cni.dev/)
-[cni/net.d的containerd配置文件示例](https://github.com/kubernetes/website/blob/dev-1.24/content/en/docs/tasks/administer-cluster/migrating-from-dockershim/troubleshooting-cni-plugin-related-errors.md#an-example-containerd-configuration-file)
-[kata-containers的cri-tools的CNI默认配置](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/containerd-kata.md#configuration-for-cri-tools)
-[containerd-v1.7.0安装snapshotters.devmapper](https://github.com/containerd/containerd/blob/v1.7.0/docs/snapshotters/devmapper.md)
+- [https://www.cni.dev/](https://www.cni.dev/)
+- [cni/net.d的containerd配置文件示例](https://github.com/kubernetes/website/blob/dev-1.24/content/en/docs/tasks/administer-cluster/migrating-from-dockershim/troubleshooting-cni-plugin-related-errors.md#an-example-containerd-configuration-file)
+- [kata-containers的cri-tools的CNI默认配置](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/containerd-kata.md#configuration-for-cri-tools)
+- [containerd-v1.7.0安装snapshotters.devmapper](https://github.com/containerd/containerd/blob/v1.7.0/docs/snapshotters/devmapper.md)

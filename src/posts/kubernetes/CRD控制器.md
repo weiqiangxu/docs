@@ -1,18 +1,14 @@
 ---
 title: CRD控制器
-index_img: /images/bg/k8s.webp
-banner_img: /images/bg/5.jpg
 tags:
   - kubernetes
 categories:
   - kubernetes
-date: 2023-04-23 18:40:12
-excerpt: 来个CRD控制器的QuickStart，从code gender代码生成到编译控制器，运行控制器查看监听事件，以及informer设计
-sticky: 1
-hide: false
 ---
 
 #### 一、quick start
+
+> 来个CRD控制器的QuickStart，从code gender代码生成到编译控制器，运行控制器查看监听事件，以及informer设计
 
 ``` bash
 # 基于版本v1.27.2

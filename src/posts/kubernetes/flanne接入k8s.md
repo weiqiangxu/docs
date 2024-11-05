@@ -10,12 +10,12 @@ categories:
 
 ### 1.kubernetes如何接入flannale
 
-[k8s/概念/扩展/网络插件](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
-[k8s/概念/扩展/网络插件/containerd安装网络插件](https://github.com/containerd/containerd/blob/main/script/setup/install-cni)
-[k8s/概念/扩展/网络插件/CRI-O安装网络插件](https://github.com/cri-o/cri-o/blob/main/contrib/cni/README.md)
-[k8s/概念/集群管理/安装扩展](https://kubernetes.io/zh-cn/docs/concepts/cluster-administration/addons/#networking-and-network-policy)
-[deploying-flannel-with-kubectl](https://github.com/flannel-io/flannel#deploying-flannel-with-kubectl)
-[deploying-flannel-with-helm](https://github.com/flannel-io/flannel#deploying-flannel-with-helm)
+- [k8s/概念/扩展/网络插件](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
+- [k8s/概念/扩展/网络插件/containerd安装网络插件](https://github.com/containerd/containerd/blob/main/script/setup/install-cni)
+- [k8s/概念/扩展/网络插件/CRI-O安装网络插件](https://github.com/cri-o/cri-o/blob/main/contrib/cni/README.md)
+- [k8s/概念/集群管理/安装扩展](https://kubernetes.io/zh-cn/docs/concepts/cluster-administration/addons/#networking-and-network-policy)
+- [deploying-flannel-with-kubectl](https://github.com/flannel-io/flannel#deploying-flannel-with-kubectl)
+- [deploying-flannel-with-helm](https://github.com/flannel-io/flannel#deploying-flannel-with-helm)
 
 > 安装 cni-plugins 网络插件，然后安装 flannel
 

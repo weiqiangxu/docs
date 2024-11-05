@@ -1039,9 +1039,61 @@ $ crictl logs ${containerdID}
 
 38. k8s node的状态no-ready的时候如何解决问题，如何快速刷新这个node状态
 39. k8s的节点异常出现NodeHasSufficientMemory怎么解决
+40. 探针如何实现 LivenessProbe（存活探针）和 ReadinessProbe（就绪探针）
+41. pod的状态有哪些
+42. k8s的组件有哪些、控制平面是什么
+43. k8s的权限说一下
+44. k8s的CNI
+45. k8s的网络模型是什么
+    - 节点代理如kubelet和该节点Pod
+    - 容器&&Pod
+    - Pod内容器间
+    - Pod与Pod间
+    - 服务发现和负载均衡（Service\GatewayClass\Ingress）
+46. Kubernetes中flannel的作用
+47. PV和PVC是什么，Pod 通过 PVC 来使用 PV 提供的存储。通过PersistentVolume声明使用网络存储（如 NFS、iSCSI、Ceph 等）或本地存储.
+```yml
+# pod 之中直接引用pvc
+    volumeMounts:
+        - name: my-persistent-storage
+          mountPath: /data
+  volumes:
+    - name: my-persistent-storage
+      persistentVolumeClaim:
+        claimName: my-pvc
+```
 
-
-
+48. Ingress是什么,Ingress控制器呢
+      - 支持域名\访问路径指向service
+      - 支持统一配置SSL/TLS层
+49. k3s对比k8s少了什么
+50. k8s的静态po是什么意思
+    - 不受控制平面管理
+    - 固定某一个节点部署的pod
+    - /etc/kubernetes/manifests定义的pod
+    - 不能通过kubectl管理apiserver进而管理静态pod
+51. k8s的etcd是静态pod吗
+52. 高可用的k8s是什么意思，高可用体现在哪个方面
+53. k8s的高可用怎么实现(Etcd集群\ApiServer\Schedule\Controller-Manager)
+54. k8s常用的存储有哪些（对象存储、文件存储）
+55. 存储类是什么（使用存储类的 PersistentVolumeClaim（PVC）时，会根据存储类的定义自动创建对应的 PersistentVolume（PV），并将其绑定到 PVC 上
+56. 块存储、对象存储、文件存储的主要区别是什么
+57. 怎么安装s3并应用到k8s之中(MinIO Helm、minio-StorageClass、pvc of StorageClass、pvc)
+58. 怎么安装ceph并应用到k8s之中
+59. k8s的网络策略是什么（NetworkPolicy一种k8s资源可以控制pod之间的ingress和egress流量）
+60. 有Service的NodePort了为什么还要Ingress
+    - Ingress 支持基于域名和路径的路由规则
+    - Ingress 层统一处理 SSL/TLS 加密和解密
+    - NodePort 通常需要在每个后端服务上单独配置 TLS）
+61. SSL/TLS是什么，拆开来说的话
+62. CRI是什么
+63. Gin如何开发https的服务
+    ```go
+    gin.Default().RunTLS(":8080", "cert.pem", "key.pem")
+    ```
+64. Ingress支持统一配置SSL/TLS层是什么意思
+      - 配置的Ingress支持https然后指向内部多个服务
+      - 使用Secret对象来存储 SSL/TLS 证书和私钥
 
 ### containerd 二进制安装
 
