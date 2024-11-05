@@ -834,28 +834,28 @@ $ crictl logs ${containerdID}
 
 ### 相关资料
 
-[kubernetes.io/zh-cn/安装kubeadm](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-[官方docker离线安装](https://download.docker.com/linux/static/stable)
-[kubernetes/yum/repos各个架构下的](https://mirrors.aliyun.com/kubernetes/yum/repos/)
-[zhihu/k8s 1.16.0 版本的coreDNS一直处于pending状态的解决方案](https://zhuanlan.zhihu.com/p/602370492)
-[k8s部署flannel时报failed to find plugin /opt/cni/bin](https://blog.csdn.net/qq_41586875/article/details/124688043)
-[kubernetes.io使用kubeadm安装集群](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-[离线运行kubeadm初始化集群](https://kubernetes.io/zh-cn/docs/reference/setup-tools/kubeadm/kubeadm-init/#without-internet-connection)
-[Kubernetes 中文指南/云原生应用架构实战手册](https://jimmysong.io/kubernetes-handbook/)
-[https://kubernetes.io/zh-cn/](https://kubernetes.io/zh-cn/)
-[k8s源码大学](https://cit965.com/docs/category/k8s%E6%BA%90%E7%A0%81%E5%A4%A7%E5%AD%A6%E4%BB%8E%E5%A4%B4%E5%AD%A6)
-[语雀/许大仙/云原生](https://www.yuque.com/fairy-era/yg511q/xuuq7g)
-[kubeadm quickstart](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)
-[kubeam create cluster](https://jimmysong.io/kubernetes-handbook/practice/install-kubernetes-on-ubuntu-server-16.04-with-kubeadm.html)
-[https://jimmysong.io/ 云原生资料库](https://jimmysong.io/)
-[k8s基础教程](https://lib.jimmysong.io/kubernetes-handbook/)
-[宝藏博客 - 外部访问pod](https://jimmysong.io/blog/accessing-kubernetes-pods-from-outside-of-the-cluster/)
-[云原生 - 必读](https://jimmysong.io/blog/must-read-for-cloud-native-beginner/)
-[Kubernetes 中文指南/云原生应用架构实战手册](https://jimmysong.io/kubernetes-handbook/)
-[高级容器运行时](https://www.modb.pro/db/407926)
-[rehat-k8s的架构设计](https://www.redhat.com/zh/topics/containers/kubernetes-architecture)
-[k8s中文社区-k8s的架构设计](https://www.kubernetes.org.cn/kubernetes%e8%ae%be%e8%ae%a1%e6%9e%b6%e6%9e%84)
-[k8s中文社区-k8s的设计理念](https://www.kubernetes.org.cn/kubernetes%e8%ae%be%e8%ae%a1%e7%90%86%e5%bf%b5)
+- [kubernetes.io/zh-cn/安装kubeadm](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+- [官方docker离线安装](https://download.docker.com/linux/static/stable)
+- [kubernetes/yum/repos各个架构下的](https://mirrors.aliyun.com/kubernetes/yum/repos/)
+- [zhihu/k8s 1.16.0 版本的coreDNS一直处于pending状态的解决方案](https://zhuanlan.zhihu.com/p/602370492)
+- [k8s部署flannel时报failed to find plugin /opt/cni/bin](https://blog.csdn.net/qq_41586875/article/details/124688043)
+- [kubernetes.io使用kubeadm安装集群](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+- [离线运行kubeadm初始化集群](https://kubernetes.io/zh-cn/docs/reference/setup-tools/kubeadm/kubeadm-init/#without-internet-connection)
+- [Kubernetes 中文指南/云原生应用架构实战手册](https://jimmysong.io/kubernetes-handbook/)
+- [https://kubernetes.io/zh-cn/](https://kubernetes.io/zh-cn/)
+- [k8s源码大学](https://cit965.com/docs/category/k8s%E6%BA%90%E7%A0%81%E5%A4%A7%E5%AD%A6%E4%BB%8E%E5%A4%B4%E5%AD%A6)
+- [语雀/许大仙/云原生](https://www.yuque.com/fairy-era/yg511q/xuuq7g)
+- [kubeadm quickstart](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)
+- [kubeam create cluster](https://jimmysong.io/kubernetes-handbook/practice/install-kubernetes-on-ubuntu-server-16.04-with-kubeadm.html)
+- [https://jimmysong.io/ 云原生资料库](https://jimmysong.io/)
+- [k8s基础教程](https://lib.jimmysong.io/kubernetes-handbook/)
+- [宝藏博客 - 外部访问pod](https://jimmysong.io/blog/accessing-kubernetes-pods-from-outside-of-the-cluster/)
+- [云原生 - 必读](https://jimmysong.io/blog/must-read-for-cloud-native-beginner/)
+- [Kubernetes 中文指南/云原生应用架构实战手册](https://jimmysong.io/kubernetes-handbook/)
+- [高级容器运行时](https://www.modb.pro/db/407926)
+- [rehat-k8s的架构设计](https://www.redhat.com/zh/topics/containers/kubernetes-architecture)
+- [k8s中文社区-k8s的架构设计](https://www.kubernetes.org.cn/kubernetes%e8%ae%be%e8%ae%a1%e6%9e%b6%e6%9e%84)
+- [k8s中文社区-k8s的设计理念](https://www.kubernetes.org.cn/kubernetes%e8%ae%be%e8%ae%a1%e7%90%86%e5%bf%b5)
 
 
 ### 常见的k8s问题
@@ -870,29 +870,29 @@ $ crictl logs ${containerdID}
 8. metadata\selector\label\annotations分别是干嘛的他们之间的关系是什么
 9. k8s的cert-manager下的pod是干嘛的（证书的更新、颁发、管理）
 10. k8s运行起来需要哪些组件（Mater组件、Node组件）
-    ```s
-    要在Kubernetes上成功运行应用程序，需要部署以下组件：
-    1. Kubernetes Master组件：
-      - kube-apiserver：提供Kubernetes API，并处理集群管理的核心功能。
-      - kube-controller-manager：负责运行控制器，监控集群状态并处理集群级别的任务。
-      - kube-scheduler：负责为Pod选择合适的节点进行调度。
+```bash
+要在Kubernetes上成功运行应用程序，需要部署以下组件：
+1. Kubernetes Master组件：
+  - kube-apiserver：提供Kubernetes API，并处理集群管理的核心功能。
+  - kube-controller-manager：负责运行控制器，监控集群状态并处理集群级别的任务。
+  - kube-scheduler：负责为Pod选择合适的节点进行调度。
 
-    2. Kubernetes Node组件：
-      - kubelet：在每个节点上运行，负责管理和执行Pod的生命周期。
-      - kube-proxy：负责实现Kubernetes服务的网络代理和负载均衡功能。
-      - 容器运行时：如Docker、containerd等，负责在节点上启动和管理容器。
+2. Kubernetes Node组件：
+  - kubelet：在每个节点上运行，负责管理和执行Pod的生命周期。
+  - kube-proxy：负责实现Kubernetes服务的网络代理和负载均衡功能。
+  - 容器运行时：如Docker、containerd等，负责在节点上启动和管理容器。
 
-    3. etcd：分布式键值存储系统，用于保存Kubernetes集群的状态和配置。
+3. etcd：分布式键值存储系统，用于保存Kubernetes集群的状态和配置。
 
-    4. Kubernetes网络插件：用于实现Pod之间和Pod与外部网络的通信，常见的插件有Calico、Flannel、Weave等。
+4. Kubernetes网络插件：用于实现Pod之间和Pod与外部网络的通信，常见的插件有Calico、Flannel、Weave等。
 
-    5. 可选组件：
-      - kube-dns/coredns：为集群中的服务提供DNS解析。
-      - Kubernetes Dashboard：提供Web界面用于管理和监控集群。
-      - Ingress Controller：用于处理集群中的入口流量，并将流量路由到相应的服务。
+5. 可选组件：
+  - kube-dns/coredns：为集群中的服务提供DNS解析。
+  - Kubernetes Dashboard：提供Web界面用于管理和监控集群。
+  - Ingress Controller：用于处理集群中的入口流量，并将流量路由到相应的服务。
 
-    除了以上核心组件，还可以根据需要添加其他组件和功能，如日志收集器、监控系统等。总之，以上组件是构成一个基本的Kubernetes集群所必需的组件，它们共同协作来实现容器编排和应用程序管理。
-    ```
+除了以上核心组件，还可以根据需要添加其他组件和功能，如日志收集器、监控系统等。总之，以上组件是构成一个基本的Kubernetes集群所必需的组件，它们共同协作来实现容器编排和应用程序管理。
+```
 11. k8s的权限管理是怎么样的
 12. kube-proxy是干嘛的
 13. kube-proxy的源码我应该怎么读，分哪几块理解，kube-proxy的设计是怎么样的
@@ -1085,7 +1085,7 @@ $ crictl logs ${containerdID}
     - Ingress 支持基于域名和路径的路由规则
     - Ingress 层统一处理 SSL/TLS 加密和解密
     - NodePort 通常需要在每个后端服务上单独配置 TLS）
-61. SSL/TLS是什么，拆开来说的话
+61. SSL/TLS是什么，拆开来说的话（SSL（安全套接层）TLS（传输层安全））
 62. CRI是什么
 63. Gin如何开发https的服务
     ```go
@@ -1094,12 +1094,17 @@ $ crictl logs ${containerdID}
 64. Ingress支持统一配置SSL/TLS层是什么意思
       - 配置的Ingress支持https然后指向内部多个服务
       - 使用Secret对象来存储 SSL/TLS 证书和私钥
-
+65. Serverless（无服务器架构）\服务网格（Service Mesh）是什么意思
+    - Serverless 允许开发者不需要管理和维护服务器，而是由‌云服务提供商负责资源的分配和管理(事件驱动‌-事件触发自动分配计算资源)
+    - ServiceMesh 基础设施层，用于处理服务间通信，TCP/IP 之上的一个抽象层，类似应用程序或者说微服务间的TCP/IP，负责服务之间的网络调用、限流、熔断和监控。其实现有Istio
+66. Istio是什么怎么用的(服务网格解决方案)
+67. L3/L4网络是什么意思
+    OSI模型 网络层（L3）IP协议、传输层（L4）TCP/UDP协议
 ### containerd 二进制安装
 
-[github.com/containerd/containerd/blob/main/docs/getting-started.md](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
+- [github.com/containerd/containerd/blob/main/docs/getting-started.md](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
 
-[github.com/containerd/containerd/releases](https://github.com/containerd/containerd/releases)
+- [github.com/containerd/containerd/releases](https://github.com/containerd/containerd/releases)
 
 ### 二进制包的命名格式
 ```
@@ -1117,7 +1122,7 @@ tar Cxzvf /usr/local containerd-1.6.19-linux-arm64.tar.gz
 
 ### 配置 systemctl
 
-[https://github.com/containerd/containerd/blob/v1.6.19/containerd.service](https://github.com/containerd/containerd/blob/v1.6.19/containerd.service)
+- [https://github.com/containerd/containerd/blob/v1.6.19/containerd.service](https://github.com/containerd/containerd/blob/v1.6.19/containerd.service)
 
 
 ```
@@ -1133,7 +1138,7 @@ $ systemctl daemon-reload
 
 ### runc安装
 
-[https://github.com/opencontainers/runc/releases](https://github.com/opencontainers/runc/releases)
+- [https://github.com/opencontainers/runc/releases](https://github.com/opencontainers/runc/releases)
 
 ```
 安装到 /usr/local/sbin/runc
@@ -1144,7 +1149,7 @@ chmod +x /usr/local/bin/runc
 
 ### 安装 CNI 插件
 
-[https://github.com/containernetworking/plugins/releases](https://github.com/containernetworking/plugins/releases)
+- [https://github.com/containernetworking/plugins/releases](https://github.com/containernetworking/plugins/releases)
 
 ```
 mkdir -p /opt/cni/bin
@@ -1184,11 +1189,13 @@ sudo systemctl restart containerd
 ```
 
 # crictl 安装
-[https://github.com/kubernetes-sigs/cri-tools/releases/](https://github.com/kubernetes-sigs/cri-tools/releases/)
-```
+- [https://github.com/kubernetes-sigs/cri-tools/releases/](https://github.com/kubernetes-sigs/cri-tools/releases/)
+
+```bash
 tar -zxvf crictl-v1.24.0-linux-amd64.tar.gz -C /usr/local/bin
 ```
-```
+
+```bash
 cat > /etc/crictl.yaml <<EOF
 runtime-endpoint: unix:///var/run/containerd/containerd.sock
 image-endpoint: unix:///var/run/containerd/containerd.sock
@@ -1197,7 +1204,8 @@ debug: false
 pull-image-on-create: false
 EOF
 ```
-```
+
+```bash
 # 重启服务
 systemctl daemon-reload
 sytemctl restart containerd
@@ -1210,4 +1218,4 @@ nerdctl是一个相对较新的containerd命令行客户端。与ctr不同，ner
 
 ### 参考资料
 
-[参考文档](https://blog.csdn.net/qq_25874461/article/details/128358829)
+- [参考文档](https://blog.csdn.net/qq_25874461/article/details/128358829)
