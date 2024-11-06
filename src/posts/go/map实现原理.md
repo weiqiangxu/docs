@@ -97,3 +97,20 @@ type hmap struct {
 
 1. 优点：动态大小、高效的查找性能。
 2. 缺点：无序、并发安全。
+
+### Q&A
+
+1. 解决哈希冲突的办法有哪些
+	- 开放地址法
+	- 拉链法
+
+2. 渐进式扩容和等量扩容是什么意思，常见的触发条件是什么
+
+
+### 相关博客
+
+- [吃透Golang的map底层数据结构及其实现原理](https://www.modb.pro/db/171834)
+- [GC](https://www.modb.pro/db/171818)
+- [map解析](https://qcrao.com/post/dive-into-go-map/)
+- [map内存泄漏](https://zhuanlan.zhihu.com/p/582982078)
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)

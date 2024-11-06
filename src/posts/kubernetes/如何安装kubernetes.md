@@ -1096,10 +1096,14 @@ $ crictl logs ${containerdID}
       - 使用Secret对象来存储 SSL/TLS 证书和私钥
 65. Serverless（无服务器架构）\服务网格（Service Mesh）是什么意思
     - Serverless 允许开发者不需要管理和维护服务器，而是由‌云服务提供商负责资源的分配和管理(事件驱动‌-事件触发自动分配计算资源)
-    - ServiceMesh 基础设施层，用于处理服务间通信，TCP/IP 之上的一个抽象层，类似应用程序或者说微服务间的TCP/IP，负责服务之间的网络调用、限流、熔断和监控。其实现有Istio
-66. Istio是什么怎么用的(服务网格解决方案)
+    - ServiceMesh 基础设施层，用于处理服务间通信，TCP/IP 之上的一个抽象层，类似应用程序或者说微服务间的TCP/IP，负责服务之间的网络调用、限流、熔断和监控、灰度发布、统计、缓存。实现有Istio 
+66. Istio是什么怎么用的(服务网格解决方案)连接（Connect）\安全加固（Secure）\控制（Control）\观察（Observe）
 67. L3/L4网络是什么意思
     OSI模型 网络层（L3）IP协议、传输层（L4）TCP/UDP协议
+68. TCP的1RTT是什么意思(客户端Req->服务器ACK 这1个来回称为1RTT)
+
+
+
 ### containerd 二进制安装
 
 - [github.com/containerd/containerd/blob/main/docs/getting-started.md](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
@@ -1219,3 +1223,4 @@ nerdctl是一个相对较新的containerd命令行客户端。与ctr不同，ner
 ### 参考资料
 
 - [参考文档](https://blog.csdn.net/qq_25874461/article/details/128358829)
+- [什么是 istio](https://www.cnblogs.com/lidabo/p/16453818.html)
