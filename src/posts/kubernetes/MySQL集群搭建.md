@@ -28,4 +28,4 @@ helm install mysql-cluster \
 2. 查看helm的参数`helm get value <chart包>`
 
 
-[实战Kubernetes StatefulSet -- MySQL主从集群搭建](https://cloud.tencent.com/developer/article/2031851)
+- [实战Kubernetes StatefulSet -- MySQL主从集群搭建](https://cloud.tencent.com/developer/article/2031851)

@@ -21,7 +21,7 @@ categories:
 
 在k8s集群中安装helm，可以使用以下命令：
 
-[https://github.com/helm/helm/releases](https://github.com/helm/helm/releases)
+- [https://github.com/helm/helm/releases](https://github.com/helm/helm/releases)
 
 只需要二进制程序下载后移动到 `/usr/local/bin` 目录。
 
@@ -91,7 +91,7 @@ $ helm install promtail -n grafana ./promtail-6.11.3.tgz
 
 6. 创建service直接外部访问loki的api接口
 
-[kubernetes.io之如何使用service NodePort](https://kubernetes.io/zh-cn/docs/concepts/services-networking/service/)
+- [kubernetes.io之如何使用service NodePort](https://kubernetes.io/zh-cn/docs/concepts/services-networking/service/)
 
 ``` bash
 # 查看loki的详细的label

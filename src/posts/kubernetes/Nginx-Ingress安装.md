@@ -90,3 +90,8 @@ spec:
 ``` bash
 $ kubectl get service -n ingress-nginx
 ```
+
+
+### 相关地址
+
+- [kubernetes.github.io/ingress-nginx/](https://kubernetes.github.io/ingress-nginx/)

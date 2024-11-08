@@ -47,7 +47,6 @@ $ vim /etc/hosts
 ```
 
 - [访问Nginx服务yourdomain.com](yourdomain.com)
-
 - [访问traefik可视化界面](http://127.0.0.1:8080/dashboard/#/)
 
 
@@ -70,7 +69,15 @@ $ vim /etc/hosts
 ### 相关疑问
 
 1. k8s的servivc的虚拟ip无论是集群内还是集群外都无法访问，那还有什么用
+    - 给Pod提供了一个稳定的访问入口，实现了负载均衡，访问Service的时候自动转发到Backend服务的Pod
+    - 与Ingress结合实现外部访问，Ingress控制器可根据配置将外部请求转发到Service的虚拟IP和端口
 2. k8s的service的虚拟IP作用架构图
 3. k8s的service的虚拟IP负载均衡的源码理解
 4. 集群的带宽够不够如何测试出来的
+    - 集群中的节点上或者容器安装iperf或iperf3工具
+    - ifconfig可以看到网卡传输的字节数，go程序或者NodeExporter等暴露当前字节传输速度采集Prometheus指标
 5. 通用的集群暴露服务是通过什么方式暴露，service的NodePort吗
+    - Ingress。因为可以统一用SSL层https的，和自定义域名转发。
+6. 请求Service的虚拟IP是怎么转发到Backend的Pod的IP的
+    - kube-proxy 组件负责实现 Service 的请求转发， iptables或者ipvs
+    - Kubernetes 会根据 Service 的标签选择器自动创建一个对应的 Endpoints 对象。这个Endpoints对象包含了当前与Service关联的所有Pod的IP地址和端口信息。
