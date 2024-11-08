@@ -60,6 +60,4 @@ networks:
     driver: bridge
 ```
 
-
-
-[etcdctl下载](https://github.com/etcd-io/etcd/releases/tag/v3.3.11)
+- [etcdctl下载](https://github.com/etcd-io/etcd/releases/tag/v3.3.11)

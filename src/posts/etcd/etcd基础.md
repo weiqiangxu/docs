@@ -1,5 +1,4 @@
-# etcd底层原理
-
+# etcd基础
 
 ### 一、常用API
 
@@ -116,6 +115,10 @@ if resp.Succeeded {
 
 ### 二、Etcd底层原理
 
+- 高可用的分布式键值存储系统
+- 使用 BoltDB 作为底层存储引擎（基于 B + 树的嵌入式键值存储）
+- 使用 gRPC 作为其网络通信框架
+- 支持 watcher 机制，允许客户端订阅特定的键或目录
 
 ### 三、Etcdctl模拟租约抢占
 
@@ -130,30 +133,46 @@ $ docker run --name etcd -d -p 2379:2379 -p 2380:2380 \
 ```bash
 $ etcdctl --endpoints=http://127.0.0.1:2379 put /key1 value1
 
-$ etcdctl --endpoints=http://127.0.0.1:2379 get /key1
+# --endpoints=http://127.0.0.1:2379 是默认的不带也行
+$ etcdctl get /key1
 ```
+
+2. 开始选主
 
 ```bash
 # 窗口A
 # 创建租约
-$ etcdctl lease grant 120
-lease 694d930bd89d3a0b granted with TTL(120s)
+$ etcdctl lease grant 60
+lease 694d930bfe83dd0b granted with TTL(120s)
 
 # 将键值对与租约关联
-$ etcdctl put /leader A --lease=694d930bd89d3a0b
+$ etcdctl put /leader A --lease=694d930bfe83dd0b
 $ etcdctl get /leader
 
 # 续租租约
-$ etcdctl lease keep-alive 694d930bd89d3a0b
+$ etcdctl lease keep-alive 694d930bfe83dd0b
 lease 694d930bd89d3a0b keepalived with TTL(120)
 ```
 
 ```bash
 # 窗口B
-$ etcdctl lease grant 120
-lease 694d930bd89d3a25 granted with TTL(120s)
+# 查看这个key是否有值,如果有的话表示有租约关联
+# 此时不会将自己作为Leader节点
+$ etcdctl get /leader
 
-$ etcdctl put /leader B --lease=694d930bd89d3a25
+# 如果窗口A不续租
+# 窗口B监听Key会收到一个DELETE信号
+# 注意：这里有可能两个进程几乎同时检测到/leader键为空
+# 然后同时写入/leader为自己的进程id然后最终写入决定谁是主节点
+$ etcdctl watch /leader
+DELETE
+
+# 此时窗口B创建租约
+$ etcdctl lease grant 60
+lease zzz granted with TTL(120s)
+
+# 写入成功时候进阶为主节点
+$ etcdctl put /leader B --lease=694d930bfe83dd0b
 ```
 
 ### Q&A
@@ -175,3 +194,8 @@ $ etcdctl put /leader B --lease=694d930bd89d3a25
 3. Etcd的领导者选举机制选举leader是怎么样的
     基于Raft一致性算法。
 
+### 相关文章
+
+- [用 etcd 实现服务注册和发现](https://learnku.com/articles/37344)
+- [悟禅小书童Etcd服务注册发现实例](https://blog.lerzen.com/post/etcd%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%8F%91%E7%8E%B0%E5%AE%9E%E4%BE%8B/)
+- [基于 Etcd 的分布式锁实现原理及方案](https://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%AE%9E%E8%B7%B5%E4%B9%8B%E8%B7%AF%EF%BC%88%E5%AE%8C%EF%BC%89/10%20%E5%9F%BA%E4%BA%8E%20Etcd%20%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E5%8F%8A%E6%96%B9%E6%A1%88.md)
