@@ -8,12 +8,12 @@ tag:
 
 ### 1.官网
 
-[https://github.com/docker/buildx](https://github.com/docker/buildx)
-[https://github.com/moby/buildkit](https://github.com/moby/buildkit)
+- [https://github.com/docker/buildx](https://github.com/docker/buildx)
+- [https://github.com/moby/buildkit](https://github.com/moby/buildkit)
 
-> buildx 命令属于实验特性，因此首先需要开启该特性，比如 ~/.docker/config.json 的 experimental 设置为 true 
+> buildx 命令属于实验特性，因此首先需要开启该特性，比如 `~/.docker/config.json` 的 experimental 设置为 true 
 
-本质上是 buildx 调用 buildkit 实现多架构编译，例如linux/amd64，linux/arm64、 或 darwin/amd64，--platform 指定目标架构。
+本质上是 buildx 调用 buildkit 实现多架构编译，例如`linux/amd64`，`linux/arm64`、 或 `darwin/amd64`，--platform 指定目标架构。
 
 
 ### 2.如何进行多架构编译

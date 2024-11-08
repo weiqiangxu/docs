@@ -17,9 +17,9 @@ sudo systemctl start docker
 ### 3.安装runner [本地卷]
 
 ``` bash
-mkdir -p /home/gitlab-runner/config
+$ mkdir -p /home/gitlab-runner/config
 
-docker run -d --name gitlab-runner --restart always \
+$ docker run -d --name gitlab-runner --restart always \
   -v /home/gitlab-runner/config:/etc/gitlab-runner \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /home/runner:/home/runner \

@@ -6,8 +6,6 @@ categories:
   - kubernetes
 ---
 
-# chartmuseum
-
 ### 1.docker启动单机的chart仓库服务
 
 ```bash

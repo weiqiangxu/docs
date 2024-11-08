@@ -12,9 +12,9 @@ tag:
 
 1. 官网
 
-[https://github.com/jpetazzo/dind](https://github.com/jpetazzo/dind)
-[DockerHub上面dind的文档](https://hub.docker.com/_/docker/tags?page=1&name=dind)
-[ENTRYPOINT 入口点](https://docker-practice.github.io/zh-cn/image/dockerfile/entrypoint.html)
+- [https://github.com/jpetazzo/dind](https://github.com/jpetazzo/dind)
+- [DockerHub上面dind的文档](https://hub.docker.com/_/docker/tags?page=1&name=dind)
+- [ENTRYPOINT入口点](https://docker-practice.github.io/zh-cn/image/dockerfile/entrypoint.html)
 
 2. quick start
 

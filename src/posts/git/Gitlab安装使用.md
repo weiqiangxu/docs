@@ -106,20 +106,12 @@ gitlab_rails['initial_root_password'] = '<my_strong_password>'
 
 ### 相关文章
 
-[GitLab-2.配置外网映射之后clone地址还是内网地址](https://www.jianshu.com/p/c98488d9cd26)
-
-[gitlab中文手册](https://docs.gitlab.cn/jh/index.html)
-
-[官方install手册](https://docs.gitlab.com/ce/install/)
-
-[知乎-如何搭建gitlab服务器——使用离线安装包部署](https://zhuanlan.zhihu.com/p/338882906)
-
-[https://hub.docker.com/r/gitlab/gitlab-ce](https://hub.docker.com/r/gitlab/gitlab-ce)
-
-[https://docs.gitlab.com/ee/install/docker.html](https://docs.gitlab.com/ee/install/docker.html)
-
-[https://docs.gitlab.com/](https://docs.gitlab.com/)
-
-[gitlab CI/CD](https://docs.gitlab.com/ee/ci/)
-
-[重置用户密码](https://docs.gitlab.cn/jh/security/reset_user_password.html#%E4%BD%BF%E7%94%A8-rake-%E4%BB%BB%E5%8A%A1)
+- [GitLab-2.配置外网映射之后clone地址还是内网地址](https://www.jianshu.com/p/c98488d9cd26)
+- [gitlab中文手册](https://docs.gitlab.cn/jh/index.html)
+- [官方install手册](https://docs.gitlab.com/ce/install/)
+- [知乎-如何搭建gitlab服务器——使用离线安装包部署](https://zhuanlan.zhihu.com/p/338882906)
+- [https://hub.docker.com/r/gitlab/gitlab-ce](https://hub.docker.com/r/gitlab/gitlab-ce)
+- [https://docs.gitlab.com/ee/install/docker.html](https://docs.gitlab.com/ee/install/docker.html)
+- [https://docs.gitlab.com/](https://docs.gitlab.com/)
+- [gitlab CI/CD](https://docs.gitlab.com/ee/ci/)
+- [重置用户密码](https://docs.gitlab.cn/jh/security/reset_user_password.html#%E4%BD%BF%E7%94%A8-rake-%E4%BB%BB%E5%8A%A1)

@@ -203,5 +203,5 @@ $ curl http://localhost:3100/loki/api/v1/query_range?query={job="audit"}|json
 
 ### 相关资料
 
-[https://hub.docker.com/r/grafana/loki](https://hub.docker.com/r/grafana/loki)
-[https://grafana.com/docs/loki/latest/clients/promtail/installation/](https://grafana.com/docs/loki/latest/clients/promtail/installation/)
+- [https://hub.docker.com/r/grafana/loki](https://hub.docker.com/r/grafana/loki)
+- [https://grafana.com/docs/loki/latest/clients/promtail/installation/](https://grafana.com/docs/loki/latest/clients/promtail/installation/)

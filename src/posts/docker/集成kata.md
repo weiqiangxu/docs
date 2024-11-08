@@ -11,8 +11,6 @@ tag:
 
 ### 一、离线安装Docker
 
-[离线安装docker](https://weiqiangxu.github.io/2023/04/18/kubernetes/%E8%AF%AD%E9%9B%80k8s%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8/docker%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/)
-
 > https://download.docker.com/linux/static/stable/aarch64/docker-23.0.4.tgz
 
 ### 二、kata-containers安装
@@ -191,7 +189,7 @@ $ ifconfig
 # 那么表示冲突：ifconfig 输出有2个网络接口的inet一模一样
 ```
 
-- ifconfig输出的docker0 和eth0是什么意思
+- ifconfig输出的`docker0` 和`eth0`是什么意思
 
 ifconfig命令用于查看和配置网络接口。在Linux系统中，docker0和eth0是两个常见的网络接口，其含义如下：
 1. docker0：是Docker容器的默认网桥接口，它用于将Docker容器连接到宿主机网络上。当使用Docker创建容器时，容器会自动创建并连接到docker0网桥上，从而能够实现与宿主机以及其他容器的网络通信。
@@ -250,5 +248,5 @@ docker0的inet地址与本地网络中的某个设备的IP地址冲突，就意�
 
 ### 相关链接
 
-[什么是容器安全](https://zhuanlan.zhihu.com/p/109256949)
-[Kata Containers如何与k8s集成](https://blog.gmem.cc/kata-containers-study-note)
+- [什么是容器安全](https://zhuanlan.zhihu.com/p/109256949)
+- [Kata Containers如何与k8s集成](https://blog.gmem.cc/kata-containers-study-note)

@@ -95,5 +95,5 @@ systemctl status docker
 
 ### 参考资料
 
-[docs.docker.com/docker的二进制安装](https://docs.docker.com/engine/install/binaries/)
+- [docs.docker.com/docker的二进制安装](https://docs.docker.com/engine/install/binaries/)
 
