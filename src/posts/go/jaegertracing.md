@@ -1,5 +1,5 @@
 ---
-title: 分布式链路追踪
+title: jaegertracing
 category:
   - go
 tag:

@@ -1,7 +1,4 @@
----
-hide: true
----
-# Reflect 的性能比较
+# Reflect的性能
 
 ### 反射的用途
 

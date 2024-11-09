@@ -1,5 +1,5 @@
 ---
-title: 干货满满的GoModules
+title: GoModules
 category:
   - go
 tag:
@@ -129,6 +129,30 @@ mod
 ├── gopkg.in
 ...
 ```
+
+
+### GO MOD 相关环境变量
+
+```bash
+$ go env
+
+# Go modules 的开关
+GO111MODULE="auto"
+# 镜像站点
+GOPROXY="https://proxy.golang.org,direct"
+GONOPROXY=""
+# 用于保证拉取到的模块版本数据未经过篡改
+GOSUMDB="sum.golang.org"
+GONOSUMDB=""
+GOPRIVATE=""
+```
+
+### 开启
+```
+ $ go env -w GO111MODULE=on
+```
+
+[GO修养之路](https://www.yuque.com/aceld/golang/ithv8f)
 
 # 参考文档
 

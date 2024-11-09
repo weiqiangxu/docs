@@ -65,12 +65,12 @@ loopback  macvlan  portmap  ptp  sbr  static  tuning  vlan
 1. JSON格式的配置文件来描述网络配置;
 2. 容器运行时负责执行CNI插件，并通过CNI插件的标准输入（stdin）来传递配置文件信息，通过标准输出（stdout）接收插件的执行结果;
 3. 环境变量:
-    CNI_COMMAND：定义期望的操作，可以是ADD，DEL，CHECK或VERSION。
-    CNI_CONTAINERID：容器ID，由容器运行时管理的容器唯一标识符。
-    CNI_NETNS：容器网络命名空间的路径。（形如 /run/netns/[nsname]）。
-    CNI_IFNAME：需要被创建的网络接口名称，例如eth0。
-    CNI_ARGS：运行时调用时传入的额外参数，格式为分号分隔的key-value对，例如FOO=BAR;ABC=123
-    CNI_PATH：CNI插件可执行文件的路径，例如/opt/cni/bin。
+    - CNI_COMMAND：定义期望的操作，可以是ADD，DEL，CHECK或VERSION。
+    - CNI_CONTAINERID：容器ID，由容器运行时管理的容器唯一标识符。
+    - CNI_NETNS：容器网络命名空间的路径。（形如 /run/netns/[nsname]）。
+    - CNI_IFNAME：需要被创建的网络接口名称，例如eth0。
+    - CNI_ARGS：运行时调用时传入的额外参数，格式为分号分隔的key-value对，例如FOO=BAR;ABC=123
+    - CNI_PATH：CNI插件可执行文件的路径，例如/opt/cni/bin。
 4. 通过链式调用的方式来支持多插件的组合使用;
 
 ``` bash

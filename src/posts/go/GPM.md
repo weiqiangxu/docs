@@ -1,5 +1,5 @@
 ---
-title: GMP设计思想
+title: GMP
 category:
   - go
 tag:

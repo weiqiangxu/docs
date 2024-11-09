@@ -9,27 +9,17 @@ categories:
 
 # why write: broken pipe
 
-[golang服务报错: write: broken pipe](https://blog.csdn.net/cljdsc/article/details/124134531)
-
-[重现broken pipe: 讲解很清晰](https://piaohua.github.io/post/golang/20220731-connection-broken-pipe/)
-
-[Gin Error Connection Write Broken Pipe](https://reid00.github.io/posts/gin-error-connection-write-broken-pipe/)
-
-[nginx\api-gateway(golang server)\backend broken pipe](https://zyun.360.cn/blog/?p=1634)
-
-[记一次connection-reset-by-peer问题定位-状态流转很详细](https://testerhome.com/articles/23296)
-
-[如何在Golang中强制关闭TCP连接](https://itnext.io/forcefully-close-tcp-connections-in-golang-e5f5b1b14ce6)
-
-[服务端大量close_wait 和 time_wait状态](https://www.cnblogs.com/taoshihan/p/14785384.html)
-
-[Go 中如何强制关闭 TCP 连接](https://blog.csdn.net/EDDYCJY/article/details/120898217)
-
-[抓包 127.0.0.1 （loopback） 使用 tcpdump+wireshark][https://www.bbsmax.com/A/D854qmj6dE/]
-
-[浅谈Close Wait - 写的简单明了](https://huoding.com/2016/01/19/488)
-
-[Socket图解](https://www.topgoer.com/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/socket%E7%BC%96%E7%A8%8B/socket%E5%9B%BE%E8%A7%A3.html)
+- [golang服务报错: write: broken pipe](https://blog.csdn.net/cljdsc/article/details/124134531)
+- [重现broken pipe: 讲解很清晰](https://piaohua.github.io/post/golang/20220731-connection-broken-pipe/)
+- [Gin Error Connection Write Broken Pipe](https://reid00.github.io/posts/gin-error-connection-write-broken-pipe/)
+- [nginx\api-gateway(golang server)\backend broken pipe](https://zyun.360.cn/blog/?p=1634)
+- [记一次connection-reset-by-peer问题定位-状态流转很详细](https://testerhome.com/articles/23296)
+- [如何在Golang中强制关闭TCP连接](https://itnext.io/forcefully-close-tcp-connections-in-golang-e5f5b1b14ce6)
+- [服务端大量close_wait 和 time_wait状态](https://www.cnblogs.com/taoshihan/p/14785384.html)
+- [Go 中如何强制关闭 TCP 连接](https://blog.csdn.net/EDDYCJY/article/details/120898217)
+- [抓包 127.0.0.1 （loopback） 使用 tcpdump+wireshark][https://www.bbsmax.com/A/D854qmj6dE/]
+- [浅谈Close Wait - 写的简单明了](https://huoding.com/2016/01/19/488)
+- [Socket图解](https://www.topgoer.com/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/socket%E7%BC%96%E7%A8%8B/socket%E5%9B%BE%E8%A7%A3.html)
 
 
 1. ulimit -n 连接数过大
@@ -193,5 +183,5 @@ netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
 初始窗口大小为 65，535 字节
 ```
 
-[TCP窗口大小](https://learn.microsoft.com/zh-cn/troubleshoot/windows-server/networking/description-tcp-features#tcp-window-size)
-[面试官：换人！他连 TCP 这几个参数都不懂](https://mp.weixin.qq.com/s/fjnChU3MKNc_x-Wk7evLhg)
+- [TCP窗口大小](https://learn.microsoft.com/zh-cn/troubleshoot/windows-server/networking/description-tcp-features#tcp-window-size)
+- [面试官：换人！他连 TCP 这几个参数都不懂](https://mp.weixin.qq.com/s/fjnChU3MKNc_x-Wk7evLhg)
