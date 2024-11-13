@@ -1,9 +1,4 @@
----
-hide: true
----
-# GMP 原理与调度
-
-[GMP 原理与调度](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
+# GMP原理与调度
 
 1. M (thread)  G (goroutine) P (Processor)
 2. P在启动时创建，保存在数组之中，数量是GOMAXPROCS （决定同时执行的goroutine的最大数量）
@@ -130,3 +125,4 @@ $ OS系统调用前，先调用runtime·entersyscall函数将自己的状态置�
 - [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
 - [GMP 原理与调度 - 简单易懂](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
 - [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+- [GMP 原理与调度](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
