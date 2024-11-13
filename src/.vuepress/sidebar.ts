@@ -82,6 +82,13 @@ export default sidebar({
       children: "structure",
       collapsible: true
     },
+    {
+      text: "DataStruct",
+      icon: "book",
+      prefix: "posts/struct/",
+      children: "structure",
+      collapsible: true
+    },
     "intro"
   ],
 });
