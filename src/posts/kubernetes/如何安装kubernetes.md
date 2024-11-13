@@ -1101,7 +1101,132 @@ $ crictl logs ${containerdID}
 67. L3/L4网络是什么意思
     OSI模型 网络层（L3）IP协议、传输层（L4）TCP/UDP协议
 68. TCP的1RTT是什么意思(客户端Req->服务器ACK 这1个来回称为1RTT)
-
+1. 简述ETCD及其特点?
+2. 简述ETCD适应的场景?
+3. 简述什么是Kubernetes?
+4. 简述Kubernetes和Docker的关系?
+5. 简述Kubernetes中什么是Minikube、Kubectl、Kubele t?
+6. 简述Kubernetes常见的部署方式?
+7. 简述Kubernetes如何实现集群管理?
+8. 简述Kubernetes的优势、适应场景及其特点?
+9. 简述Kubernetes的缺点或当前的不足之处?
+10. 简述Kubernetes相关基础概念?
+11. 简述Kubernetes集群相关组件?
+12. 简述Kubernetes RC的机制?
+13. 简述kube-proxy作用?
+14. 简述kube-proxy iptables原理?
+15. 简述kube-proxy ipvs原理?
+16. 简述kube-proxy ipvs和iptables的异同?
+17. 简述Kubernetes中什么是静态Pod?
+18. 简述Kubernetes中Pod可能位于的状态?
+19. 简述Kubernetes创建一个Pod的主要流程?
+20. 简述Kubernetes中Pod的重启策略?
+21. 简述Kubernetes中Pod的健康检查方式?
+22. 简述Kubernetes Pod的LivenessProbe探针的常见方式?
+23. 简述Kubernetes Pod的常见调度方式?
+24. 简述Kubernetes初始化容器（init container）?
+25. 简述Kubernetes deployment升级过程?
+26. 简述Kubernetes deployment升级策略?
+27. 简述Kubernetes DaemonSet类型的资源特性?
+28. 简述Kubernetes自动扩容机制?
+29. 简述Kubernetes Service类型?
+30. 简述Kubernetes Service分发后端的策略?
+31. 简述Kubernetes Headless Service?
+32. 简述Kubernetes外部如何访问集群内的服务?
+33. 简述Kubernetes ingress?
+34. 简述Kubernetes镜像的下载策略?
+35. 简述Kubernetes的负载均衡器?
+36. 简述Kubernetes各模块如何与API Server通信?
+37. 简述Kubernetes Scheduler作用及实现原理?
+38. 简述Kubernetes Scheduler使用哪两种算法将Pod绑定到worker节点?
+39. 简述Kubernetes kubelet的作用?
+40. 简述Kubernetes kubelet监控Worker节点资源是使用什么组件来实现的?
+41. 简述Kubernetes如何保证集群的安全性?
+42. 简述Kubernetes准入机制?
+43. 简述Kubernetes RBAC及其特点（优势）?
+44. 简述Kubernetes Secret作用?
+45. 简述Kubernetes Secret有哪些使用方式?
+46. 简述Kubernetes PodSecurityPolicy机制?
+47. 简述Kubernetes PodSecurityPolicy机制能实现哪些安全策略?
+48. 简述Kubernetes网络模型?
+49. 简述Kubernetes CNI模型?
+50. 简述Kubernetes网络策略?
+51. 简述Kubernetes网络策略原理?
+52. 简述Kubernetes中flannel的作用?
+53. 简述Kubernetes Calico网络组件实现原理?
+54. 简述Kubernetes共享存储的作用?
+55. 简述Kubernetes数据持久化的方式有哪些?
+56. 简述Kubernetes PV和PVC?
+57. 简述Kubernetes PV生命周期内的阶段?
+58. 简述Kubernetes所支持的存储供应模式?
+59. 简述Kubernetes CSI模型?
+60. 简述Kubernetes Worker节点加入集群的过程?
+61. 简述Kubernetes Pod如何实现对节点的资源控制?
+62. 简述Kubernetes Requests和Limits如何影响Pod的调度?
+63. 简述Kubernetes Metric Service?
+64. 简述Kubernetes中，如何使用EFK实现日志的统一管理
+65. 简述Kubernetes如何进行优雅的节点关机维护?
+66. 简述Kubernetes集群联邦?
+67. 简述Helm及其优势?
+68. k8s是什么?请说出你的了解?
+69. K8s架构的组成是什么?
+69. 容器和主机部署应用的区别是什么?
+70. 请你说一下kubenetes针对pod资源对象的健康监测机制?
+71. 如何控制滚动更新过程?
+72. K8s中镜像的下载策略是什么?73、image的状态有哪些?
+74. pod的重启策略是什么?
+75. Service这种资源对象的作用是什么?
+76. 版本回滚相关的命令?
+77. 标签与标签选择器的作用是什么?
+78. 常用的标签分类有哪些?
+79. 有几种查看标签的方式?
+80. 添加、修改、删除标签的命令?
+81. DaemonSet资源对象的特性?
+82. 说说你对Job这种资源对象的了解?
+83. 描述一下pod的生命周期有哪些状态?
+84. 创建一个pod的流程是什么?85、删除一个Pod会发生什么事情?
+86. K8s的Service是什么?
+87. k8s是怎么进行服务注册的?
+88. k8s集群外流量怎么访问Pod?
+89. k8s数据持久化的方式有哪些?
+90. Kubernetes与Docker Swarm的区别如何?
+91. 什么是Kubernetes?
+92. Kubernetes与Docker有什么关系?
+93. 在主机和容器上部署应用程序有什么区别?
+94. 什么是Container Orchestration?
+95. Container Orchestration需要什么?
+96. Kubernetes有什么特点?
+97. Kubernetes如何简化容器化部署?
+98. 对Kubernetes的集群了解多少?
+99. 什么是Google容器引擎?
+100. 什么是Heapster?
+101. 什么是Minikube?
+102. 什么是Kubectl?
+103. 什么是Kubelet?
+104. Kubernetes Architecture的不同组件有哪些?
+105. 你对Kube-proxy有什么了解?
+106. 能否介绍一下Kubernetes中主节点的工作情况?
+107. kube-apiserver和kube-scheduler的作用是什么?
+108. 你能简要介绍一下Kubernetes控制管理器吗?
+109. 什么是ETCD?
+110. Kubernetes有哪些不同类型的服务?
+111. 你对Kubernetes的负载均衡器有什么了解?
+112. 什么是Ingress网络，它是如何工作的?
+113. 您对云控制器管理器有何了解?
+114. 什么是Container资源监控?
+115. Replica Set和Replication Controller之间有什么区别?
+116. 什么是Headless Service?
+117. 使用Kubernetes时可以采取哪些最佳安全措施?
+118. 什么是集群联邦?
+119. 您如何看待公司从单—服务转向微服务并部署其服务容器?
+120. 考虑一家拥有分布式系统的跨国公司，拥有大量数据中心，虚拟机和许多从事各种任务的员工。您认为这样公司如何以与Kubernetes一致的方式管理所有任务?
+121. 考虑一种情况，即公司希望通过维持最低成本来提高其效率和技术运营速度。您认为公司将如何实现这一目标?122、假设一家公司想要修改它的部署方法，并希望建立一个更具可扩展性和响应性的平台。您如何看待这家公司能够实现这一目标以满足客户需求?
+123. 考虑一家拥有非常分散的系统的跨国公司，期待解决整体代码库问题。您认为公司如何解决他们的问题?
+124. 我们所有人都知道，从单片到微服务的转变解决了开发方面的问题，但却增加了部署方面的问题。公司如何解决部署方面的问题?
+125. 公司如何有效地实现这种资源分配?
+126. 您认为公司如何处理服务器及其安装?
+127. 考虑一种情况，公司希望向具有各种环境的客户提供所有必需的分发。您认为他们如何以动态的方式实现这一关键目标?
+128. 假设公司希望在不同的云基础架构上运行各种工作负载，从裸机到公共云。公司将如何在不同界面的存在下实现这一目标?
 
 
 ### containerd 二进制安装
