@@ -1,14 +1,21 @@
----
-title: 使用range必懂的点
-index_img: /images/bg/文章通用.png
-tags:
-  - golang
-categories:
-  - golang
-date: 2021-04-11 09:40:12
-excerpt: 使用range时候容易遗漏的点，就是range list之中的item地址是不可用的
-hide: false
----
+# slice
+
+### 一、底层数据结构
+
+```go
+// runtime/slice.go
+type slice struct {
+    // 底层是数组
+	array unsafe.Pointer
+	// 长度
+    len   int
+    // 容量
+    // 扩容是2倍速扩容当大于1024的时候1.25倍速扩容
+	cap   int
+}
+```
+
+### 使用Range循环的陷阱
 
 1. code
 

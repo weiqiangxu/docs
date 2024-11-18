@@ -265,7 +265,9 @@ broker收到消息之后在什么状态下（直接返回,leader success, follow
 33. rebalance的触发情形有哪些rebalance的过程是怎么样的
 35. kafka的可靠性体现在哪些方面
     消费可靠（提交offset和消费动作次序、重复消费还是消息丢失、消息堆积）。生产可靠（ack、批量发送还是单个发送）。kafka可靠（落盘机制、副本机制）。
-
+36. kafka的流比普通的有什么区别
+    - 普通的数据处理通常是基于批处理（Batch Processing）模式。
+    - Kafka 流处理是基于实时流（Real-Time Streaming）模式。数据在产生后几乎是立即被处理，没有明显的等待积累阶段。
 
 ### 参考资料
 

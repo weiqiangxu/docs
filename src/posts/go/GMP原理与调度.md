@@ -1,128 +1,127 @@
 # GMP原理与调度
 
-1. M (thread)  G (goroutine) P (Processor)
-2. P在启动时创建，保存在数组之中，数量是GOMAXPROCS （决定同时执行的goroutine的最大数量）
-3. 每个M代表1个内核线程 （runtime/debug 中的 SetMaxThreads 函数，设置 M 的最大数量）
+### 一、概念
 
-### M和P的数量没有绝对关系，启动以后P是固定的而M是动态的
+##### 1.G（Goroutine）轻量级用户线程
+    
+    用户态的线程，轻量级，上下文切换全部由语言层面实现，初始栈大小通常只有2KB左右。
 
-> M被阻塞的时候，P会创建或者切换到另一个M
+##### 2.M（Machine）操作系统线程
 
-### 一些简单的问题 work stealing && hand off
+    M从调度队列中获取到一个Goroutine后，就会开始执行它，如果 Goroutine 发生了阻塞（如进行 I/O 操作、等待锁等），M会尝试从本地调度器的队列中获取其他可执行的 Goroutine 来继续执行。runtime/debug.SetMaxThreads设置M的最大数量。
 
-1. M关联的P无G消费的时候，是不是就会一直空闲在那里 （全局队列G和其他P的G都会被偷取）
-2. G阻塞的时候，P会转移给其他空闲的M
+##### 3.P（Processor）逻辑处理器
 
-### 在Go中，一个goroutine最多占用CPU 10ms，防止其他goroutine被饿死 - 抢占式调度
-
-### 调度器的生命周期
-
-1. 创建P\G\M
-2. 运行M
-3. M和P绑定
-4. M通过P获取到G进行消费 （M肯定通过P呀、P是M的本地队列呀）
-5. M获取不到G的时候休眠
-6. P绑定M的时候唤醒
-
-main.main > runtime.main -> runtime.exit or runtime.main finish
-
-### 可视化GMP编程
-1. go tool trace
-2. debug trace
-
-### 线程自旋：系统中最多有 GOMAXPROCS 个自旋的线程
-
-### goroutine的状态有多少个
-
-### GMP相关调优
-
-1. GOMAXPROCS配置 决定P的数量也就是  能够并行执行的goroutine的最大数量
+    P是Go运行时对操作系统资源的一种抽象，它可以看作是一个逻辑处理器。管理和调度 Goroutine，每个 P 都有自己的本地 Goroutine 队列。P相当于是M和G的中间人，M通过P获取G，如果 P 的本地队列为空，M 可以从其他 P 的队列或者全局队列中获取G。
 
 
-### 已经被废弃的GM 和 最新的GPM 的对比 
-```
-本质上就是增加了 "M 的本地队列"
+### 二、设计策略
 
-如果M获取每一个G都要去全局队列获取，和其他M抢夺G，就需要大量的加锁解锁
-```
+##### 1.工作窃取（Work-Stealing）算法
 
-### 本质上就是增加了 M 的本地队列 、 本质上就是增加了 M 的本地队列、本质上就是增加了 M 的本地队列
+    P的本地 Goroutine 队列空了，它可以从其他 P 的队列或者全局队列中 “窃取” Goroutine 来执行，高效的调度机制。
 
-### M 的 P 里面的G可以是 全局队列拿的，也可以是其他 P 的本地队列拿的
+##### 2.动态调整 M（Machine）的数量
 
-> 每个 M 都代表了 1 个内核线程，OS 调度器负责把内核线程分配到 CPU 的核上执行
+    在系统负载较轻时，不会因为过多的线程而浪费系统资源；而在系统负载较重，需要更多的计算资源时，能够及时地增加线程数量来满足需求。
 
+#### 3.hand off 机制
 
-### 关于数量
-
-1. M是动态的不够用的时候就会创建 （随时创建） 只能限定最大数量
-2. P是固定数量的 GOMAXPROCS配置 （启动时候就创建）
-
-### GMP-hello的执行过程
-
-### 关键术语
-1. 进程虚拟地址空间中的代码段
-2. 程序执行入口 runtime.main 创建 main.goroutine （call main.main）
-3. 协程对应的数据结构是runtime.g，工作线程对应的数据结构是runtime.m，处理器P对应的数据结构是 runtime.p (本地runq)
-4. 全局runq 存储在 全局变量 sched （调度器，对应的数据结构是 runtime.schedt）
-5. P程序初始化过程之中进行调度器初始化，初始化固定数量的 P (GOMAXPROCS)
-6. start函数开启调度循环schedule()函数
-7. time.sleep 调用 gopark函数
-```
-协程的状态从 _Grunning修改为_Gwaiting 
+    本线程因为 G 进行系统调用阻塞时，线程释放绑定的 P，让 M 挂载其他 P，执行其他P的G，让M的资源得到更高效率的应用。
 
 
-(main.goroutine就不会因为执行完成回到P之中而是timer之中等待) 
-然后使用 schedule() 调度执行其他的goroutine
+### 三、GMP的状态流转
+
+##### 1.Goroutine状态
+
+> Go\src\runtime\runtime2.go
+
+1. _Gidle = 0     刚刚被分配并且还没有被初始化
+2. _Grunnable = 1 准备好被调度器分配到一个处理器核心上执行，但还未被选中执行
+3. _Grunning = 2  正在一个处理器核心上执行时，被赋予了内核线程 M 和处理器 P
+4. _Gsyscall = 3  当goroutine正在执行一个系统调用时，它处于系统调用状态，goroutine 会被阻塞，例如，进行文件 I/O、网络 I/O 
+5. _Gwaiting = 4  当goroutine正在等待某个条件满足时处于等待状态,比如等待一个通道（channel）或者time.Sleep.
+6. _Gdead = 6     当goroutine已死亡，不再执行任何代码，也不会被调度器再次调度执行，占用的资源（如栈空间等）可以被回收.
+
+> 有几个状态是不用去理会的
+
+- _Genqueue_unused（目前未使用）
+- _Gcopystack=8 （不在运行队列上） 
+- _Gpreempted=9 （没有执行用户代码）
+- _Gscan=10 GC （没有执行代码，可以与其他状态同时存在 ）
+
+##### 2.M状态
+
+1. 执行用户代码（Executing user code）正在执行一个 goroutine 的用户代码
+2. 执行系统调用（Executing system call）进行文件 I/O、网络 I/O 等操作时.
+3. 闲置状态（Idle）
+4. 自旋状态（Spinning）
+    当没有可运行的 goroutine 但是预计很快就有新的 goroutine，减少上下文切换的开销，不进入闲置而是直接自旋.
+
+##### 3.P状态
+
+1. Pidle：当前p尚未与任何m关联，处于空闲状态
+2. Prunning：当前p已经和m关联，并且正在运行g代码
+3. Psyscall：当前p正在执行系统调用
+4. Pgcstop：当前p需要停止调度，一般在GC前或者刚被创建时
+5. Pdead：当前p已死亡，不会再被调度
 
 
-时间到了以后 _Grunnable 状态然后G被访问P的runq之中，main.main结束
-```
+### 相关文章
+
+[Go调度系列--GMP状态流转](https://zhuanlan.zhihu.com/p/618222173)
+
+### 四、Q&A
+
+1. M和P的数量关系
+
+    M和P的数量没有绝对的关系，因为M是动态的，只是执行之中的M只能有1个P，启动以后P是固定的而M是动态的。P的数量是可以使用runtime.GOMAXPROCS设置。M是动态的不够用的时候就会创建 （随时创建） 只能限定最大数量，P是固定数量的 GOMAXPROCS配置 （启动时候就创建）.
+
+2. GMP之中的抢占式调度是什么意思
+    
+    一种任务调度策略。在这种策略下，操作系统（或运行时环境）可以在一个任务（如线程、进程或 Go 语言中的 Goroutine）执行过程中，中断它的执行，将 CPU 资源分配给其他任务。注意：不依赖任务自身主动放弃 CPU 资源，而是由系统强制进行资源分配。
+    
+    比如在 Go 中，一个 goroutine 占用 CPU 较长时间（并非严格的10ms），运行时（runtime）会中断它的执行，主要基于信号（如 SIGURG）来触发抢占，比如运行时发送信号暂停这个Goroutine的执行，防止其他 goroutine 被饿死，这是抢占式调度。
 
 
-> M 可以去 P 获取 G，所以不用再去全局队列和其他M争抢G了
-> 全局变量 sched 调度器记录所有空闲的m 和空闲的p 等 以及全局 runq
-> M 优先从关联的 P 获取 G，没有的话去全局变量 sched 调度器的全局runq领取 G ， 如果调度器也没有那么从别的 P 的runq 获取G 
+3. GMP的一个M对应操作系统内核的一个线程，对吗
 
-### 抢占式调度
+    在 Go 语言的 GMP 模型中，一个 M（Machine）通常对应操作系统内核的一个线程。M 是真正执行计算任务的实体，它需要借助操作系统提供的线程来运行，这些线程可以在 CPU 上执行指令。
 
-1. time.sleep后 _Grunning 和 _Gwaiting，timer之中的回调函数将g变成Grunnable状态放回runq
-2. 以上谁负责执行timer之中的回调函数呢 (schedule()->checkTimers)
-3. 监控线程（重复执行某一个任务） - 不依赖GMP、main.goroutine创建 ， 监控timer可以创建线程执行
-4. IO时间监听队列 - 主动轮询netpoll
+4. 在G里面创建G(go func(){xxx})
 
-[Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+    在Go语言中的GMP模型中，创建Goroutine的时候，协程创建后会将G直接加入P的本地队列runq之中。
 
-### GMP的让出创建恢复
+5. goroutine在time.Sleep后状态流转是什么样子的
 
-1. newproc函数
+    goroutine当执行 time.Sleep 时，goroutine 进入等待中状态（Waiting），指定的睡眠时间过去后，goroutine 再次变为可运行状态（Runnable），等待被调度器分配到一个处理器核心上执行。
 
+6. goroutine的唤醒是如何实现的
 
-### 协程状态
+    - channel
+    - time.After\time.Ticker
+    - sync.Cond
 
-1. running
-2. runable
-3. waiting
-4. syscall 
-5. dead
+7. sync.Cond的底层
 
-### 备注
+    ```go
+    type Cond struct {
+        // 本质是使用互斥锁实现的
+        L Locker
+        // 管理等待条件满足的 Goroutine 列表
+        // 简单理解为它包含了一个用于存储等待 Goroutine 相关信息的队列结构
+        notify  notifyList
+        // 防止Cond结构被意外复制
+        // checker结构会在运行时检查Cond是否被复制一旦发现复制行为会触发错误
+        checker copyChecker
+    }
+    ```
 
-``` bash
-$ OS系统调用前，先调用runtime·entersyscall函数将自己的状态置为Gsyscall
-```
-
-[Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
-
-### 协程创建后会加入 P 的本地队列runq之中
-### main.main运行结束以后runtime.main会调用exit函数结束进程
-
-
-- [Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
-
-### M 执行 G 的时候发生阻塞，那么 M 会失去原有的 P（摘除），然后创建新的 M 服务这个 P
+### 相关资料
 
 - [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
-- [GMP 原理与调度 - 简单易懂](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
+- [topgoer GMP 原理与调度 - 简单易懂](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
 - [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
 - [GMP 原理与调度](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
+- [Go调度系列--GMP状态流转](https://zhuanlan.zhihu.com/p/618222173)
+- [幼麟实验室Golang](https://www.bilibili.com/video/BV1hv411x7we)

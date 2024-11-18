@@ -1,11 +1,7 @@
----
-hide: true
----
-
 # 集群分布式锁及实现方案
 
-[Java全栈知识体系之分布式系统](https://pdai.tech/md/arch/arch-z-lock.html)
-[InfoQ Redis](https://www.infoq.cn/article/dvaaj71f4fbqsxmgvdce)
+- [Java全栈知识体系之分布式系统](https://pdai.tech/md/arch/arch-z-lock.html)
+- [InfoQ Redis](https://www.infoq.cn/article/dvaaj71f4fbqsxmgvdce)
 
 ### 锁实现需要支持
 ```

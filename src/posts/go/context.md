@@ -1,4 +1,13 @@
-# 来刷一下context源码
+# context
+
+### 一、常用API
+
+
+WithValue
+	查找顺序
+	多层级 context 值覆盖
+
+	
 
 > 主要弄清楚 WithValue\WithTimeout\WithDeadline\WithCancel 如何实现
 > 子上下文和父上下文如何相互通讯的
@@ -56,3 +65,37 @@ c.Value 的访问，是对当前的上下文的value访问，如果找不到那�
 > contextl.Value的并发安全通过sync.Mutex实现
 
 [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+
+
+### Context.WithTimeout的使用
+
+> 解释一下WithTimeout的cancel是否要直接defer
+
+```golang
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+)
+
+func ccc() context.Context {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+    // defer会在ccc执行完成以后立即调用
+    // 从而导致直接触发<-ctx.Done
+    // 无法等到timeOut后触发
+	defer cancel()
+	return ctx
+}
+
+func main() {
+	ctx := ccc()
+	select {
+	case <-ctx.Done():
+		fmt.Println("Context done.")
+	case <-time.After(3 * time.Second):
+		fmt.Println("Timeout after 3 seconds.")
+	}
+}
+```
