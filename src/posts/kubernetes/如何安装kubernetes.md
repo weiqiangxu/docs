@@ -13,8 +13,8 @@ tag:
 
 CentOS 7.6 64bit 2核 2G * 2 ( 操作系统的版本至少在7.5以上 )
 
-[1.环境准备之 kubernetes v1.26 CRI](https://v1-26.docs.kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/)
-[2.使用部署工具kubeadm安装 kubernetes v1.26](https://v1-26.docs.kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/)
+- [1.环境准备之 kubernetes v1.26 CRI](https://v1-26.docs.kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/)
+- [2.使用部署工具kubeadm安装 kubernetes v1.26](https://v1-26.docs.kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/)
 
 #### 1.防火墙
 
@@ -175,9 +175,9 @@ $ sysctl -a | grep net.ipv4.ip_forward
 ### 二、安装二进制程序
 
 
-#### 1.containerd安装
+#### 1.运行时containerd安装
 
-[containerd v1.7.0 的安装](https://weiqiangxu.github.io/2023/05/06/k8s/containerd%E5%AE%89%E8%A3%85/)
+- [containerd v1.7.0 的安装](https://weiqiangxu.github.io/2023/05/06/k8s/containerd%E5%AE%89%E8%A3%85/)
 
 更改镜像地址 /etc/containerd/config.yml:
 
@@ -629,6 +629,11 @@ kube-flannel使用VXLAN或UDP封装技术来创建一个覆盖整个集群的扁
 使得Kubernetes Pod能够互相通信，同时确保网络性能的高效和可靠性。
 ```
 
+- 没有安装flannel的话kubernetes能够运行吗?如果不可以那么k8s网络模型中的哪一块没有实现呢
+
+在 Kubernetes 的网络模型中，一个重要的目标是让不同节点上的容器能够像在同一局域网中一样相互通信。在默认的网络设置下，不同节点上的容器可能无法直接通信，因为它们处于不同的子网中，没有一个统一的网络层来连接它们。
+没有网络插件，就缺少了统一的 IP 分配和管理机制。网络插件会为每个 Pod 分配一个唯一的 IP 地址，可能会出现 IP 地址冲突的情况。
+
 - k8s的控制平面有哪些
 
 1. kube-apiserver：Kubernetes API服务器，提供Kubernetes API的访问入口，以及对Kubernetes内部对象的认证、授权和验证。
@@ -860,9 +865,11 @@ $ crictl logs ${containerdID}
 
 ### 常见的k8s问题
 
-1. 集群的cluser ip 可以直接访问吗
+1. Service集群的cluster ip 可以直接访问吗
+    虚拟的IP，主要用于在集群内部实现服务发现和负载均衡,外部网络无法访问
 2. network policy
 3. describe svc的时候endpoint可以直接访问吗
+    pod的ip
 4. host network模式
 5. cluster级别和namespace级别
 6. pod的ip和service的cluster ip关系
@@ -1100,7 +1107,8 @@ $ crictl logs ${containerdID}
 66. Istio是什么怎么用的(服务网格解决方案)连接（Connect）\安全加固（Secure）\控制（Control）\观察（Observe）
 67. L3/L4网络是什么意思
     OSI模型 网络层（L3）IP协议、传输层（L4）TCP/UDP协议
-68. TCP的1RTT是什么意思(客户端Req->服务器ACK 这1个来回称为1RTT)
+68. TCP的1RTT是什么意思
+    客户端Req->服务器ACK 这1个来回称为1RTT
 1. 简述ETCD及其特点?
 2. 简述ETCD适应的场景?
 3. 简述什么是Kubernetes?
@@ -1129,8 +1137,8 @@ $ crictl logs ${containerdID}
 26. 简述Kubernetes deployment升级策略?
 27. 简述Kubernetes DaemonSet类型的资源特性?
 28. 简述Kubernetes自动扩容机制?
-29. 简述Kubernetes Service类型?
-30. 简述Kubernetes Service分发后端的策略?
+29. 简述KubernetesService类型?
+30. 简述KubernetesService分发后端的策略?
 31. 简述Kubernetes Headless Service?
 32. 简述Kubernetes外部如何访问集群内的服务?
 33. 简述Kubernetes ingress?
@@ -1227,7 +1235,8 @@ $ crictl logs ${containerdID}
 126. 您认为公司如何处理服务器及其安装?
 127. 考虑一种情况，公司希望向具有各种环境的客户提供所有必需的分发。您认为他们如何以动态的方式实现这一关键目标?
 128. 假设公司希望在不同的云基础架构上运行各种工作负载，从裸机到公共云。公司将如何在不同界面的存在下实现这一目标?
-
+129. 怎么搭建高可用的k8s集群
+130. k8s的MetricServer是什么以及怎么安装使用
 
 ### containerd 二进制安装
 

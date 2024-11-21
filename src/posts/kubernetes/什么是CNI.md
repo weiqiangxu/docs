@@ -14,8 +14,8 @@ categories:
 2. 标准化的网络接口规范;
 3. CNI规范定义了"容器运行时"如何与"网络插件"进行通信，并且规定了插件必须实现的功能和接口;
 3. 第三方插件: 
-     [calico](https://github.com/projectcalico/calico)
-     [cilium](https://github.com/cilium/cilium)
+     - [calico](https://github.com/projectcalico/calico)
+     - [cilium](https://github.com/cilium/cilium)
 
 ### 二、k8s和CNI是什么关系
 
@@ -43,7 +43,7 @@ $ kubectl apply -f <add-on.yaml>
 
 ### 五、只有 [CNI/plugins](https://github.com/containernetworking/plugins) 可以安装好k8s的网络吗
 
-不是的，除了 https://github.com/containernetworking/plugins 还有很多其他的网络插件可以用于Kubernetes，比如：Calico、Flannel、Weave Net、Cilium等等。可以根据自己的需求选择适合的网络插件来部署Kubernetes集群。
+不能。如果没有网络插件Calico、Flannel、Weave Net、Cilium等等。跨节点的pod之间通信会有异常，并且ipam会出现ip冲突。
 
 ### 六、CNI如何工作的
 
@@ -217,13 +217,13 @@ CNI_PATH=`pwd`  – 我们总是需要告诉 CNI 插件可执行文件所在的�
 ``` bash
 $ tree /opt/cni/bin/
 /opt/cni/bin/
-├── bandwidth       # 提供带宽限制功能，用于限制容器的网络带宽使用
-├── bridge          # 用于创建和管理 Linux 桥接网络，使容器可以与宿主机以及其他容器进行通信
+├── bandwidth       # 带宽控制.提供带宽限制功能，用于限制容器的网络带宽使用
+├── bridge          # 网桥.用于创建和管理 Linux 桥接网络，使容器可以与宿主机以及其他容器进行通信
 ├── dhcp            # 用于在容器启动时为其分配 IP 地址和其他网络配置信息，使容器能够与网络相连并进行通信
 ├── dummy           # 创建虚拟网络接口，用于将本地流量重定向到远程主机或者其它容器，以便进行容器之间的通信
 ├── firewall        # 用于在容器之间设置网络防火墙规则，保护容器免受网络攻击或恶意流量的侵害
 ├── host-device     # 用于将宿主机的物理网络设备（例如网卡）直接绑定到容器中，以提高网络性能和可靠性
-├── host-local      # 用于容器内部的通信，提供方便的主机名解析和网络配置
+├── host-local      # ipam 用于容器内部的通信，提供方便的主机名解析和网络配置
 ├── ipvlan          # 使用现有接口创建虚拟接口，以增加容器的网络隔离性
 ├── loopback        # 提供一个本地环回接口，用于本地进程与网络的通信
 ├── macvlan         # 将容器连接到物理网络，使其可以使用独立的MAC地址和IP地址
@@ -249,7 +249,7 @@ $ tree /opt/cni/bin/
 - 5.另一个pod的OVS解开数据包，将数据包发送到目标pod的网络接口;
 - 6.应用程序在目标pod中接收到数据包。
 
-##### 2.单价的kubernetes如何运行非控制平面的pod
+##### 2.单机的kubernetes如何运行非控制平面的pod
 
 默认情况下，出于安全原因，你的集群不会在控制平面节点上调度 Pod。 参考官方手册[控制平面节点隔离](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)，如果你希望能够在控制平面节点上调度 Pod，例如单机 Kubernetes 集群：
 

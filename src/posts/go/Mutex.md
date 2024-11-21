@@ -276,6 +276,12 @@ func (m *Mutex) unlockSlow(new int32) {
 
   > 饥饿模式，阻止后面重新进来得goroutine自旋，让队头的goroutine直接获得锁防止goroutine饿死.
 
+- go的互斥锁是怎么等待的,是把goroutine挂起来吗,还是无限for循环
+
+当一个goroutine试图获取一个被锁定的互斥锁时，它会通过调用`runtime_SemacquireMutex`函数（Go 运行时内部函数）来尝试获取锁对应的信号量。如果锁已经被占用，这个`goroutine会让出 CPU 时间片`，然后被放入`等待队列`。Go 运行时调度器会在合适的时候`重新调度`这个`goroutine`。
+
+当持有互斥锁的goroutine释放锁（通过Unlock方法）时，互斥锁会通过信号量机制通知等待队列中的一个goroutine（通常是最先进入等待队列的那个），这个goroutine会被唤醒，然后尝试获取互斥锁。如果没有其他goroutine竞争，它就能成功获取并继续执行。
+
 ### 相关文档
 
 - [Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
