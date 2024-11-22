@@ -8,7 +8,7 @@ tag:
 
 ### 一、如何使用
 
-1. 创建Jaeger的Tracer追踪器
+##### 1.创建Jaeger的Tracer追踪器
 
 ```go
 // InitJaeger 初始化一个opentracing.Tracer链路追踪实例
@@ -37,6 +37,12 @@ func InitJaeger(service string) (opentracing.Tracer, io.Closer) {
 			//	 而不是等待服务端来请求
 			// TODO 需要做优化更改为kafka - 异步PUSH
 			CollectorEndpoint: config.Conf.JaegerConfig.Addr,
+
+      // 可选项
+      // 如果不配置CollectorEndpoint的话就需要配置这个Agent代理人端口
+      // jaeger-agent会接收这些数据，进行缓冲和批量处理后，再发送给jaeger-collector
+      // 将数据发送到jaeger - agent的6831/udp端口
+      LocalAgentHostPort: "127.0.0.1:6831",
 		},
 	}
 	// 基于前面初始化好的配置结构体 cfg
@@ -55,7 +61,7 @@ tracer, _ := InitJaeger(fmt.Sprintf("%s:%s",
 		config.Conf.Application.Version))
 ```
 
-2. 在GRPC一元调用注入拦截器(child跨度)
+##### 2.在GRPC一元调用注入拦截器(child跨度)
 
 ```go
 // ClientInterceptor 记录RPC调用这个Span的执行时长
@@ -80,7 +86,7 @@ func ClientInterceptor(tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
 }
 ```
 
-3. 在HTTP请求入口注入OpenTrace采集拦截器
+##### 3.在HTTP请求入口注入OpenTrace采集拦截器
 
 ```go
 // RequestTracingInterceptor Http请求的拦截器,在请求进入后
@@ -102,22 +108,133 @@ func RequestTracingInterceptor() gin.HandlerFunc {
 }
 ```
 
-### 二、数据存储
+```bash
+# http://localhost:16686/ 查看Jaeger的指标数据
+# http://127.0.0.1:14268/api/traces 是Jaeger的Collector的端点Endpoints
+# 14268这个端口是jaeger-collector用于接收通过 HTTP 发送的追踪数据的端口
+$ docker run -d --name jaeger \
+  -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 14250:14250 \
+  -p 14268:14268 \
+  -p 14269:14269 \
+  -p 9411:9411 \
+  jaegertracing/all-in-one:1.63.0
+```
 
+```bash
+# 1.代理人
+# Jaeger-agent 主要充当数据收集代理的角色
+# 负责接收来自应用程序（通过 Jaeger 客户端库）发送的追踪数据
+# Jaeger-agent 会将这些数据收集起来，形成批量后再发送给 Jaeger收集器（Jaeger Collector）
+jaeger-agent	    hub.docker.com/r/jaegertracing/jaeger-agent/
+
+# 2.收集器
+# client产生追踪信息后推送到Collector的Endpoint之中
+# 可以指定写入到Kafka
+jaeger-collector	hub.docker.com/r/jaegertracing/jaeger-collector/
+
+
+# 3.查询器
+# 提供 API 端点和 React/Javascript UI 用于查看采集到的数据
+jaeger-query	    hub.docker.com/r/jaegertracing/jaeger-query/ 
+
+# 4.摄取者
+# 一种从 Kafka 主题读取跨度数据并将其写入另一个存储后端（Elasticsearch 或 Cassandra）的服务。
+jaeger-ingester	  hub.docker.com/r/jaegertracing/jaeger-ingester/ 
+```
+
+##### 4.如何部署Jaeger做数据分析和存储
+
+1. 代理人
+
+
+```bash
+## 启动agent代理
+# 可以直接通过--reporter.grpc.host-port配置Collector负载的域名
+docker run \
+  --rm \
+  -p5775:5775/udp \
+  -p6831:6831/udp \
+  -p6832:6832/udp \
+  -p5778:5778/tcp \
+  jaegertracing/jaeger-agent:1.21.0 \
+  --reporter.grpc.host-port=jaeger-collector.jaeger-infra.svc:14250
+```
+
+
+2. 收集者
+
+```bash
+# Kafka 可用作收集器和实际存储之间的中间缓冲区
+# 收集器 Collector 配置为SPAN_STORAGE_TYPE=kafka将所有收到的跨度写入 Kafka 主题
+docker run \
+  -e SPAN_STORAGE_TYPE=kafka \
+  -e KAFKA_PRODUCER_BROKERS=<...> \
+  -e KAFKA_TOPIC=<...> \
+  jaegertracing/jaeger-collector:1.21.0
+```
+
+```yaml
+# Elastic的索引别名、索引和索引模板初始化支持滚动更新
+# jaegertracing/jaeger-es-rollover
+
+# 将kafka的数据load到Elasticsearch
+# jaeger-ingester-config.yaml
+ingester:
+  kafka:
+    brokers: "kafka:9092"
+    topic: "jaeger-traces-topic"
+  elasticsearch:
+    servers: "http://elasticsearch:9200"
+    index-name: "jaeger-traces-index"
+```
+
+```bash
+# 启动jaeger-ingester将kafka的数据load到elasticsearch
+docker run -d --name jaeger-ingester \
+  --network jaeger-network \
+  -v $(pwd)/jaeger-ingester-config.yaml:/etc/jaeger-ingester/config.yaml \
+  jaegertracing/jaeger-ingester
+```
+
+3. 查询器
+
+```bash
+# 部署查询器并且指定后端存储是Elastic
+docker run -d --rm \
+  -p 16686:16686 \
+  -p 16687:16687 \
+  -e SPAN_STORAGE_TYPE=elasticsearch \
+  -e ES_SERVER_URLS=http://<ES_SERVER_IP>:<ES_SERVER_PORT> \
+  jaegertracing/jaeger-query:1.21.0
+```
+
+
+### 二、数据存储
 
 ```go
 // 默认情况下创建Jaeger的客户端的时候指定的
 // jaegerConfig.Configuration<Reporter.CollectorEndpoint>
 // 就是收集器的端点
 // client主动push到jaeger的收集器Collecter
-jaegerConfig.Configuration<<Reporter.CollectorEndpoint>?
+jaegerConfig.Configuration<<Reporter.CollectorEndpoint>>
 ```
 
-### 三、底层原理
+1. Kafka
+2. Elasticsearch
 
-1. client主动push到Jaeger的收集器Collecter
-2. 怎么优化数据存储
-3. 数据存储底层用的是什么数据库(运维需要注意什么)
+### Q&A
+
+1. client推送数据怎么提升速度
+
+    异步推送、可以发送到代理人jaeger-agent，代理人会自动做批量发送到收集者Collector，收集者可以使用kafka做缓冲，再通过jaeger-ingester摄取者从kafka加载到Elasticsearch，jaeger-query从Elastic读取数据提升查询速度。
+    Agent批量发送、Kafka做异步缓冲、Elastic做数据存储。
+
+2. client可以直接将数据推送到Collector或者jaeger-agent代理人
+
 
 ### 相关疑问
 
@@ -127,3 +244,4 @@ jaegerConfig.Configuration<<Reporter.CollectorEndpoint>?
 
 - [https://opentracing.io/](https://opentracing.io/)
 - [https://www.jaegertracing.io/](https://www.jaegertracing.io/)
+- [https://www.jaegertracing.io/docs/1.21/deployment/](https://www.jaegertracing.io/docs/1.21/deployment/)
