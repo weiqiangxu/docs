@@ -90,7 +90,6 @@ b.改造源码prometheus.Config.reloadConfig，实现基于ETCD的配置热重�
   原生的TSDB对于大数据量的保存及查询支持不太友好 
   所以并不适用于保存长期的大量数据（只能使用其他远程存储解决）一般Prometheus推荐只保留几周或者几个月的数据;
 
-
 2. 单机prometheus采集指标数量大了会影响性能吗
 
 
@@ -116,7 +115,6 @@ b.改造源码prometheus.Config.reloadConfig，实现基于ETCD的配置热重�
   假设federate的更新时间点是10s一次，而job=cpu的监控要求是2s一次,意味着从节点监控数据查询的话没办法实现高频率 (2s) 更新cpu指标监测但可以针对不同的指标设置不同的采集频率，或将所有的查询请求打到主节点.
 
 5. 单机的prometheus数据存储是多久
-
 
   Prometheus TSDB (Time Series DataBase) 以时间线分块存储监控数据。Prometheus的本地存储默认保留15天的数据，之后就会删除旧数据，间隔可以通过修改配置文件中的参数进行自定义。
 
@@ -221,11 +219,11 @@ $ go build ./cmd/prometheus
 
   Prometheus Federation 缺点：
 
-  - 需要手动配置和管理，对于大规模集群可能会增加管理成本。
+  - 配置复杂
   - Federation 中的实例依赖于网络性能，如果网络延迟较高，则可能导致数据同步不及时。
   - 不支持查询跨越多个 Federation 实例的聚合查询。
 
-  虽然也是即时向量查询 - 但是这个查询回溯间隔可以设置大一点比如设置query.lookback-delta=5m,那么可以查到倒计时5min内最后的指标cpu{node=xxx}@1232134324 56
+    虽然也是即时向量查询,但是这个查询回溯间隔可以设置大一点比如设置query.lookback-delta=5m,那么可以查到倒计时5min内最后的指标`cpu{node=xxx}@1232134324 56`.
 
   Remote Write 缺点：
 
@@ -235,11 +233,7 @@ $ go build ./cmd/prometheus
 
 17. 是否可以remote write prometheus
 
-
-  感觉这个特点很多人不知道
-  以为 remote read\remote write 必须配置第三方存储如 m3db 等，
-  其实目标也可以prometheus实例
-  只不过需要开启 --enable-feature=remote-write-receiver
+  感觉这个特点很多人不知道.以为 `remote read\remote write` 必须配置第三方存储如 m3db 等，其实目标也可以prometheus实例.只不过需要开启 `--enable-feature=remote-write-receiver`
 
 18. query.lookback-delta参数作用
 
