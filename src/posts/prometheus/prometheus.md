@@ -36,9 +36,7 @@ scrape_configs:
 
 1. top的RES
 
-``` txt
-"top的RES"可能指的是Linux操作系统中"top"命令中的"RES"列，表示进程使用的实际物理内存大小（以KB为单位）
-```
+  "top的RES"可能指的是Linux操作系统中"top"命令中的"RES"列，表示进程使用的实际物理内存大小（以KB为单位）
 
 2. top查看占用内存
 
@@ -64,11 +62,9 @@ $ curl localhost:9090/metrics
 process_resident_memory_bytes/1024
 ```
 
-
-
 ### 三、golang-metric-exporter
 
-``` golang
+``` go
 package main
 
 import (
@@ -95,9 +91,9 @@ func init() {
 // go语言实现 http服务端
 // http://127.0.0.1:8989/hello
 func main() {
-	http.HandleFunc("/hello", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		requestCounter.Inc()
-		_, _ = writer.Write([]byte("hello world"))
+		_, _ = w.Write([]byte("hello world"))
 	})
 	http.Handle("/metrics", promhttp.Handler())
 	err := http.ListenAndServe("127.0.0.1:6969", nil)
@@ -114,7 +110,7 @@ func main() {
 
 ```yaml
 global:
-  scrape_interval: 15s # 将刮擦间隔设置为每15秒。默认为1分钟一次
+  scrape_interval: 15s # 将采集间隔设置为每15秒。默认为1分钟一次
   evaluation_interval: 15s # 每15秒评估一次规则。默认为1分钟。
   # Scrape_timeout被设置为全局默认值(10秒)。
 
@@ -144,11 +140,11 @@ scrape_configs:
 
 2. 配置分类
 
--- 全局配置 global
--- 告警配置 alerting
--- 规则文件配置 rule_files
--- 拉取配置 scrape_configs
--- 远程读写配置 remote_read、remote_write
+- 全局配置 global
+- 告警配置 alerting
+- 规则文件配置 rule_files
+- 拉取配置 scrape_configs
+- 远程读写配置 remote_read、remote_write
 
 3. 源码配置结构
 
@@ -168,7 +164,9 @@ type Config struct {
 
 1. 怎么看当前实例消耗内存大小
 
-- [查看prometheus占用内存大小](https://weiqiangxu.github.io/2023/04/12/prometheus/%E6%9F%A5%E7%9C%8Bprometheus%E5%8D%A0%E7%94%A8%E5%86%85%E5%AD%98/)
+```bash
+$ ps -ef | grep prometheus
+```
 
 2. 内存消耗的来源是哪些
 
@@ -177,20 +175,15 @@ type Config struct {
 
 3. 影响内存消耗的配置有哪些
 
-- `scrape_interval`和`evaluation_interval`：这两个参数分别控制着Prometheus的采集频率和计算频率，值越小，内存消耗越高
+  - `scrape_interval`和`evaluation_interval`：这两个参数分别控制着Prometheus的采集频率和计算频率，值越小，内存消耗越高
 
-- `retention`：这个参数控制着数据的保留时间，值越大，内存消耗越高(查询范围大的时候)。
+  - `retention`：这个参数控制着数据的保留时间，值越大，内存消耗越高(查询范围大的时候)。
     默认保留数据15天也就是在磁盘超过15天的数据会被清理。
     --storage.tsdb.retention.time=15d
 
-- `chunk_size`：这个参数控制着每个时间序列数据块的大小，值越大，内存消耗越高。
-    --storage.tsdb.max-block-duration（MaxBlockDuration）TSDB 存储时每个块的最大时间范围。默认值为 2 小时
-    --storage.tsdb.max-block-chunk-segment-size(MaxBlockChunkSegmentSize)默认值为32MB 
-      控制每个块（block）中的chunk在持久化时是否分割成多个片段（segment），以及每个片段的大小
+  - `chunk_size`：这个参数控制着每个时间序列数据块的大小，值越大，内存消耗越高。storage.tsdb.max-block-duration（MaxBlockDuration）TSDB 存储时每个块的最大时间范围。默认值为 2 小时. storage.tsdb.max-block-chunk-segment-size(MaxBlockChunkSegmentSize)默认值为32MB.控制每个块（block）中的chunk在持久化时是否分割成多个片段（segment），以及每个片段的大小
 
-- `query.max-samples`：这个参数控制着每个查询返回的最大样本数，值越大，内存消耗越高。
-     指定了查询语句返回的最大样本数。它是一个安全机制，用于避免由于查询错误或者滥用，导致过多的样本数被返回
-     参数--query.max-samples默认值为5000w
+  - `query.max-samples`：这个参数控制着每个查询返回的最大样本数，值越大，内存消耗越高。指定了查询语句返回的最大样本数。它是一个安全机制，用于避免由于查询错误或者滥用，导致过多的样本数被返回.参数query.max-samples默认值为5000w.
 
 
 3. 怎样做可以降低内存消耗
@@ -222,7 +215,7 @@ type Config struct {
 
 2. 场景
 
-  如果每5秒钟采集 2000个样本，每个样本在磁盘占用大约1~2字节，假设2字节.那么30天大概需要 0.96GB. 2000 * (86400 / 5) * 30 / (1024*1024*1024) = 0.96GB
+  如果每5秒钟采集`2000`个样本，每个样本在磁盘占用大约1~2字节，假设2字节.那么30天大概需要 0.96GB. `2000*(86400/5)*30/(1024*1024*1024)`=`0.96GB`
 
 ##### 3.CPU
 
@@ -275,8 +268,7 @@ $ top -p ${pid}
 
 3. 如何强制限制查询时间范围
 
-  storage.retention.time 历史数据存储最大时长就等于了最大的查询的时长范围
-
+  storage.retention.time历史数据存储最大时长就等于了最大的查询的时长范围
 
 
 ### 六、snapshot备份数据
@@ -374,44 +366,34 @@ $ docker run \
 ##### 4.如何保证主库数据完整
 
   主库执行snapshot之前，更改master.prometheus.yml的配置，remote write到slave，此刻开始所有push不过去的数据会被加入队列重试，当slave使用备份快照启动成功后，这些数据会被写入，从而保证不丢失。
-
   > 2小时内（取决于落盘时间）
 
 
 ##### 5.remote write数据完整性
 
-``` go
-// /prometheus/storage
-package remote
+  > 发送失败会不断重试,而不是直接跳过发送失败的数据,如果发送失败超过2个小时,WAL日志会被压缩,没有发送的数据会丢失.
 
-func NewWriteStorage(logger log.Logger, reg prometheus.Registerer, dir string, flushDeadline time.Duration, sm ReadyScrapeManager) *WriteStorage
+  ``` go
+  // /prometheus/storage
+  package remote
 
-// 阻塞，直到元数据被发送到远程写入端点或hardShutdownContext过期。
-mw.writer.AppendMetadata(mw.hardShutdownCtx, metadata)
+  // AppendMetadata 发送数据到远程存储,批量发送, 但并未进行并行化处理。
+  func (t *QueueManager) AppendMetadata(ctx context.Context, metadata []scrape.MetricMetadata)
 
-// AppendMetadata sends metadata to the remote storage. Metadata is sent in batches, but is not parallelized.
-// 逐个发送
-func (t *QueueManager) AppendMetadata(ctx context.Context, metadata []scrape.MetricMetadata)
+  // 具体发送动作
+  // /Users/xuweiqiang/Documents/code/prometheus/storage/remote/queue_manager.go
+  type WriteClient interface {
+      Store(context.Context, []byte) error
+  }
 
-// 具体发送动作
-// /Users/xuweiqiang/Documents/code/prometheus/storage/remote/queue_manager.go
-type WriteClient interface {
-    Store(context.Context, []byte) error
-}
-
-// 发送失败动作
-func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, l log.Logger, attempt func(int) error, onRetry func()) error
-
-MinBackoff: model.Duration(30 * time.Millisecond)
-MaxBackoff: model.Duration(5 * time.Second)
-
-// 发送失败以后sleep 30 * time.Millisecond然后再次重试，每次重试间隔不断double，直至最大5s，
-// 如果一直失败，不是会跳过而是直接不再发送
-func (t *QueueManager) Stop()
-
-// 使用远程写入会增加 Prometheus 的内存占用。大多数用户报告内存使用量增加了约 25%，但该数字取决于数据的形状
-// 除非远程端点保持关闭超过 2 小时，否则将重试失败而不会丢失数据。2小时后，WAL会被压缩，没有发送的数据会丢失
-```
+  // sendWriteRequestWithBackoff 发送失败动作
+  // MinBackoff: model.Duration(30 * time.Millisecond) MaxBackoff: model.Duration(5 * time.Second)
+  // 发送失败以后sleep 30 * time.Millisecond然后再次重试，每次重试间隔不断double，直至最大5s，
+  // 如果一直失败，不是会跳过而是直接不再发送 func (t *QueueManager) Stop()
+  // 使用远程写入会增加 Prometheus 的内存占用。大多数用户报告内存使用量增加了约 25%，但该数字取决于数据的形状
+  // 除非远程端点保持关闭超过 2 小时，否则将重试失败而不会丢失数据。2小时后，WAL会被压缩，没有发送的数据会丢失
+  func sendWriteReqWithBackoff(ctx context.Context, cfg config.QueueConfig, l log.Logger, att func(int) error, onRetry func()) error
+  ```
 
 ### 七、TSDB
 
@@ -488,6 +470,96 @@ $ docker run \
     --network-alias master \
     -v /Users/prometheus/master.yml:/etc/prometheus/prometheus.yml \
     prom/prometheus
+```
+
+
+
+### 九、联邦机制
+
+##### 1.配置热重载
+
+1. main.main函数启动时候更改 config.LoadFile(cfg.configFile 为 config.LoadConfigFromEtcd(cfg.configFile,
+2. 在 <-hub (chan os.Signal) 监听的select之中添加 <-etcd.Listen() 监听，有配置更改时候调用 reladConfig 函数
+
+##### 2.federation
+
+1. docker install两个prometheus
+2. 本地mac启动一个exporter暴露系统指标
+3. 指定一个prometheus采集指标
+4. federation机制让另一个prometheus也采集到一样的指标
+
+##### 3.mac的本机器指标
+
+``` bash
+# https://prometheus.io/download/
+# http://localhost:9100/metrics
+$ ./node_exporter
+```
+
+##### 4.主节点prometheus
+
+``` bash
+$ docker network create p_net
+
+$ docker run \
+    --name master \
+    -d \
+    -p 9090:9090 \
+    --network p_net \
+    --network-alias master \
+    -v /Users/master.yml:/etc/prometheus/prometheus.yml \
+    prom/prometheus \
+    --query.lookback-delta=15d \
+    --config.file=/etc/prometheus/prometheus.yml
+
+$ ./prometheus --query.lookback-delta=15d \
+--config.file=/prometheus/config.yml
+```
+
+``` yml
+# master.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: "request_count"
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ["docker.for.mac.host.internal:6969"]
+```
+
+##### 5.从节点prometheus
+
+``` bash
+$ docker run \
+    --name slave \
+    -d \
+    -p 8989:9090 \
+    --network p_net \
+    --network-alias slave \
+    -v /home/prometheus.yml:/etc/prometheus/prometheus.yml \
+    prom/prometheus
+```
+
+``` yml
+# slave.yml
+global:
+  scrape_interval: 15s 
+  evaluation_interval: 15s 
+
+scrape_configs:
+  - job_name: 'federate'
+    scrape_timeout: 15s # timeout limit small than scrape_interval
+    body_size_limit: 0 # no limit size
+    scrape_interval: 15s
+    honor_labels: true # 保留原有metrics的标签
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - 'master:9090'
 ```
 
 
@@ -571,6 +643,72 @@ Prometheus 默认情况下是每个块的时间范围为 2 个小时。
 prometheus间隔2h落盘在1h55min时候，打了快照，并且在2h1min之后服务才起来，那么是不是意味着这5min的数据丢失了
 ```
 
+
+- 如何解决docker exec容器报错su: must be suid to work properly
+
+``` bash
+$ docker exec -ti --user root 容器id /bin/sh
+```
+
+- 在容器中如何访问宿主机服务
+
+``` txt
+ifconfig docker0 网卡IP
+daemon.json 中定义的虚拟网桥来与宿主机进行通讯
+域名 docker.for.mac.host.internal
+```
+
+- 如何配置pfederate拉取所有指标
+
+``` yml
+# slave
+global:
+  scrape_interval: 15s 
+  evaluation_interval: 15s 
+
+scrape_configs:
+  - job_name: 'federate'
+    scrape_interval: 15s
+    honor_labels: true # 保留原有metrics的标签
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets:
+        - 'master:9090'
+    # Endpoint的标签
+    relabel_configs:
+     - target_label: 'instance'
+       replacement: 'docker.for.mac.host.internal:6969'
+```
+
+- 健康检查接口
+
+[http://localhost:8989/-/healthy](http://localhost:8989/-/healthy)
+
+- 基于ETCD选主3台prometheus实现高可用
+
+1. 主节点配置 scrape_configs 直接从exporter_node拉取数据
+2. 从节点配置 scrape_configs 从主节点通过 federate机制同步数据
+3. 每台prometheus守护进程中有一个定时器从 etcd 获取主节点的IP，通过/-/health判定主节点的存活状态
+4. 如果主节点挂了，选主，将新的主IP同步至etcd，并且更改各个节点的 prometheus配置
+5. 如果主节点挂了，发送告警
+6. 主节点拉取数据，从节点继续从主节点同步数据
+
+- 基于ETCD的集群选主设计方案设计
+
+1. master节点直接从http接口拉取数据
+2. node节点从master/federate端口拉取数据
+3. master节点存活信息存储在etcd(etcd有一个TTL key)，master节点每隔30s发送一次心跳，重新设置TTL key否则任务master节点已经挂了
+4. master节点挂了以后，剩下的节点竞选 - master节点出来以后，更新master节点的配置和更新node节点的配置，主要是实现主从
+
+- 如何进入容器内部执行命令
+
+``` bash
+$ docker exec -it --user root ${容器id} /bin/sh
+```
+
 ### 相关文档
 
 - [官方计算prometheus理论上的内存消耗](https://www.robustperception.io/how-much-ram-does-prometheus-2-x-need-for-cardinality-and-ingestion/)
@@ -589,3 +727,7 @@ prometheus间隔2h落盘在1h55min时候，打了快照，并且在2h1min之后�
 - [Prometheus TSDB (Part 1): The Head Block](https://blog.csdn.net/chenhuiqqq/article/details/119521435)
 - [Prometheus远程存储](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-remote-storage)
 - [Prometheus高可用](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-and-high-availability)
+- [https://prometheus.io/docs/prometheus/latest/federation/](https://prometheus.io/docs/prometheus/latest/federation/)
+- [快猫监控P高可用](http://flashcat.cloud/docs/content/flashcat-monitor/prometheus/ha/local-storage/)
+- [本地存储配置](https://blog.csdn.net/m0_60244783/article/details/127641195)
+- [https://www.ifsvc.cn/posts/156](https://www.ifsvc.cn/posts/156)
