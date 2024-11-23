@@ -128,7 +128,7 @@ $ sed -ri 's/.*swap.*/#&/' /etc/fstab
 $ cat /etc/fstab | grep swap
 ```
 
-#### 7.启用桥接网络模块的IPv6\IPv4 数据包过滤功能
+#### 7.启用桥接网络模块的IPv6\IPv4数据包过滤功能
 
 ``` bash
 # 启用桥接网络模块的 IPv6 数据包过滤功能
@@ -187,7 +187,7 @@ $ sysctl -a | grep net.ipv4.ip_forward
   sandbox_image = "registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.5"
 ```
 
-#### 2.添加kubernetes镜像源
+#### 2.添加kubernetes镜像源yum.repos
 
 ``` bash
 # 注意下面的mirrors是区分架构的
@@ -442,7 +442,7 @@ $ ctr --help
 ```
 
 
-[k8s v1.27.1默认移除dockershim，需要安装cri-dockerd](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#docker)
+- [k8s v1.27.1默认移除dockershim，需要安装cri-dockerd](https://kubernetes.io/zh-cn/docs/setup/production-environment/container-runtimes/#docker)
 
 ``` bash
 # 创建成功输出
@@ -818,6 +818,15 @@ $ crictl logs ${containerdID}
 
 可能是因为 `ctr c` 和 `crictl ps` 使用的不同的容器运行时。`ctr c` 是使用 containerd 运行时查看容器，而`crictl` 是使用 CRI (Container Runtime Interface) 运行时查看容器。因此，如果您使用的容器运行时与 containerd 不同，那么您可能无法使用 `ctr c` 查看容器。建议您使用 CRI 运行时，使用 `crictl ps` 来查看容器。
 
+- k8s怎么配置镜像源
+
+  如果运行时是Docker，配置镜像源是`/etc/docker/daemon.json`,Kubernetes 组件镜像源通过配置文件`kubeadm-config.yaml`,配置内容是
+  ```yaml
+  apiVersion: kubeadm.k8s.io/v1beta3
+  kind: ClusterConfiguration
+  imageRepository: <镜像仓库地址>
+  ```
+  执行的时候通过命令参数 `--config kubeadm-config.yaml`可以让kubeadm镜像拉取。修改 kubelet 配置（用于已有集群）`/etc/kubernetes/kubelet.conf`，设置 `image-service-endpoint`字段。
 
 ### 七、架构图
 
