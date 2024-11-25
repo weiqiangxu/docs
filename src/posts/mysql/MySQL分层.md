@@ -1,6 +1,3 @@
----
-hide: true
----
 # MySQL分层
 
 [西瓜汁拌面-mysql分层、存储引擎、解析原理](https://www.cnblogs.com/mululu/p/14457394.html)
