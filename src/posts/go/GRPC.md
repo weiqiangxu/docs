@@ -85,6 +85,14 @@ rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
     - 类型特定编码可以更紧凑地表示数据
 3. 支持跨语言的`Protocol Buffers`和`gRPC`
 
+
+### 三、如何池化连接
+
+1. 最大连接\最小连接\最大空闲连接
+3. 扩缩容机制(`pool.Get()`遍历连接池选择扩容或者等待和`unaryInterceptor`请求完成后判定是否缩容)
+4. 保活(`keppAlive`异常定时器回收连接`conn.State`)
+5. 互斥锁请求等待
+
 ### Q&A
 
 1. client Dial一个8100端口，客户端持有了1个TCP连接，对吗，如果有多个请求，这几个请求是顺序执行的吗
@@ -134,14 +142,16 @@ client.net.Dial可以多个
 10. HTTP/2，双向流、流量控制WINDOW_UPDATE、Protobuf序列化压缩、头部压缩、单TCP连接上的多复用请求
 
 11. 服务端关键的方法 grpc.NewServer、grpc.RegisterService、grpc.Server.Serve(net.Listener)
-```
-Server(net.Listener)的时候传入TCPConn 基于 TCP Listener
-最后启动for循环不断等待listener.Accept接收到net.Conn传递给新协程处理
-这for循环内有一个time.Sleep休眠从5ms到1s之间
-```
+
+    ```txt
+    Server(net.Listener)的时候传入TCPConn 基于 TCP Listener
+    最后启动for循环不断等待listener.Accept接收到net.Conn传递给新协程处理
+    这for循环内有一个time.Sleep休眠从5ms到1s之间
+    ```
 
 12. 客户端的DialContext
-```
+
+```go
 ClientConn等一堆初始化
 基于进程 LB 负载均衡配置
 
@@ -211,6 +221,15 @@ kube-proxy的负载均衡在创建连接时候有效，复用原有连接就会�
 
 26. go-grpc客户端可以keepalive那么服务端可以吗(可以)
 
+
+27. GRPC特性
+
+- 多路复用。HTTP/2作为应用层的传输协议。HTTP/2会复用传输层的TCP连接，但是Client有些条件些会新建连接（server发送GOAWAY Frame也会强制让client新建连接）
+- 一次GRPC调用就产生一个Stream（Stream包含多个Frame,Frame也是HTTP/2最小传输单位）
+- 一条GRPC连接允许并发的发送和接收多个Stream（服务端默认100个）控制参数MaxConcurrentStreams
+- 超时重连。创建连接后有一个goroutine负责重连机制,自带的`Dial`或者`DialContext`没有`WithBlock`的话是异步建立连接，会有重试机制。
+
+
 ### 相关博客
 
 - [why write: broken pipe](https://blog.csdn.net/cljdsc/article/details/124134531)
@@ -220,3 +239,6 @@ kube-proxy的负载均衡在创建连接时候有效，复用原有连接就会�
 - [gRPC 官方文档中文版](http://doc.oschina.net/grpc?t=60133)
 - [GO gRPC 官方文档](https://grpc.io/docs/languages/go/quickstart/)
 - [Protobuf 语法指南](https://colobu.com/2015/01/07/Protobuf-language-guide)
+- [silenceper/pool/](https://github.com/silenceper/pool/blob/master/README_ZH_CN.md)
+- [gRPC 应用篇之客户端 Connection Pool](https://pandaychen.github.io/2020/10/03/DO-WE-NEED-GRPC-CLIENT-POOL/)
+- [GRPC连接池的设计与实现](https://zhuanlan.zhihu.com/p/100200985)

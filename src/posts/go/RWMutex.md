@@ -1,5 +1,5 @@
 ---
-title: 读写锁原理
+title: RWMutex
 category:
   - go
 tag:

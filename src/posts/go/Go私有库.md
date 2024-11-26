@@ -1,5 +1,5 @@
 ---
-title: 配置go私有库
+title: Go私有库
 tags:
   - golang
 categories:

@@ -1,5 +1,5 @@
 ---
-title: Channel底层原理
+title: channel
 categories:
   - go
 ---
@@ -28,28 +28,37 @@ make(chan int,5)
 type hchan struct {
 	qcount   uint           // 队列中的总数据量
 	dataqsiz uint           // 循环队列的大小
+	// buf 如果channel是无缓冲的,那么buf为nil
+	// 无缓冲通道没有这样的缓冲数组,所以发送和接收操作是直接同步进行的
+	// 数据直接从发送协程传递到接收协程,中间没有缓冲数据的存储位置
 	buf      unsafe.Pointer // 缓冲区（数组）指针
 	elemsize uint16
 	closed   uint32
 	timer    *timer // 向这个通道提供数据的计时器
 	elemtype *_type // 元素类型
-  // 假设buf长度是4，sendx会从 0-1-2-3-0 如此循环
-  // 环形队列
+    // 假设buf长度是4，sendx会从 0-1-2-3-0 如此循环
+    // 环形队列
+    // 如果channel是无缓冲的，那么sendx就没有意义
 	sendx    uint   // 发送队列偏移 
-  // 假设buf长度是4，recvx会从 0-1-2-3-0 如此循环
+    // 假设buf长度是4，recvx会从 0-1-2-3-0 如此循环
+    // 如果channel是无缓冲的，那么recvx就没有意义
 	recvx    uint   // 接收队列偏移
-	recvq    waitq  // 接收队列
-	sendq    waitq  // 发送队列
+	recvq    waitq  // 等待接收操作的goroutine队列
+	sendq    waitq  // 等待发送操作的goroutine队列
 
 	lock mutex
 }
 
+// waitq 等待接收或者发送的Item
+// 元素是Goroutine并且是链表结构
 type waitq struct {
 	first *sudog
 	last  *sudog
 }
 
 
+// sudog 辅助数据结构
+// 用于存储goroutine信息
 type sudog struct {
   // 接收或者发送数据唤醒的goroutine
 	g *g
@@ -63,6 +72,24 @@ type sudog struct {
 // 初始状态下，buf缓冲区为空，recvx和sendx都是0
 // 发送数据给channel的时候，sendx ++
 // 从channel接收数据的时候，recex ++ 
+
+
+// send 发送消息到管道
+// c *hchan 指向 hchan 类型的指针
+// sg 指向 sudog 类型的指针
+// eq unsafe.Pointer 类型的指针 指向要发送到通道的数据所在的内存位置
+func send(c *hchan, sg *sudog, ep unsafe.Pointer, unlockf func(), skip int) {
+	if raceenabled {
+		// 是否开启竞态检测
+    	if c.dataqsiz == 0 {
+			// dataqsiz==0 表示无缓冲通道
+        	racesync(c, sg)
+			...
+		}else{
+			...
+		}
+	}
+}
 ```
 
 ### 二、channel的特性
@@ -102,4 +129,8 @@ select {
 
 > 缓冲区有空余或者有gorotine在接收channel数据的时候才不会发生阻塞
 
-[幼麟实验室Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+- [幼麟实验室Golang合集](https://www.bilibili.com/video/BV1hv411x7we)
+
+7. channel的原理，说意思没缓冲区的时候，怎么从一个goriutine传递值到另一个goroutine的
+
+8. 无缓冲区的会有数据拷贝吗、

@@ -1,16 +1,14 @@
 ---
-title: golang静态扫描和格式检查
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
+title: Go静态扫描
 tags:
   - golang
   - golangci-lint
   - fmt
 categories:
   - golang
-date: 2020-08-20 17:43:12
-excerpt: mackefile静态扫描和格式检查
 ---
+
+> mackefile静态扫描和格式检查
 
 ### 一、makefile code
 

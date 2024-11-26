@@ -1,4 +1,4 @@
-# GMP原理与调度
+# GMP
 
 ### 一、概念
 
@@ -125,3 +125,4 @@
 - [GMP 原理与调度](https://www.topgoer.com/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/GMP%E5%8E%9F%E7%90%86%E4%B8%8E%E8%B0%83%E5%BA%A6.html)
 - [Go调度系列--GMP状态流转](https://zhuanlan.zhihu.com/p/618222173)
 - [幼麟实验室Golang](https://www.bilibili.com/video/BV1hv411x7we)
+- [GO修养之路](https://www.yuque.com/aceld/golang/ithv8f)
