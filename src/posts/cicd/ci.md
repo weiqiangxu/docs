@@ -1,4 +1,6 @@
-# CICD示例
+# ci
+
+> 使用`gitlab-CI`自动化构建`go`服务的多架构镜像
 
 1. 配置git环境支持GO私服moudle同步
 2. 配置helm环境
