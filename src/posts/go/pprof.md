@@ -12,7 +12,7 @@
 
 ### 二、使用方式
 
-1. 对某一个函数做性能数据采集
+##### 1.对某一个函数做性能数据采集
 
 ```go
 func main() {
@@ -44,7 +44,7 @@ $ go tool pprof cpu.pprof
 ```
 
 
-2. 单元测试命令行生成性能分析数据
+##### 2.单元测试命令行生成性能分析数据
 
 ```bash
 # -blockprofile block.out
@@ -70,7 +70,7 @@ $ go test -cpuprofile cpu.pprof -run=^TestAdd$
 $ go tool pprof cpu.pprof
 ```
 
-3. 使用http接口在线查看指标
+##### 3.使用http接口在线查看指标
 
 ```go
 package pprof_tool
@@ -100,7 +100,7 @@ func RouteRegister(route *gin.RouterGroup, prefixOptions ...string) {
 }
 ```
 
-4. 第三方类库
+##### 4.三方类库
 
 ```go
 import (

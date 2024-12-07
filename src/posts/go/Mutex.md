@@ -1,7 +1,7 @@
 ---
-title: mutex包
+title: mutex
 tags:
-  - GO原理
+  - go
 categories:
   - go
 ---
