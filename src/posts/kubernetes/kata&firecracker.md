@@ -1,10 +1,12 @@
 ---
-title: kata&firecracker环境搭建
+title: kata&firecracker
 tags:
   - kubernetes
 categories:
   - kubernetes
 ---
+
+> 介绍如何安装kata和配置containerd使用kata&&firecracker创建容器.
 
 ### 一、环境
 
@@ -30,15 +32,7 @@ $ ll /dev/kvm
 kata-static-3.0.2-x86_64.tar.xz
 ```
 
-### 三、文档地址
-
-- [kata-containers/3.0.2-如何与containerd集成](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/containerd-kata.md)
-- [containerd-v1.7.0安装snapshotters.devmapper](https://github.com/containerd/containerd/blob/v1.7.0/docs/snapshotters/devmapper.md)
-- [kata-containerd/v3.0.2](https://github.com/kata-containers/kata-containers/releases/tag/3.0.2)
-- [kata-container和containerd安装](https://github.com/kata-containers/kata-containers/blob/main/docs/install/container-manager/containerd/containerd-install.md)
-
-
-### 四、安装kata-containers
+### 三、安装kata-containers
 
 ``` bash
 # 下载安装包
@@ -53,7 +47,7 @@ $ kata-runtime --show-default-config-paths
 $ kata-runtime kata-env
 ```
 
-### 五、配置containerd
+### 四、配置containerd
 
 ``` yml
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
@@ -64,7 +58,6 @@ $ kata-runtime kata-env
   [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata.options]
     ConfigPath = "/opt/kata/share/defaults/kata-containers/configuration.toml"
 ```
-[containerd.plugins.cri.runtimes.kata配置说明](https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/containerd-kata.md#kata-containers-as-a-runtimeclass)
 
 ``` bash
 # 重启containerd服务
@@ -76,17 +69,14 @@ $ systemctl start containerd
 $ containerd config dump | grep kata
 ```
 
-### 六、运行容器
+### 五、运行容器
 
 ``` bash
 $ sudo ctr image pull docker.io/library/busybox:latest
 $ sudo ctr run --runtime "io.containerd.kata.v2" --rm -t docker.io/library/busybox:latest test-kata uname -r
 ```
 
-### 七、使用firecracker创建容器
-
-
-[how-to-use-kata-containers-with-firecracker](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/how-to-use-kata-containers-with-firecracker.md)
+### 六、使用firecracker创建容器
 
 ``` bash
 # devmapper非常重要
@@ -126,7 +116,7 @@ $ ps -ef | grep test-kata-fc
 $ ps -ef | grep test-kata-qemu
 ```
 
-### 八、比较qemu和firecracker的性能
+### 七、比较qemu和firecracker的性能
 
 ``` bash
 $ ps -ef
@@ -163,11 +153,11 @@ $ containerd config default > /etc/containerd/config.toml
 
 - rootfs not found
 
-[https://github.com/kata-containers/kata-containers/issues/6784](https://github.com/kata-containers/kata-containers/issues/6784)
+- [kata-containers/issues/6784](https://github.com/kata-containers/kata-containers/issues/6784)
 
 - kata container amd64下载
 
-[https://github.com/kata-containers/kata-containers/issues/6776](https://github.com/kata-containers/kata-containers/issues/6776)
+- [kata-containers/issues/6776](https://github.com/kata-containers/kata-containers/issues/6776)
 
 - containerd.plugin.snapshotter的devmapper是什么
 
@@ -230,3 +220,9 @@ Fedora、RedHat、Ubuntu、CentOS和Debian都是常见的Linux发行版，它们
 - [kata-containers/3.0.2/crictl创建容器](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/run-kata-with-crictl.md)
 - [ubuntu安装使用yum-更新yumde软件源地址即可](https://blog.csdn.net/m0_70885101/article/details/127271416)
 - [清华大学开源软件镜像站](https://mirrors.tuna.tsinghua.edu.cn/)
+- [containerd.plugins.cri.runtimes.kata配置说明](https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/containerd-kata.md#kata-containers-as-a-runtimeclass)
+- [kata-containers/3.0.2-如何与containerd集成](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/containerd-kata.md)
+- [containerd-v1.7.0安装snapshotters.devmapper](https://github.com/containerd/containerd/blob/v1.7.0/docs/snapshotters/devmapper.md)
+- [kata-containerd/v3.0.2](https://github.com/kata-containers/kata-containers/releases/tag/3.0.2)
+- [kata-container和containerd安装](https://github.com/kata-containers/kata-containers/blob/main/docs/install/container-manager/containerd/containerd-install.md)
+- [如何使用kata-containers和firecracker](https://github.com/kata-containers/kata-containers/blob/3.0.2/docs/how-to/how-to-use-kata-containers-with-firecracker.md)

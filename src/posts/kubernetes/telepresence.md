@@ -1,5 +1,5 @@
 ---
-title: 调试工具telepresence
+title: telepresence
 tags:
   - telepresence
 categories:
@@ -43,10 +43,6 @@ ping login.user.svc.cluster.local
 
 > 管理kube config的
 
-[kubecm Github Link](https://github.com/sunny0826/kubecm)
-
-[kubecm.cloud/](https://kubecm.cloud/)
-
 ### 6.安装多个config | 常用指令
 
 ```
@@ -71,4 +67,5 @@ telepresence connect
 - [阿里云开发者社区/Kubecm:管理你的kubeconfig](https://developer.aliyun.com/article/738438)
 - [github telepresence](https://github.com/telepresenceio/telepresence)
 - [本机连接到远程 Kubernetes 集群](https://kubernetes.io/zh-cn/docs/tasks/debug/debug-cluster/local-debugging/)
-
+- [kubecm Github Link](https://github.com/sunny0826/kubecm)
+- [kubecm.cloud/](https://kubecm.cloud/)

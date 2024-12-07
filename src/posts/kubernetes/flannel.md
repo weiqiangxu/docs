@@ -1,5 +1,5 @@
 ---
-title: flannel接入k8s
+title: flannel
 tags:
   - kubernetes
 categories:

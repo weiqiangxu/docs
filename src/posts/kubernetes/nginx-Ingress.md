@@ -1,5 +1,5 @@
 ---
-title: Nginx-Ingress安装
+title: nginx-ingress
 tags:
   - kubernetes
 categories:

@@ -846,6 +846,48 @@ $ crictl logs ${containerdID}
 
 ![kubernetes_diagram-cluster红帽](/images/kubernetes_diagram-cluster.svg)
 
+### 八、如何添加创建token和添加节点
+
+> 如何使用kubeadm在master节点，然后在裸机centos安装节点环境(containerd\runc\cni)，使用kubeadm加入节点，并且配置kubectl环境
+
+##### 1.master节点生成token
+
+``` bash
+$ kubeadm token create  --description "test-token" \
+  --ttl=0 --print-join-command | grep discovery-token-ca-cert-hash
+$ kubeadm token list
+$ kubeadm token delete <token>
+```
+
+##### 2.node节点使用token
+
+``` bash
+# node节点需要的环境依赖
+containerd
+cni
+kubeadm\kubelet\kubectl
+```
+
+3. node节点加入集群
+
+``` bash
+# 已经有集群环境的可以reset一下
+$ kubeadm reset
+
+# discovery-token对应token
+# discovery-token-ca-cert-hash对应上面的hash
+$ kubeadm join <control-plane-host>:<control-plane-port> \
+  --token <token> --discovery-token-ca-cert-hash sha256:<hash>
+
+$ kubeadm join --discovery-token cmjgty.wy9bqt0y6v8nmkln \
+  --discovery-token-ca-cert-hash sha256:xxx 10.16.203.160:6443
+
+# 查看kubectl配置
+$ kubectl config view
+$ cp /etc/kubernetes/kubelet.conf ~/.kube/config
+$ kubectl get pod
+```
+
 ### 相关资料
 
 - [kubernetes.io/zh-cn/安装kubeadm](https://kubernetes.io/zh-cn/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
@@ -1246,76 +1288,91 @@ $ crictl logs ${containerdID}
 128. 假设公司希望在不同的云基础架构上运行各种工作负载，从裸机到公共云。公司将如何在不同界面的存在下实现这一目标?
 129. 怎么搭建高可用的k8s集群
 130. k8s的MetricServer是什么以及怎么安装使用
+131. 声明一个elasticsearch-1的服务使用nodePort暴露服务端口9200
 
-### containerd 二进制安装
-
-- [github.com/containerd/containerd/blob/main/docs/getting-started.md](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
-
-- [github.com/containerd/containerd/releases](https://github.com/containerd/containerd/releases)
-
-### 二进制包的命名格式
+``` yml
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearch-1
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80 #cluster端口，集群内部访问
+    targetPort: 9200 #pod端口
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: elasticsearch-1
+subsets:
+  - addresses:
+      - ip: 192.168.11.13
+    ports:
+      - port: 9200
 ```
+
+``` bash
+[root@VM-8-4-centos ~]# kubectl get svc elasticsearch-1
+NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+elasticsearch-1   ClusterIP   10.43.193.41   <none>        80/TCP    17s
+```
+
+``` bash
+[root@VM-8-4-centos ~]# kubectl get endpoints elasticsearch-1
+NAME              ENDPOINTS            AGE
+elasticsearch-1   192.168.11.13:9200   55s
+```
+
+> 访问服务 elasticsearch-1 最终会指向 192.168.11.13:9200
+
+132. 如何安装containerd
+
+```bash
+# Step 1 安装containerd
+# 二进制包的命名格式
+# https://github.com/containerd/containerd/releases/tag/v1.6.19
+# containerd-1.6.19-linux-arm64.tar.gz
+$ ls
 containerd-<VERSION>-<OS>-<ARCH>.tar.gz
 
-https://github.com/containerd/containerd/releases/tag/v1.6.19
-containerd-1.6.19-linux-arm64.tar.gz
-```
+$ tar Cxzvf /usr/local containerd-1.6.19-linux-arm64.tar.gz
 
-### 解压
-```
-tar Cxzvf /usr/local containerd-1.6.19-linux-arm64.tar.gz
-```
+$ mkdir -p /usr/local/lib/systemd/system
 
-
-### 配置 systemctl
-
-- [https://github.com/containerd/containerd/blob/v1.6.19/containerd.service](https://github.com/containerd/containerd/blob/v1.6.19/containerd.service)
-
-
-```
-mkdir -p /usr/local/lib/systemd/system
-
-上述文件下载到 (注意下载对应的版本号的)
-
-/usr/local/lib/systemd/system/containerd.service
+# 将containerd的systemd.service文件下载到 (注意下载对应的版本号的)
+$ ls /usr/local/lib/systemd/system/containerd.service
 
 # 重新加载 service 文件
 $ systemctl daemon-reload
-```
 
-### runc安装
+# Step 2 安装runc
 
-- [https://github.com/opencontainers/runc/releases](https://github.com/opencontainers/runc/releases)
-
-```
-安装到 /usr/local/sbin/runc
-
+# 安装到 /usr/local/sbin/runc
 cp runc.arm64 /usr/local/bin/runc
 chmod +x /usr/local/bin/runc
-```
 
-### 安装 CNI 插件
+# Step 3 安装CNI插件
 
-- [https://github.com/containernetworking/plugins/releases](https://github.com/containernetworking/plugins/releases)
-
-```
-mkdir -p /opt/cni/bin
+$ mkdir -p /opt/cni/bin
 
 # 解压到目录 /opt/cni/bin
-tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
-```
+$ tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
 
-```
 # 启动 containerd 并设置开机启动 
-systemctl enable containerd
-```
-```
-containerd -v
-runc -v
+$ systemctl enable containerd
+
+$ containerd -v
+
+$ runc -v
 ```
 
-### 配置文件 /etc/containerd/config.toml
-```
+133. 如何更改containerd内部分容器的镜像源
+
+```bash
+# containerd的配置存储路径
+$ ls /etc/containerd/config.toml
+
 # 生成默认配置
 mkdir -p /etc/containerd/
 containerd config default > /etc/containerd/config.toml
@@ -1335,14 +1392,11 @@ sandbox_image="registry.aliyuncs.com/google_containers/pause:3.5"
 sudo systemctl restart containerd
 ```
 
-# crictl 安装
-- [https://github.com/kubernetes-sigs/cri-tools/releases/](https://github.com/kubernetes-sigs/cri-tools/releases/)
+134. crictl安装
 
 ```bash
 tar -zxvf crictl-v1.24.0-linux-amd64.tar.gz -C /usr/local/bin
-```
 
-```bash
 cat > /etc/crictl.yaml <<EOF
 runtime-endpoint: unix:///var/run/containerd/containerd.sock
 image-endpoint: unix:///var/run/containerd/containerd.sock
@@ -1350,20 +1404,29 @@ timeout: 10
 debug: false
 pull-image-on-create: false
 EOF
-```
 
-```bash
 # 重启服务
 systemctl daemon-reload
 sytemctl restart containerd
 ```
-```
-ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供的命令行客户端，具有镜像和容器管理的简单功能
-crictl是遵循 CRI 接口规范的一个命令行工具，通常用它来检查和管理 kubernetes 节点上的容器运行时和镜像
-nerdctl是一个相对较新的containerd命令行客户端。与ctr不同，nerdctl的目标是对用户友好并且和 docker兼容
-```
+
+ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供的命令行客户端，具有镜像和容器管理的简单功能。crictl是遵循 CRI 接口规范的一个命令行工具，通常用它来检查和管理 kubernetes 节点上的容器运行时和镜像，术语k8s自带的工具。nerdctl是一个相对较新的containerd命令行客户端。与ctr不同，nerdctl的目标是对用户友好并且和 docker兼容。
+
+
+135. kube-proxy源码在哪里是干嘛用的底层实现是什么
+
+    理解kube-proxy在Flannel网络之中充当什么角色，底层的负载均衡算法是如何实现，相关的Service如何使用该插件的。
 
 ### 参考资料
 
-- [参考文档](https://blog.csdn.net/qq_25874461/article/details/128358829)
+- [containerd如何安装使用](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
+- [containerd各个releases下载](https://github.com/containerd/containerd/releases)
+- [如何编写containerd的systemd.service](https://github.com/containerd/containerd/blob/v1.6.19/containerd.service)
+- [OCI的runc的各个releases](https://github.com/opencontainers/runc/releases)
+- [下载CNI插件各releases](https://github.com/containernetworking/plugins/releases)
+- [容器工具cri-tools各releases下载](https://github.com/kubernetes-sigs/cri-tools/releases/)
+- [Containerd 安装和简单使用](https://blog.csdn.net/qq_25874461/article/details/128358829)
 - [什么是 istio](https://www.cnblogs.com/lidabo/p/16453818.html)
+- [kubeadm创建token/](https://kubernetes.io/zh-cn/docs/reference/setup-tools/kubeadm/kubeadm-token/)
+- [kubeadm添加集群join/](https://kubernetes.io/zh-cn/docs/reference/setup-tools/kubeadm/kubeadm-join/)
+- [一文看懂 Kube-proxy](https://zhuanlan.zhihu.com/p/337806843)
