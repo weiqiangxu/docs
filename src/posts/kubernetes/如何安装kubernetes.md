@@ -1160,15 +1160,15 @@ $ kubectl get pod
     OSI模型 网络层（L3）IP协议、传输层（L4）TCP/UDP协议
 68. TCP的1RTT是什么意思
     客户端Req->服务器ACK 这1个来回称为1RTT
-1. 简述ETCD及其特点?
-2. 简述ETCD适应的场景?
-3. 简述什么是Kubernetes?
-4. 简述Kubernetes和Docker的关系?
-5. 简述Kubernetes中什么是Minikube、Kubectl、Kubele t?
-6. 简述Kubernetes常见的部署方式?
-7. 简述Kubernetes如何实现集群管理?
-8. 简述Kubernetes的优势、适应场景及其特点?
-9. 简述Kubernetes的缺点或当前的不足之处?
+69. 简述ETCD及其特点?
+70. 简述ETCD适应的场景?
+71. 简述什么是Kubernetes?
+72. 简述Kubernetes和Docker的关系?
+73. 简述Kubernetes中什么是Minikube、Kubectl、Kubele t?
+74. 简述Kubernetes常见的部署方式?
+75. 简述Kubernetes如何实现集群管理?
+76. 简述Kubernetes的优势、适应场景及其特点?
+77. 简述Kubernetes的缺点或当前的不足之处?
 10. 简述Kubernetes相关基础概念?
 11. 简述Kubernetes集群相关组件?
 12. 简述Kubernetes RC的机制?
@@ -1416,6 +1416,103 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 135. kube-proxy源码在哪里是干嘛用的底层实现是什么
 
     理解kube-proxy在Flannel网络之中充当什么角色，底层的负载均衡算法是如何实现，相关的Service如何使用该插件的。
+
+136. kubectl创建pod时候每个组件做了什么并且顺序是什么
+
+      kubectl apply >> kubectl验证配置 >> Kubernetes API Server(RestFul URL) >> APIServer记录Pod到ETCD  >> API Server会通过内部的消息机制通知调度器(Scheduler) >> 调度器(Scheduler) - 依据调度策略(CPU\内存\亲和性\反亲和性\节点污点)选择节点 >> 调度器将决策返回给API Server >> API Server 收到调度器返回的节点信息 >> APIServer更新etcd中Pod  >> API Server 会通过向目标节点上的 kubelet 发送通知来告知它需要创建指定的 Pod >> kubelet 收到 API Server 的通知后 >> kubelet 会调用容器运行时（如 Docker 或 Containerd）来拉取 Pod 定义中指定的容器镜像(容器运行时会根据镜像创建容器) >> kubelet 设置容器的各种属性(资源限制、环境变量) >>  kubelet 调用 CNI（Container Network Interface）插件分配 IP 地址并配置网络 >> kubelet 会将 Pod 的状态信息通过 API Server 更新到 etcd 中
+      
+      > kubelet 是运行在每个节点上的代理，负责管理节点上容器的生命周期
+
+137. APIServer和调度器Scheduler是怎么通信的
+
+        基于事件的通知机制（Watch 机制）,调度器会主动向 API Server 发起一个 Watch 请求维持长连接,当POD创建的时候会发送一个PodADD事件给调度器。
+        REST API 调用（部分场景）调度器除了接收事件通知外，还会通过 API Server 的 REST API 来主动查询资源信息。比如有时候需要各个节点的资源使用情况，会主动查询。
+        > 调度器不会直接与 etcd 交互，它会依赖 API Server 作为中介来读取和解释存储在 etcd 中的数据。
+
+
+138. APIServer主要模块和每个模块的实现原理
+
+139. 调度器Scheduler\Controller-manager的主要模块和实现原理
+
+
+140. kubelet创建了pod之后这个节点的内存变化指标怎么传递给Scheduler的
+
+      kubelet 会定期时间间隔（默认是 10 秒）检查节点的资源使用情况，包括内存、CPU 等。将这些信息以节点状态更新的方式发送给 API Server，（节点状态对象），调度器通过向 API Server 发送请求来查询节点的资源使用情况等相关信息，也就是说通过API Server。就是主动查询 RestFul接口`/api/v1/nodes`端点。kubelet周期性的更新或者事件驱动维护，kubelet通过与操作系统的内核接口比如通过/proc/meminfo等文件和相关系统调用来获取最真实的内存使用情况.
+
+141. kubelet创建Pod后，如何确保节点内存变化指标及时准确地传递给调度器？
+
+      数据采集层面：精准获取内存数据-kubelet 可以读取/proc/meminfo文件。系统调用（如getrusage等）精确地统计每个容器的内存使用情况。
+      事件驱动与周期性更新：kubelet更新机制
+      调度器接收-主动拉取与缓存机制。按照一定的调度周期（依据调度策略动态调整）来获取最新的节点状态信息。对获取到的内存指标进行缓存。调度器会采用一些算法来评估数据的准确性和时效性。调度器不会每次调度都直接请求 API Server 获取节点内存。
+
+142. 高可用的情况下ApiServer三节点会不会出现让多个调度器对同一个pod多次调度的情况
+
+      多个 API Server 会记录 Pod 的调度状态，并且多个 API Server 节点之间会同步这个信息。首先ETCD的强一致性保证APIServer的数据一致性，另外多个调度器都是请求APiServer获取Pod状态的，多个调度器不会拿到不一样的pod状态，另外Kubernetes 使用了乐观锁和版本控制机制来防止资源的并发冲突。每个资源对象（包括 Pod）都有一个版本号。当调度器更新 Pod 的调度状态时，需要提供这个版本号。如果在调度器获取 Pod 信息后，该 Pod 的版本号已经被其他操作更新（例如另一个调度器尝试调度同一个 Pod），那么当前调度器的更新操作会失败。这就避免了多个调度器对同一个 Pod 进行重复调度的情况。
+
+143. 怎么确保k8s的APIServer三节点的数据一致性
+
+      基于 etcd 的存储与数据同步。API Server 之间的缓存同步(基于事件的通知\定期进行缓存一致性检查。)会保证一致性。部分 API Server 节点之间无法正常通信，etcd 的 Raft 协议会发挥作用。
+
+144. 除了ApiServer，k8s集群还有哪些组件可能导致调度问题
+
+      - kubelet 通过与容器运行时（如 Docker 或 Containerd）交互来创建和管理容器。如果容器运行时出现故障.
+      - CNI 插件出现配置错误，例如，错误地分配了重复的 IP 地址或者没有正确配置网络路由
+      - CSI 插件出现故障或者存储配置错误
+
+145. k8s有哪些问题是比较容易出现的并且不容易解决的
+
+      - 网络策略 Network Policy 配置复杂(网络的安全、性能和配置简单化) 如何优化网络性能
+      - 升级 Kubernetes 版本后 CNI（Container Network Interface）兼容性问题
+      - 存储卷动态供应和回收\存储性能和一致性问题
+      - 资源超卖和资源碎片,为了提高资源利用率，Kubernetes 允许对资源进行超卖（如过度分配 CPU 和内存资源）
+      - 容器安全问题怎么解决容器安全
+
+146. k8s有哪些常见的问题
+
+      - Pod启动的镜像拉取\资源不足\容器启动命令\频繁重启(应用程序错误\健康检查配置不合理)
+      - Service服务不可访问\Service和Pod因为选择器selecter\网络策略限制\Kubernetes 的 Service 默认使用基于 IP 的负载均衡算法导致服务的负载不均衡
+      - Service的服务发现问题CoreDNS（Kubernetes 默认的 DNS 服务器）无法正确解析服务名称
+      - 部分节点资源利用率低\节点资源耗尽
+
+147. Kubernetes的Service默认使用的基于IP的负载均衡算法原理
+
+    - 当客户端发送请求到 Service 时，Kubernetes 的 Service 代理（如 kube - proxy）会根据客户端请求的源 IP 地址进行哈希计算,通过这个哈希值来确定将请求转发到后端的哪个 Pod。主要是对于有状态服务（如包含用户会话信息的服务）非常重要，因为它可以保持会话的一致性。
+
+148. Kubernetes的Service还支持哪些负载均衡算法？
+
+    > 使用 Ingress Controller 实现更复杂的会话亲和性，比如Nginx-Ingress可基于 Cookie 或者其他自定义头信息来实现会话亲和性
+    - 对IP-Hash选择Pod
+    - 轮询
+
+146. k8s如果出现重复调度集群会如何处理
+
+147. k8s的MetricServer是干嘛的
+
+148. K8S会不会出现重复调度pod的情况
+
+      调度器与 API Server 之间的通信如果发生异常。例如，调度器向 API Server 发送了一个 Pod 的调度请求，但由于网络问题没有收到 API Server 的确认响应，调度器可能会再次发送相同的调度请求。
+
+149. kubectl创建Deployment的时候各个组件做了什么事情并且执行动作的顺序是什么
+
+150. k8s的所有控制组件只有APIServer会和Etcd直接通信吗
+
+      - API Server 是与 etcd 直接通信的核心组件
+      - 调度器（Scheduler）本身不会直接与 etcd 通信
+      - kubelet 也不会直接与 etcd 通信
+      - Controller Manager（控制器管理器）也是间接通过 API Server 与 etcd 进行交互
+
+
+151. k8s的控制组件的之间的通信方式是什么
+139. 节点内存cpu指标怎么拿的
+140. operator是什么
+141. operator主要用来干嘛
+142. operator的二次开发怎么做
+143. 控制节点的组件源码在哪里
+144. flannel的通信的拓扑图
+145. cni插件二次开发主要分哪些内容
+146. ip分配方面cni到底做了什么
+147. 想开发一个自己的cni插件，需要做哪些事情
+148. 创建一个pod从kubectl到容器创建好CNI插件什么时候参与了做了什么事情
 
 ### 参考资料
 

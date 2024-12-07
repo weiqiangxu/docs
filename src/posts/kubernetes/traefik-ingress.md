@@ -81,3 +81,10 @@ $ vim /etc/hosts
 6. 请求Service的虚拟IP是怎么转发到Backend的Pod的IP的
     - kube-proxy 组件负责实现 Service 的请求转发， iptables或者ipvs
     - Kubernetes 会根据 Service 的标签选择器自动创建一个对应的 Endpoints 对象。这个Endpoints对象包含了当前与Service关联的所有Pod的IP地址和端口信息。
+
+7. 如何配置Ingress-nginx以使其监听宿主机的80端口
+8. Ingress的服务的端口怎么暴露
+9. 如何配置Ingress-nginx以使其监听宿主机的80端口
+      - NodePort 方式修改端口范围（不推荐用于生产环境）（默认NodePort是30000-32767 ）
+      - 使用 LoadBalancer 结合端口转发（云环境适用）】
+      - HostNetwork部署
