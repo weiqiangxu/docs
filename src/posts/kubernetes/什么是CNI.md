@@ -236,6 +236,13 @@ $ tree /opt/cni/bin/
 └── vrf             # 提供虚拟路由功能，用于将容器连接到不同的路由域
 ```
 
+
+### 八、自己从零开始实现一个CNI插件
+
+
+
+
+
 ### Q&A
 
 ##### 1.k8s使用ovs通信的时候，当pod与pod之间通信，数据流向怎么样的
@@ -387,6 +394,23 @@ dev eth12            # 出口网络接口，即数据包是从哪个网络接口
 
 6. 如果将CNI配置的IPAM的type改成myCNI ，那么kubelet调用CNI插件会怎么调
 
+7. CNI配置的ipam配置项是干嘛的
+
+    ip管理，之前使用k8s的CRD的网段和IP管理ip
+
+8. 两个局域网的电脑通过公网互相通信，他的数据传输是怎么样的，交换机和路由器在这之间充当什么角色，为什么说mac地址是负责两个端点，ip是负责最终的目的的
+
+    - 源电脑和目的电脑在同一个局域网内，交换机根据数据帧中的目的 MAC 地址，对照自己学习到的 MAC 地址表，将数据帧从对应的端口转发出去，直接到达目的电脑.
+    - 不在同一个局域网内，数据帧会先到发送端局域网的网关路由器，路由器根据目的ip找路由表，转发到下一跳路由器或目的网络，路由器会将数据帧重新封装，修改源 MAC 地址和目的 MAC 地址，最终到达目的局域网的网关路由器
+    - 目的局域网的网关路由器。根据目的 IP 地址查找路由表，找到局域网
+    - 目的局域网交换机，根据目的 MAC 地址将数据帧转发到目的电脑
+
+    交换机的角色：学习 MAC 地址（MAC 地址与端口号的对应关系记录到MAC地址表）、局域网的数据帧转发、广播与泛洪MAC 地址表没有的话就向所有端口广播。
+    路由器的角色：连接不同的局域网、实现局域网之间的通信、根据目的 IP 地址，查找路由表，决定数据要从哪个接口转发出去、网络地址转换（NAT）
+    MAC 地址负责两个端点
+    IP 地址负责最终目的
+
+
 ### 相关资料
 
 - [官方手册 https://github.com/containernetworking/cni](https://github.com/containernetworking/cni)
@@ -410,3 +434,5 @@ dev eth12            # 出口网络接口，即数据包是从哪个网络接口
 - [自己动手写CNI插件](https://morningspace.github.io/tech/k8s-net-cni-coding-shell/)
 - [K8s网络之从0实现一个CNI网络插件](https://juejin.cn/post/7049610194224939038)
 - [宝藏博主DSsss](https://juejin.cn/user/3773179638322295/posts)
+- [从零实现CNI插件的大神A7kaou](https://www.zhihu.com/people/ding-xin-85-36/posts)
+- [基于ebpf和vxlan实现一个k8s网络插件（一）](https://zhuanlan.zhihu.com/p/565254116)
