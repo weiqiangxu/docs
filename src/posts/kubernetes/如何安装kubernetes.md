@@ -1419,7 +1419,7 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 
 136. kubectl创建pod时候每个组件做了什么并且顺序是什么
 
-      kubectl apply >> kubectl验证配置 >> Kubernetes API Server(RestFul URL) >> APIServer记录Pod到ETCD  >> API Server会通过内部的消息机制通知调度器(Scheduler) >> 调度器(Scheduler) - 依据调度策略(CPU\内存\亲和性\反亲和性\节点污点)选择节点 >> 调度器将决策返回给API Server >> API Server 收到调度器返回的节点信息 >> APIServer更新etcd中Pod  >> API Server 会通过向目标节点上的 kubelet 发送通知来告知它需要创建指定的 Pod >> kubelet 收到 API Server 的通知后 >> kubelet 会调用容器运行时（如 Docker 或 Containerd）来拉取 Pod 定义中指定的容器镜像(容器运行时会根据镜像创建容器) >> kubelet 设置容器的各种属性(资源限制、环境变量) >>  kubelet 调用 CNI（Container Network Interface）插件分配 IP 地址并配置网络 >> kubelet 会将 Pod 的状态信息通过 API Server 更新到 etcd 中
+      kubectl apply >> kubectl验证配置 >> Kubernetes API Server(RestFul URL) API Server 会验证请求的合法性，包括检查用户的权限（通过 RBAC 等授权机制）、请求格式是否符合 Kubernetes API 规范等 >> APIServer记录Pod到ETCD  >> API Server会通过内部的消息机制通知调度器(Scheduler) >> 调度器(Scheduler) - 依据调度策略(CPU\内存\亲和性\反亲和性\节点污点)选择节点 >> 调度器将决策返回给API Server >> API Server 收到调度器返回的节点信息 >> APIServer更新etcd中Pod  >> API Server 会通过向目标节点上的 kubelet 发送通知来告知它需要创建指定的 Pod >> kubelet 收到 API Server 的通知后 >> kubelet 会调用容器运行时（如 Docker 或 Containerd）来拉取 Pod 定义中指定的容器镜像(容器运行时会根据镜像创建容器) >> kubelet 设置容器的各种属性(资源限制、环境变量) >>  kubelet 调用 CNI（Container Network Interface）插件分配 IP 地址并配置网络 >> kubelet 会将 Pod 的状态信息通过 API Server 更新到 etcd 中
       
       > kubelet 是运行在每个节点上的代理，负责管理节点上容器的生命周期
 
@@ -1486,13 +1486,34 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 
 146. k8s如果出现重复调度集群会如何处理
 
+      或者当集群的状态信息（如节点资源状态、Pod 状态）在不同组件之间更新不及时或不一致时，调度器可能会误判并进行重复调度。
+      ReplicaSet 控制器和 Deployment 控制器负责维护 Pod 的副本数量和状态。
+
 147. k8s的MetricServer是干嘛的
+
+      整理和聚合指标.
 
 148. K8S会不会出现重复调度pod的情况
 
       调度器与 API Server 之间的通信如果发生异常。例如，调度器向 API Server 发送了一个 Pod 的调度请求，但由于网络问题没有收到 API Server 的确认响应，调度器可能会再次发送相同的调度请求。
 
 149. kubectl创建Deployment的时候各个组件做了什么事情并且执行动作的顺序是什么
+
+      - 执行`kubectl create deployment`,然后kubectl首先会对用户输入的命令进行解析，转换成Kubernetes API 规范的 JSON
+      - kubectl通过Https RestFul API请求给ApiServer(API server检查RBAC权限、格式规范等)
+      - API Server 会将 Deployment 的配置信息存储到 etcd 中
+      - API Server通过Watch机制告知调度器（Scheduler）调度器会将调度结果RESTFul API方式发送给API server
+      - API Server 更新调度信息阶段，将 Pod 与调度的节点进行绑定记录在 etcd 中 
+      - API Server调用kubelet的节点接口创建 Pod 的指令(POST). Kubelet的端点`/api/v1/nodes/{nodeName}/pods`.
+
+      - 控制器管理器（Controller Manager）维护阶段, Deployment 控制器会持续监控 Deployment 的实际副本数和期望副本数,Deployment 控制器会通过 API Server 请求创建新的 Pod 来维持期望的副本数量.
+
+
+150. Controller Manager监听到Deployment的时候会做什么操作(怎样创建pod和销毁pod)
+
+      - 查询 API Server 以统计与该 Deployment 关联的实际运行的 Pod 副本数
+      - Deployment 控制器会根据 Deployment 对象中定义的 Pod 模板（spec.template）来构建新的 Pod 对象。POST请求 API Server 的/api/v1/pods端点发送包含新 Pod 配置信息
+      - 当需要销毁多余的 Pod 时，通常会采用滚动更新策略中的 Pod 替换方式，按照 Pod 的创建时间顺序（先创建的先删除），Deployment 控制器会向 API Server 发送删除 Pod 的请求，也就是向APIServer的`/api/v1/pods/{podName}`端点发送一个 DELETE 请求.
 
 150. k8s的所有控制组件只有APIServer会和Etcd直接通信吗
 
@@ -1503,7 +1524,56 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 
 
 151. k8s的控制组件的之间的通信方式是什么
-139. 节点内存cpu指标怎么拿的
+
+      - API Server 和 Kubelet:
+
+          HTTP/HTTPS 协议(Kubelet 会定期向 API Server 发送节点状态更新 /api/v1/nodes/{nodeName}/status) Kubelet 会从 API Server 获取 Pod 的创建、更新和删除等操作指令 (不是Watch机制吗难道是kubelet主动pull)
+
+      - API Server 和 Scheduler: 
+          通过 Watch 机制主动接收 API Server 推送的事件;
+          也有主动获取节点内存等信息用于调度决策
+          HTTP/HTTPS协议(Scheduler 通过向 API Server 发送 GET 请求获取未调度的 Pod 信息 /api/v1/pods?fieldSelector=spec.nodeName==) 在完成调度决策后，Scheduler 会向 API Server 发送 PATCH 请求更新 Pod 的调度信息 /api/v1/pods/{podName}/binding
+      - API Server 和 Controller Manager: 
+          多个控制器依赖 Watch 机制来实现对资源状态的动态监控\也有定期的List
+          HTTP/HTTPS 协议的 RESTful API\从 API Server 获取期望的 Pod 副本数是/api/v1/replicasets/{replicaSetName}
+      - Kubelet 与 Scheduler（间接通信）
+      - Kubelet 与 Controller Manager（间接通信）
+      - Scheduler 与 Controller Manager（间接通信）
+
+
+152. 除了基于HTTP/HTTPS协议的RESTful API，Kubernetes还有哪些通信方式
+
+      - gRPC 
+      - 共享内存
+
+153. 6443端口在k8s之中
+
+    Kubernetes API Server 所使用的端口
+
+154. apiserver是怎么告知kubelet需要创建pod的
+
+      Kubelet 也会有利用 Watch 机制更新状态信息辅助通知，Kubelet也会通过 Watch API 监听与自身相关的资源变化，例如节点上 Pod 的创建、更新和删除事件。
+      Kubelet 在收到创建 Pod 的指令后，会进行异步处理。创建任务放入内部的工作队列，创建过程中Kubelet 会定期向 API Server 发送 Pod 的创建进度和状态信息.
+
+155. 如何查看Kubelet的日志以了解其与API Server通信的详细情况
+
+      `journalctl -xu kubelet -f`
+
+139. k8s默认的节点内存cpu指标怎么拿的和[metric server](https://github.com/kubernetes-sigs/metrics-server)什么关系
+      - Kubelet读取/proc/stat文件包含了 CPU 的使用统计信息 /proc/meminfo查看内存信息,然后定期JSON格式 RESTful API 发送给 API Server
+     Metric Server 是 Kubernetes 集群中的一个重要组件。主要功能是提供一个统一的、标准化的接口来获取集群的资源指标。专门用于查询资源指标的标准接口。（kubelet采集指标给APIserver然后从apiServer之中获取指标比较复杂），另外的功能就是支持 HPA（Horizontal Pod Autoscaler），HPA使用了Metric Server的CPU和内存指标等数据。
+    `kubectl top nodes`可以验证metric server是否启动成功.
+
+140. metric server会主动采集节点上的指标吗，部署后是多了deployment还是daemonset呢
+
+      Metric Server 本身不会直接主动采集节点上的指标，而是通过向 Kubelet 发送请求获取相关指标信息。（Kubelet的子组件cAdvisor负责从节点和Pod上检索各种指标）
+      Metric Server主要起到了数据转换和聚合的作用
+      Metric Server是Deployment 来部署的
+
+141. 执行`kubectl top nodes`为什么能验证metric server是否安装
+
+      当执行kubectl top nodes时，kubectl会和API Server进行通信 ，然后API server会从向 Metric Server 发送一个请求，请求获取节点的资源使用指标。
+
 140. operator是什么
 141. operator主要用来干嘛
 142. operator的二次开发怎么做
@@ -1511,8 +1581,39 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 144. flannel的通信的拓扑图
 145. cni插件二次开发主要分哪些内容
 146. ip分配方面cni到底做了什么
+
 147. 想开发一个自己的cni插件，需要做哪些事情
+
+        - CNI ADD DEL等，当 Kubelet 调用 CNI 插件时，会传递一系列参数，如容器 ID、网络命名空间路径、Pod 名称、Pod 命名空间等。这些参数以 JSON 格式传递
+        - 网络拓扑（VXLAN、GRE隧道）实现
+        - IP 分配机制、容器的网络接口配置、路由规则
+
 148. 创建一个pod从kubectl到容器创建好CNI插件什么时候参与了做了什么事情
+
+      - 执行`kubectl create pod`的时候kubectl解析命令将配置信息转换成符合`Kubernetes API`规范的格式，通常是 JSON 或 YAML
+      - kubectl发送Restful请求到ApiServer
+      - apiServer收到请求后检查用户权限API Server 会将 Pod 的配置信息存储到 etcd 中
+      - API Server通过Watch机制告知scheduler，scheduler决策后通过Restful API告知apiserver
+      - kubelet的watch收到apiserver推送的创建pod的任务
+      - Kubelet 执行 Pod 创建阶段 - 开始涉及 CNI
+      - kubelet在容器创建过程中。Kubelet 会调用 CNI（Container Network Interface）插件(将如 Pod 的名称、命名空间、容器 ID 等传递给CNI 插件).例如，在基于 VXLAN 的网络方案中CNI 插件会为容器分配一个虚拟的 VXLAN 接口，配置 IP 地址.
+      - CNI插件此时做了什么呢? 当执行了`bin ADD xxx`之后,怎么`ipam`呢
+      - 容器启动后CNI 插件发送ICMP检查网络
+
+149. 容器定义的健康检查或者就绪指针
+
+      本质上是kubelet执行的(http或者命令)
+
+150. 没有MetricServer那么HPA还能用吗
+
+      默认HPA的指标通过 Metric Server 提供的。没有 Metric Server，HPA 的功能可能会受到一定限制。例如，一些基于默认的 CPU 和内存使用率的自动缩放功能可能无法直接使用，因为这些基础指标通常是由 Metric Server 提供的。除非之定义指标。
+
+151. kubelet接收API server的创建pod的任务是通过watch机制接收到APIServer的主动推送、还是apiserver调用kubelet的接口、还是kubelet定时轮询
+      通过 Watch 机制接收主动推送（主要方式）
+      定时轮询（辅助方式）List
+      不是通过 API Server 调用 Kubelet 接口 (APIServer频繁地主动调用可能会导致 API Server 的负载过高)
+
+      > 早期版本或特殊情况下，API Server 确实可以通过 HTTP/HTTPS 协议的 RESTful API 向 Kubelet 发送创建 Pod 的指令. 目前主要的基于 Watch 机制的方式.
 
 ### 参考资料
 

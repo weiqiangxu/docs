@@ -114,7 +114,7 @@ $ echo $CNI_PATH
 $ cd /home/cni/scripts && CNI_PATH=$CNI_PATH ./docker-run.sh --rm busybox:latest ifconfig
 ```
 
-[dasblinkenlichten.com/深入理解CNI](http://www.dasblinkenlichten.com/understanding-cni-container-networking-interface/)
+- [dasblinkenlichten.com/深入理解CNI](http://www.dasblinkenlichten.com/understanding-cni-container-networking-interface/)
 
 ``` bash
 $ cd /opt/cni/bin
@@ -358,6 +358,35 @@ dev eth12            # 出口网络接口，即数据包是从哪个网络接口
 所以 IP 范围是 10.16.200.0 ～ 10.16.207.255
 ```
 
+
+
+1. kubelet在容器创建过程中。Kubelet 会调用 CNI（Container Network Interface）插件(将如 Pod 的名称、命名空间、容器 ID 等传递给CNI 插件).  此时CNI怎么给pod分配ip呢，是更新pod信息然后推送pod的更新信息给apiserver吗
+
+      - 分配ip后涉及与底层网络基础设施的交互：比如在基于 VXLAN（Virtual eXtensible Local Area Network）的网络环境中，CNI 插件会创建和配置 VXLAN 隧道端点（VTEP），并将 Pod 的 IP 地址与 VTEP 相关联。
+      - 在为 Pod 分配 IP 地址后，Kubelet 会构造一个包含 Pod IP 地址的状态更新请求，通过 API Server 的 RESTful API 发送到/api/v1/pods/{podName}/status端点
+
+2. kubelet调用CNI插件，比如命令调用 CNI ADD 之后，kubelet更新pod的资源上的ip信息？ kubelet怎么拿到这个pod的IP的？
+
+      - CNI 插件在成功为 Pod 分配 IP 地址后，会将 IP 地址等网络配置信息返回给 Kubelet。
+
+3. Kubelet如何将CNI插件返回的IP信息更新到Pod的资源上
+
+      kubelet 调用API server的REST ful API
+
+4. kubelet调用`CNI_COMMAND=ADD XXX=XXX ./bridge < config.json`之后，是CNI_COMMAND更新了pod的IP呢还是kubelet更新了
+
+    - Kubelet 调用CNI_COMMAND = ADD命令并传递相关参数给 CNI 插件时执行网络配置操作，其中包括 IP 分配\对容器的网络接口进行配置\ IP 地址设置到网络接口上并且设置相应的路由规则
+    - CNI 插件在成功完成网络配置（包括 IP 分配）后，会将配置结果返回给 Kubelet（Pod 分配的 IP 地址、网络掩码、网关等网络信息）
+    - Kubelet 会将从 CNI 插件获取的 IP 信息更新到 Pod 的资源对象中,通过与 API Server 的交互
+
+
+5. cni配置的ipam的type是host-local是什么意思
+
+    IPAM 是 CNI（Container Network Interface）插件用于管理 IP 地址分配的组件,当 IPAM 的type配置为`host-local`时，意味着 IP 地址分配是基于本地主机的范围进行的。对于配置为`host-local`IPAM 的 CNI 插件，每个节点可能被分配了一个子网。
+    `host-local`类型的 IPAM 通常会将已分配的 IP 地址信息持久化存储在本地文件系统中（如`/var/lib/cni/networks/`目录下）
+
+6. 如果将CNI配置的IPAM的type改成myCNI ，那么kubelet调用CNI插件会怎么调
+
 ### 相关资料
 
 - [官方手册 https://github.com/containernetworking/cni](https://github.com/containernetworking/cni)
@@ -378,3 +407,6 @@ dev eth12            # 出口网络接口，即数据包是从哪个网络接口
 - [Linux ip 命令](https://www.runoob.com/linux/linux-comm-ip.html)
 - [宝藏博主](https://atbug.com)
 - [内核网络协议栈](https://nxw.name/2022/linux-network-stack)
+- [自己动手写CNI插件](https://morningspace.github.io/tech/k8s-net-cni-coding-shell/)
+- [K8s网络之从0实现一个CNI网络插件](https://juejin.cn/post/7049610194224939038)
+- [宝藏博主DSsss](https://juejin.cn/user/3773179638322295/posts)
