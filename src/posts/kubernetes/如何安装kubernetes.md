@@ -1615,6 +1615,8 @@ ctr作为 containerd 项目的一部分，是安装 containerd 时默认提供�
 
       > 早期版本或特殊情况下，API Server 确实可以通过 HTTP/HTTPS 协议的 RESTful API 向 Kubelet 发送创建 Pod 的指令. 目前主要的基于 Watch 机制的方式.
 
+151. github代码目录结构\apiserver\scheduler\controller manager调度器子模块\kubeadm\kubectl\kubelet\coreDNS\kubelet轻量化\k3s轻量化
+
 ### 参考资料
 
 - [containerd如何安装使用](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
