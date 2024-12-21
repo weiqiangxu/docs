@@ -1,6 +1,3 @@
----
-hide: true
----
 # opentracing
 
 1. 什么是opentracing
@@ -10,7 +7,7 @@ hide: true
 
 ### 启动jaeger
 
-```
+```bash
 docker run -d -p 5775:5775/udp -p 16686:16686 jaegertracing/all-in-one:latest
 ```
 
@@ -29,14 +26,9 @@ UnaryInvoker is called by UnaryClientInterceptor to complete RPCs
 
 ### 相关地址
 
-[github.com/yurishkuro/opentracing-tutorial/](https://github.com/yurishkuro/opentracing-tutorial/)
-
-[opentracing.io/docs/getting-started/][https://opentracing.io/docs/getting-started/]
-
-[jaegertracing.io/](https://www.jaegertracing.io/)
-
-[https://www.cnblogs.com/whuanle/p/14598049.html](https://www.cnblogs.com/whuanle/p/14598049.html)
-
-[go-gin-api 路由中间件 - Jaeger 链路追踪](https://www.cnblogs.com/xinliangcoder/p/11604880.html)
-
-[github.com/xinliangnote/go-jaeger-demo](https://github.com/xinliangnote/go-jaeger-demo)
+- [github.com/yurishkuro/opentracing-tutorial/](https://github.com/yurishkuro/opentracing-tutorial/)
+- [opentracing.io/docs/getting-started/][https://opentracing.io/docs/getting-started/]
+- [jaegertracing.io/](https://www.jaegertracing.io/)
+- [JaegerClientGo链路追踪|](https://www.cnblogs.com/whuanle/p/14598049.html)
+- [go-gin-api路由中间件-Jaeger 链路追踪](https://www.cnblogs.com/xinliangcoder/p/11604880.html)
+- [github.com/xinliangnote/go-jaeger-demo](https://github.com/xinliangnote/go-jaeger-demo)

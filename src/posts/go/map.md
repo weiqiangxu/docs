@@ -70,8 +70,8 @@ Go使用的是渐进式扩容:
 
 ```go
 type hmap struct {
-	count     int // # Map的元素数量
-	B         uint8  // count/(2^B) > 6.5
+	count      int            // # Map的元素数量
+	B          uint8          // count/(2^B) > 6.5
 	buckets    unsafe.Pointer // 指向新的 bmap数组 (Size翻倍后的)
 	oldbuckets unsafe.Pointer // oldBucket指向 旧的bmap数组
 	nevacuate  uintptr        // 渐进式扩容时候下一个要迁移的旧桶编号
@@ -101,8 +101,8 @@ type hmap struct {
 ### Q&A
 
 1. 解决哈希冲突的办法有哪些
-	- 开放地址法
-	- 拉链法
+
+	- 链地址法（Separate Chaining）
 
 2. 渐进式扩容和等量扩容是什么意思，常见的触发条件是什么
 
