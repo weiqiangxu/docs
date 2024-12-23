@@ -29,6 +29,8 @@ docker pull bitnami/kafka:3.9.0
 # KAFKA_CFG_CONTROLLER_QUORUM_VOTERS 配置控制器仲裁投票者用于KafkaRaft选举和协调控制器
 # KAFKA_CFG_CONTROLLER_LISTENER_NAMES 监听器名称为CONTROLLER
 docker run -d --name kafka-server --hostname kafka-server \
+    -p 9092:9092 \
+    -p 9093:9093 \
     -e KAFKA_CFG_NODE_ID=0 \
     -e KAFKA_CFG_PROCESS_ROLES=controller,broker \
     -e KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \
@@ -79,6 +81,13 @@ GROUP TOPIC PARTITION CURRENT-OFFSET LOG-END-OFFSET LAG CONSUMER-ID
 kafka-consumer-groups.sh --bootstrap-server kafka-server:9092 \
   --describe --group console-consumer-73857 --offsets
 
+
+# 9.批量消费主题数据
+# 当接收到10个消息以后会停止脚本运行
+kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic mytopic \
+  --max-messages 10
 
 # 核心API
 1. ProducerAPI 生产者API.
@@ -227,6 +236,29 @@ broker收到消息之后在什么状态下（直接返回,leader success, follow
 1. 发后即忘 (发送了不管成功与否)
 2. 同步(发送后等待结果)
 3. 异步（发送消息时指定回调函数，Kafka在返回响应时会调用该函数实现异步的发送确认）
+
+### 十五、批量生产和批量消费
+
+批量生产。指`生产者（Producer）`一次性向 Kafka 主题（Topic）发送多条消息。原理是客户端有一个消息缓冲区，当缓冲区到达某阙值的时候，或者等待时间到达设定的时间的时候，将缓冲区的消息发送到kafka集群。生产者往往是有参数`batch.size`和`linger.ms`最长时间限制，触发批量生产消息。Kafka 服务端是支持批量接收消息的，`Kafka broker` 的接收接口能够处理多个消息的批量到达。在协议层面，Kafka 的消息格式和协议允许一次接收多个消息记录。假设Kafka 的主题（Topic）是由一个或多个分区（Partition）组成的，生产者批量发送了 6 条消息。`Kafka broker` 会根据消息的分区策略（如基于消息键的哈希值或者轮询策略等）将这 6 条消息分配到不同的分区中。
+
+批量消费。消费者（Consumer）一次性从 Kafka 主题中获取并处理多条消息，而不是一条一条地处理。原理消费者通过配置参数来控制批量消费。例如，`max.poll.records`参数决定了每次调用`poll()`方法时能够获取的最大记录数。消费者在拉取消息时，会根据这个参数以及其他相关参数（如`fetch.min.bytes`和`fetch.max.wait.ms`）来决定获取多少条消息。kafka的消息拉取接口支持设置最大记录数量、最小字节数满足或者最大等大时长超过、批量拉取消息，Kafka的客户端主动pull数据而不是kafka主动Push数据。不过对于Java实现的客户端指定批量消费100条消息，和Java客户端不批量消费，两个方式来说，客户端调kafka消息获取接口的时间间隔是不一样的，只是kafka消息接口在批量获取消息不满足条件的时候不返回消息呢。是的，Java客户端什么时候poll消息呢，是在消息消费以后、或者达到了固定的时间间隔之后，而kafka的消息获取接口呢，会因为条件达不到而给批量获取消息Java客户端返回空。本质上不管单个还是批量，都是Java客户端主动pull数据。
+
+> kafka在读取消息以后是否手动提交，是poll数据的参数传递过去，还是kafka服务器上设置。答案是消费者客户端配置决定是否手动提交，不是通过poll数据的参数传递，也不是在 Kafka 服务器上设置。执行`new KafkaConsumer<>(props)` 的时候 `propos.ENABLE_AUTO_COMMIT_CONFIG = false`就是手动提交.
+
+批量消费的Offset提交怎么做，批量获取到100个消息，其中第50个处理异常了，我怎么处理好呢。直接记录
+
+
+### 十六、 Kafka Streams
+
+> 一个用于构建实时流处理应用程序的客户端库。并且支持的语言目前只有Java。特点就是实现低延迟实时处理。原理是事件驱动、多线程并行处理多分区消息、Kafka 的原生协议调用、
+
+
+### 十七、Go的SDK调用Kafka获取消息
+
+Go 语言的 Kafka SDK 调用 Kafka 获取数据时，通常走的是 Kafka 的原生协议，而不是 HTTP 协议。Kafka 的原生协议是基于 TCP 的二进制协议，相比于 HTTP 等文本协议，开销更小，减少了数据转换，不需要文本再转二进制了起码，Confluent 的 Kafka Go 客户端使用的是 Kafka 原生协议与 Kafka 集群进行通信。
+
+> 二进制数据和文本数据有什么不一样。字母A对应的字节序列是01000001。通常存储效率更高，因为不需要像文本数据那样使用特定的字符编码（字母 A 的 Unicode 码点是U+0041（十进制是 65））、CPU和其他硬件组处理更快、不需要进行复杂的字符编码和解码操作。
+
 
 ### Q&A
 
