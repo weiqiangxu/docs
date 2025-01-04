@@ -1,10 +1,4 @@
----
-hide: true
----
-
 # 哨兵 redis-sentinel
-
-[InfoQ Redis集群](https://xie.infoq.cn/article/6c3500c66c3cdee3d72b88780)
 
 > master宕机哨兵会自动选举slave为master
 
@@ -30,3 +24,5 @@ master将会被标记为客观下线(ODOWN)
 master宕机之后
 哨兵之间进行投票选举master
 ```
+
+- [InfoQ Redis集群](https://xie.infoq.cn/article/6c3500c66c3cdee3d72b88780)

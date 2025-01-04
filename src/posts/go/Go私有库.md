@@ -76,4 +76,11 @@ go env -w GOINSECURE=private.repo.com
 go get -inscure github.com/weiqiangxu/batchjob
 ```
 
-[GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+
+### 相关文档
+
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+- [medium.com/geekculture发布包到pkg](https://medium.com/geekculture/release-your-go-package-on-pkg-go-dev-886ec42fbc77)
+- [囊地鼠饲养员的碎碎念/如何优雅地发布模块到pkg.go.dev](https://blog.golang.im/how-to-release-go-module/)
+- [GO语言高性能编程](https://geektutu.com/post/high-performance-go.html)
+- [topgoer](https://www.topgoer.com/)

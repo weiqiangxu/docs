@@ -1,12 +1,4 @@
----
-hide: true
----
-
 # Cluster模式
-
-[博客园cluster](https://www.cnblogs.com/jian0110/p/14002555.html)
-
-[Java全栈知识体系](https://pdai.tech/md/db/nosql-redis/db-redis-x-cluster.html)
 
 ### 节点数
 
@@ -33,3 +25,6 @@ redis-cluster 采用去中心化的思想
 redis-tri.rb add-node 新机器纳入集群
 redis-tri.rb reshard 数据迁移
 ```
+
+- [博客园cluster](https://www.cnblogs.com/jian0110/p/14002555.html)
+- [Java全栈知识体系](https://pdai.tech/md/db/nosql-redis/db-redis-x-cluster.html)

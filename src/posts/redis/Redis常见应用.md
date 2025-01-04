@@ -1,6 +1,3 @@
----
-hide: true
----
 # Redis概念和基础
 
 ### 使用场景
@@ -16,4 +13,4 @@ hide: true
 
 # Full_stack_knowledge_system
 
-[pdai.tech](https://pdai.tech/)
+- [pdai.tech](https://pdai.tech/)

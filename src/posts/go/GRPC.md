@@ -242,3 +242,4 @@ kube-proxy的负载均衡在创建连接时候有效，复用原有连接就会�
 - [silenceper/pool/](https://github.com/silenceper/pool/blob/master/README_ZH_CN.md)
 - [gRPC 应用篇之客户端 Connection Pool](https://pandaychen.github.io/2020/10/03/DO-WE-NEED-GRPC-CLIENT-POOL/)
 - [GRPC连接池的设计与实现](https://zhuanlan.zhihu.com/p/100200985)
+- [gRPC的流是什么](https://www.jishuchi.com/read/gin-practice/3798)

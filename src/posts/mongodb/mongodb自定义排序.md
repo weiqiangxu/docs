@@ -1,10 +1,7 @@
 ---
 title: mongodb自定义排序
 tags:
-  - golang
   - mongodb
-categories:
-  - golang
 ---
 
 ### code

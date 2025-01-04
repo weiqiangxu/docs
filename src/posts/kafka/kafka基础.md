@@ -304,7 +304,11 @@ Go 语言的 Kafka SDK 调用 Kafka 获取数据时，通常走的是 Kafka 的�
     - 普通的数据处理通常是基于批处理（Batch Processing）模式。
     - Kafka 流处理是基于实时流（Real-Time Streaming）模式。数据在产生后几乎是立即被处理，没有明显的等待积累阶段。
 37. kafka的吞吐有多大
+    - 普通单机能达到消息数量10w/s
+    - 三个节点组成的 Kafka 集群测试环境中，配置 100 个分区，消息大小为 1KB。启用批处理机制，生产者`batch.size` 设置为 1MB，`linger.ms` 设置为 `10`，`acks` 设置为 `all`，`min.in.sync.replicas` 设置为 2 时，该集群能够达到接近磁盘 I/O 饱和的高峰稳定吞吐量.
 38. kafka的批量发送和批量接收情况下，其中一个任务失败会怎么样。直接同批次的全部重来吗
+39. acks设置为all会怎么样
+      生产者（Producer）配置参数，当acks设置为all时，发送的消息在所有同步副本（in - sync replicas）都成功写入消息后才会收到确认。
 
 ### 参考资料
 

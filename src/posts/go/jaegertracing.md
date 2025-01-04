@@ -226,6 +226,22 @@ jaegerConfig.Configuration<<Reporter.CollectorEndpoint>>
 1. Kafka
 2. Elasticsearch
 
+
+
+### 三、Opentracing
+
+1. 什么是opentracing
+
+	OpenTracing 是一个用于分布式追踪的开源标准和工具集。提供了一种标准的方式来追踪请求在这些服务中的完整路径，包括每个服务的处理时间、调用顺序、是否出现错误等信息。
+	Span（跨度）一个逻辑工作单元、Trace（追踪）一系列相关的 Span 组成，代表了一个完整的请求处理流程、Tracer（追踪器）创建、管理和报告 Span 和 Trace。
+
+
+2. jaegertracing是怎样将trace里面的各个span串起来的
+
+	一个请求追踪的全局唯一标识符（`Trace ID`）。处理流程的多个Span都共享这个`Trace ID`。`Span ID`用于唯一标识每个单独的 `Span`,而`Parent Span ID`则用于建立`Span`之间的父子关系。将`Span`上下文信息（如`Trace ID`、`Span ID`和`Parent Span ID`）编码并添加到`HTTP`请求头中。
+	
+	> 主要是`context`的`parent span id`串起来. 链路追踪之中很多时候是分两步注入`Inject Span`上下文,提取`Extract Parent Span`上下文然后用于`Tracer.StartSpan`.
+
 ### Q&A
 
 1. client推送数据怎么提升速度
@@ -234,7 +250,6 @@ jaegerConfig.Configuration<<Reporter.CollectorEndpoint>>
     Agent批量发送、Kafka做异步缓冲、Elastic做数据存储。
 
 2. client可以直接将数据推送到Collector或者jaeger-agent代理人
-
 
 ### 相关疑问
 
@@ -245,3 +260,9 @@ jaegerConfig.Configuration<<Reporter.CollectorEndpoint>>
 - [https://opentracing.io/](https://opentracing.io/)
 - [https://www.jaegertracing.io/](https://www.jaegertracing.io/)
 - [https://www.jaegertracing.io/docs/1.21/deployment/](https://www.jaegertracing.io/docs/1.21/deployment/)
+- [github.com/yurishkuro/opentracing-tutorial/](https://github.com/yurishkuro/opentracing-tutorial/)
+- [opentracing.io/docs/getting-started/][https://opentracing.io/docs/getting-started/]
+- [jaegertracing.io/](https://www.jaegertracing.io/)
+- [JaegerClientGo链路追踪|](https://www.cnblogs.com/whuanle/p/14598049.html)
+- [go-gin-api路由中间件-Jaeger 链路追踪](https://www.cnblogs.com/xinliangcoder/p/11604880.html)
+- [github.com/xinliangnote/go-jaeger-demo](https://github.com/xinliangnote/go-jaeger-demo)
