@@ -95,3 +95,28 @@ $ show databases;
 已知`T0`时间，开始不断插入数据，在`T1`时间的时候将数据删除了，此时通过`binlog`获取`T0`到`T1`之前的数据插入，用来恢复数据。明显这是非常不好用的，因为`T0`到`T1`之间可能时间很长，日志非常庞大。
 
 > 数据恢复是`mysqldump`全量数据再结合`binlog`的增量数据恢复更为合理.
+
+
+```bash
+# mysqldump制作快照记录下binlog的位置
+$ mysqldump  --master-data=2 -u root -p test>test.sql
+```
+
+```sql
+-- MySQL dump 10.13  Distrib 5.7.43, for Linux (aarch64)
+...
+--
+-- Position to start replication or point-in-time recovery from
+
+# 注意: 这里清晰的展示备份的这一刻
+# 这里清晰的展示备份完成时的二进制日志文件名和位置 binlog - pos 信息
+# 在binlog获取这个事务以后的增量数据
+# mysqlbinlog --start-position=2016 mysql-bin.000002
+# mysqldump 没有包含 2016 位置开始的事务
+# 而 binlog 是从 2016 位置开始记录后续事务
+-- CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.000002', MASTER_LOG_POS=2016;
+
+
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` ...
+```
