@@ -1,7 +1,3 @@
----
-hide: true
----
-
 # Redis事务
 
 ### 事务是批量执行脚本，Redis语句是原子性的(事物不可分割，要么都发生要么都不发生)
@@ -50,3 +46,8 @@ CAS是比较一个变量值在2个时间点是否一致判定该变量是否有�
 ```
 
 
+### 相关文档
+
+- [Java全栈知识体系](https://pdai.tech/)
+- [小林coding](https://xiaolincoding.com/)
+- [熔断/降级/限流](https://www.cnblogs.com/rerise/p/16203438.html)

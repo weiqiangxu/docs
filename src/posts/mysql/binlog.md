@@ -80,11 +80,12 @@ $ mysqlbinlog --no-defaults \
 # 查看SQL文件内容
 $ cat recovery.sql
 
-$ mysql -uroot -p 
+# 登录新的MySQL服务
+$ mysql -uroot -p
 
 $ source /home/recovery.sql
 
-# 此时可以看到恢复的数据了
+# 此时可以看到server1的binlog恢复的数据了
 $ show databases;
 ```
 

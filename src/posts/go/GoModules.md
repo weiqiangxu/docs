@@ -8,9 +8,9 @@ tag:
 
 # 干货满满的 Go Modules
 
-[go-modules 干货满满的 Go Modules 和 goproxy.cn](https://www.jishuchi.com/read/gin-practice/3794#8c7ywi)
-[理解Go中的go.sum和go.mod文件](https://golangbyexample.com/go-mod-sum-module/)
-[终极入门](https://www.jishuchi.com/read/gin-practice/3795)
+- [go-modules 干货满满的 Go Modules 和 goproxy.cn](https://www.jishuchi.com/read/gin-practice/3794#8c7ywi)
+- [理解Go中的go.sum和go.mod文件](https://golangbyexample.com/go-mod-sum-module/)
+- [终极入门](https://www.jishuchi.com/read/gin-practice/3795)
 
 ### 关键词
 
