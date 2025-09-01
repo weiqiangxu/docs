@@ -9,6 +9,7 @@
 - [幼鳞实验室](https://www.bilibili.com/video/BV1hv411x7we)
 - [go专家编程](https://docs.kilvn.com/GoExpertProgramming/)
 - [go-zero作者博客](https://learnku.com/blog/kevwan)
+- [csdn](https://github.com/zhwei820/learn.lianglianglee.com)
 
 ### 2.计算机理论
 
