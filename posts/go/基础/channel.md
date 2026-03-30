@@ -291,6 +291,36 @@ type sudog struct {
 
 ### 3.2 数据结构详解
 
+#### 3.2.1 hchan结构体示意图
+
+```mermaid
+graph TD
+    subgraph hchan结构体
+        qcount[qcount: 队列中的总数据量]
+        dataqsiz[dataqsiz: 循环队列的大小]
+        buf[buf: 缓冲区指针]
+        elemsize[elemsize: 元素大小]
+        closed[closed: 关闭状态标志]
+        elemtype[elemtype: 元素类型]
+        sendx[sendx: 发送队列偏移]
+        recvx[recvx: 接收队列偏移]
+        recvq[recvq: 接收等待队列]
+        sendq[sendq: 发送等待队列]
+        lock[lock: 互斥锁]
+    end
+    
+    qcount --> dataqsiz
+    dataqsiz --> buf
+    buf --> elemsize
+    elemsize --> closed
+    closed --> elemtype
+    elemtype --> sendx
+    sendx --> recvx
+    recvx --> recvq
+    recvq --> sendq
+    sendq --> lock
+```
+
 1. **hchan结构体各字段含义**：
    - `qcount`: 通道缓冲区中当前的数据数量
    - `dataqsiz`: 通道缓冲区的大小（元素个数）
@@ -305,6 +335,35 @@ type sudog struct {
    - `lock`: 互斥锁，保证对通道的操作是线程安全的
 
 2. **环形缓冲区实现**：
+
+```mermaid
+graph TD
+    subgraph 环形缓冲区
+        A[缓冲区元素 0]
+        B[缓冲区元素 1]
+        C[缓冲区元素 2]
+        D[缓冲区元素 3]
+        E[缓冲区元素 4]
+    end
+    
+    subgraph 指针
+        sendx[sendx: 下一个发送位置]
+        recvx[recvx: 下一个接收位置]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> A
+    
+    sendx --> C
+    recvx --> A
+    
+    style sendx fill:#f9f,stroke:#333,stroke-width:2px
+    style recvx fill:#bbf,stroke:#333,stroke-width:2px
+```
+
    - Channel的缓冲区是一个环形数组
    - `sendx`和`recvx`分别表示下一个发送和接收位置
    - 当`sendx`或`recvx`到达数组末尾时，会重新从数组头部开始

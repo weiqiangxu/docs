@@ -85,6 +85,50 @@ type hmap struct {
 
 `hmap`是map的核心结构，它包含了map的基本元数据和指向桶数组的指针。桶数组由多个`bmap`结构组成，每个`bmap`可以存储多个键值对。
 
+### hmap结构示意图
+
+```mermaid
+graph TD
+    subgraph hmap结构体
+        count[count: 元素数量]
+        B[B: 桶数量对数 2^B]
+        hash0[hash0: 哈希种子]
+        buckets[buckets: 指向桶数组]
+        oldbuckets[oldbuckets: 旧桶数组 扩容时用]
+        nevacuate[nevacuate: 下一个迁移桶编号]
+        noverflow[noverflow: 溢出桶数量]
+    end
+    
+    subgraph 桶数组
+        bucket0[桶0 bmap]
+        bucket1[桶1 bmap]
+        bucket2[桶2 bmap]
+        bucketN[桶N bmap]
+    end
+    
+    subgraph 溢出桶链
+        overflow0[溢出桶]
+        overflow1[溢出桶]
+    end
+    
+    buckets --> bucket0
+    buckets --> bucket1
+    buckets --> bucket2
+    buckets --> bucketN
+    
+    bucket0 --> overflow0
+    overflow0 --> overflow1
+    
+    style hmap结构体 fill:#e1f5fe
+    style 桶数组 fill:#fff3e0
+    style 溢出桶链 fill:#fce4ec
+```
+
+**图示说明：**
+- **hmap结构体**：map的头部信息，管理整个哈希表
+- **桶数组**：由2^B个bmap桶组成，每个桶存8个键值对
+- **溢出桶链**：当桶满了，用链表连接额外桶
+
 ### 2. bmap（桶）结构
 
 ```go
@@ -108,7 +152,150 @@ type bmap struct {
 3. 使用哈希值的高8位填充到`tophash`数组中，用于快速比较
 4. 在对应的桶中查找或插入键值对
 
+#### key定位桶的详细计算过程
+
+**步骤1：计算哈希值**
+
+```go
+// 伪代码
+hash = hash_function(key, h.hash0)  // 使用hash0作为种子计算哈希值
+```
+
+假设 `hash("apple") = 0x12345678` (二进制: 0001 0010 0011 0100 0101 0110 0111 1000)
+
+**步骤2：确定桶数量**
+
+```go
+// B是桶数量的对数，桶数量 = 2^B
+// 如果 B = 3，则桶数量 = 2^3 = 8 个桶
+bucket_count = 1 << h.B  // 即 2^B
+```
+
+**步骤3：计算桶索引（取低B位）**
+
+```
+hash = 0x12345678 = 二进制: 0001 0010 0011 0100 0101 0110 0111 1000
+
+如果 B = 3（8个桶），取低3位：
+hash & (bucket_count - 1) = hash & 7
+                         = 0x12345678 & 0x00000007
+                         = 0x00000000
+                         = 0  →  桶0
+
+如果 B = 4（16个桶），取低4位：
+hash & 15 = 0x12345678 & 0x0000000F
+          = 0x00000008
+          = 8  →  桶8
+```
+
+**为什么用位运算而不是取模？**
+
+```go
+// 取模运算（慢）
+bucket_index = hash % bucket_count
+
+// 位运算（快）- 只有桶数量是2的幂时才成立
+bucket_index = hash & (bucket_count - 1)
+```
+
+因为桶数量一定是2的幂（2^B），所以可以用位运算代替取模，速度更快。
+
+**完整示例：**
+
+```go
+m := make(map[string]int)  // 初始B=0，桶数量=1
+
+// 随着元素增加，B会增长
+// B=0: 桶数量=1   (2^0)
+// B=1: 桶数量=2   (2^1)  
+// B=2: 桶数量=4   (2^2)
+// B=3: 桶数量=8   (2^3)
+// B=4: 桶数量=16  (2^4)
+
+// 假设当前 B=2（4个桶）
+m["apple"] = 1   // hash("apple") = 0x12345678
+                // 桶索引 = 0x12345678 & (4-1) = 0x12345678 & 3 = 0 → 桶0
+
+m["grape"] = 2   // hash("grape") = 0xABCDEF00  
+                // 桶索引 = 0xABCDEF00 & 3 = 0 → 桶0（冲突！）
+
+m["peach"] = 3   // hash("peach") = 0x99999999
+                // 桶索引 = 0x99999999 & 3 = 1 → 桶1
+```
+
+**步骤4：使用tophash快速比较**
+
+```
+hash = 0x12345678
+
+高8位 = (hash >> 24) & 0xFF = 0x12
+tophash[0] = 0x12  // 存储在桶的tophash数组中
+
+查找时先比较tophash，如果不同就不用比较key了
+```
+
 哈希冲突处理：Go使用链地址法处理哈希冲突。当多个键被映射到同一个桶时，它们会被存储在同一个桶或其对应的溢出桶链中。
+
+#### 哈希冲突示例详解
+
+**什么是哈希冲突？**
+
+哈希冲突是指**不同的key，经过哈希函数计算后，得到了相同的哈希值**（或者哈希值不同，但取模后映射到了同一个桶位置）。
+
+**具体例子：**
+
+```go
+m := make(map[string]int, 4)  // 创建容量为4的map
+m["apple"] = 1   // 假设 hash("apple") = 100,  100 % 4 = 0 → 桶0
+m["grape"] = 2   // 假设 hash("grape") = 104,  104 % 4 = 0 → 桶0  ← 冲突！
+m["peach"] = 3   // 假设 hash("peach") = 101,  101 % 4 = 1 → 桶1
+```
+
+在这个例子中：
+- `"apple"` 和 `"grape"` 是两个完全不同的字符串
+- 但它们的哈希值取模后都是0，都要存到**桶0**
+- 这就是**哈希冲突**
+
+**Go如何解决？—— 链地址法**
+
+```
+桶0: [apple:1] → [grape:2] → nil
+     ↑主桶(第1个)  ↑主桶(第2个)
+
+桶1: [peach:3] → nil
+     ↑主桶(第1个)
+
+桶2: nil
+
+桶3: nil
+```
+
+**冲突更严重时——溢出桶：**
+
+```go
+m["berry"] = 4   // hash("berry") % 4 = 0 → 桶0
+m["mango"] = 5   // hash("mango") % 4 = 0 → 桶0
+m["lemon"] = 6   // hash("lemon") % 4 = 0 → 桶0
+// ... 继续往桶0塞数据
+```
+
+每个桶最多存8个键值对，超过就要挂**溢出桶**：
+
+```
+桶0: [apple:1] → [grape:2] → [berry:4] → [mango:5] → ... (最多8个)
+     ↑主桶bmap
+                              ↓
+                         溢出桶overflow
+                         [lemon:6] → [orange:7] → ... → nil
+```
+
+**查找过程：**
+
+当执行 `value := m["grape"]` 时：
+1. 计算 `hash("grape") % 4 = 0` → 去桶0找
+2. 遍历桶0中的所有键，比较 `"grape"`
+3. 找到了，返回值 `2`
+4. 如果没找到，继续去溢出桶找
 
 ### 4. 源码角度的关键函数
 
