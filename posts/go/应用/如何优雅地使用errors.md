@@ -1,8 +1,4 @@
----
-hide: true
----
-
-[github.com/pkg/errors](https://pkg.go.dev/github.com/pkg/errors)
+github.com/pkg/errors](https://pkg.go.dev/github.com/pkg/errors)
 
 [pkg.go.dev/errors](https://pkg.go.dev/errors)
 

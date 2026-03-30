@@ -1,11 +1,3 @@
----
-title: jaegertracing
-category:
-  - go
-tag:
-  - go
----
-
 ### 一、如何使用
 
 ##### 1.创建Jaeger的Tracer追踪器

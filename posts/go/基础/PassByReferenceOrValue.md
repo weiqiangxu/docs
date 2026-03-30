@@ -1,17 +1,3 @@
----
-title: 值传递与引用传递
-index_img: /images/bg/golang.webp
-banner_img: /images/bg/5.jpg
-tags:
-  - golang
-  - 内存模型
-  - 值传递
-categories:
-  - golang
-date: 2024-03-15 17:43:12
-excerpt: 从日常开发陷阱到内存模型底层实现，全面解析Go语言的值传递机制
----
-
 ## 一、核心结论：Go语言只有值传递
 
 在Go语言中，**所有数据类型的参数传递都是值传递**。这是Go语言设计的基本原则，也是理解Go内存模型的关键。

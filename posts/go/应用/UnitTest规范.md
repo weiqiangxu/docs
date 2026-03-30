@@ -1,11 +1,3 @@
----
-title: UnitTest规范
-category:
-  - go
-tag:
-  - go
----
-
 # 单元测试
 
 1. AIR原则

@@ -1,15 +1,3 @@
----
-title: Go语言反射(Reflection)性能详解：原理与优化
-tags:
-  - go
-  - 反射
-  - 性能
-categories:
-  - go
----
-
-[[toc]]
-
 ## 一、反射的概念与作用
 
 反射(Reflection)是Go语言提供的一种强大机制，允许程序在运行时检查和操作对象的类型和值。通过反射，程序可以动态地创建对象、访问字段、调用方法，而不需要在编译时知道这些对象的具体类型信息。
@@ -158,7 +146,7 @@ Go语言反射系统的核心是`reflect`包中的两个关键类型：
 
 1. **Type**：表示Go语言中的类型信息
    ```go
-type Type interface {
+   type Type interface {
     // 返回类型的名称
     Name() string
     // 返回类型的种类
@@ -170,7 +158,7 @@ type Type interface {
     // 通过名称查找字段
     FieldByName(name string) (StructField, bool)
     // 更多方法...
-}
+   }
 ```
 
 2. **Value**：表示一个值及其类型信息

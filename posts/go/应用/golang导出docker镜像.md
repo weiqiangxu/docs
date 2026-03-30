@@ -1,12 +1,3 @@
----
-title: golang导出docker镜像
-tags:
-  - golang
-categories:
-  - golang
-excerpt: 通过golang执行shell命令导出镜像到tar文件
----
-
 ### 一、下载镜像
 
 ``` go

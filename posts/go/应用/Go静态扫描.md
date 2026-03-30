@@ -1,15 +1,3 @@
----
-title: Go静态扫描
-tags:
-  - golang
-  - golangci-lint
-  - fmt
-categories:
-  - golang
----
-
-> mackefile静态扫描和格式检查
-
 ### 一、makefile code
 
 ``` bash

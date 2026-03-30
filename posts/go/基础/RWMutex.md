@@ -1,11 +1,3 @@
----
-title: Go语言RWMutex详解：读写锁原理与实践
-category:
-  - go
-tag:
-  - go
----
-
 
 ## 一、概念与作用
 

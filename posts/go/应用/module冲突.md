@@ -1,11 +1,3 @@
----
-title: module冲突
-tags:
-  - golang
-categories:
-  - golang
----
-
 ### 一、由于依赖包k8s.io/apimachinery@latest不兼容company/client-go/cache导致的冲突
 
 ``` bash
@@ -61,7 +53,7 @@ require (
 # 查看依赖关系
 go mod graph | grep apimachinery
 go help mod
-``` 
+```
 
 ```shell
 # 清理已下载的模块缓存
