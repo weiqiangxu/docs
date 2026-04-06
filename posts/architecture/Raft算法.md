@@ -273,23 +273,130 @@ sequenceDiagram
 
 ### 9.1 etcd
 
-- **基于 Raft**：etcd 是 Raft 算法的典型实现
-- **主要功能**：分布式键值存储，服务发现，配置管理
-- **应用场景**：Kubernetes 集群状态存储，服务注册与发现
+**etcd 简介**：
+etcd 是一个高可用的分布式键值存储系统，专为存储关键配置和服务发现而设计，是 Raft 算法的典型实现。
 
-### 9.2 Consul
+**Raft 在 etcd 中的应用**：
+1. **数据一致性**：etcd 使用 Raft 算法确保集群中所有节点的数据一致性
+2. **领导者选举**：当集群启动或领导者故障时，通过 Raft 选举新的领导者
+3. **日志复制**：领导者将写操作作为日志条目复制到所有跟随者
+4. **故障恢复**：当节点故障恢复后，通过 Raft 机制同步数据
+
+**etcd 的核心功能**：
+- **分布式键值存储**：存储配置信息、服务发现数据等
+- **服务发现**：注册和发现服务实例
+- **配置管理**：集中管理配置信息，支持配置变更通知
+- **租约机制**：基于 Raft 实现的租约功能，用于选主和服务健康检查
+
+**etcd 架构与 Raft 关系**：
+
+```mermaid
+graph TD
+    Client[客户端] --> |读写请求| etcdAPI[etcd API层]
+    etcdAPI --> |写操作| RaftModule[Raft模块]
+    RaftModule --> |日志复制| WAL[预写日志]
+    RaftModule --> |状态机应用| Storage[存储引擎]
+    etcdAPI --> |读操作| Storage
+    RaftModule --> |领导者选举| Peers[集群节点]
+    Peers --> |投票| RaftModule
+    Peers --> |日志复制| RaftModule
+```
+
+**etcd 在 Kubernetes 中的应用**：
+- 存储集群状态和配置
+- 服务发现和负载均衡
+- 容器网络配置管理
+- 密钥和证书存储
+
+### 9.2 Kubernetes 容器编排
+
+**Kubernetes 简介**：
+Kubernetes 是一个容器编排平台，用于自动化容器的部署、扩展和管理。它使用 etcd 作为集群状态的存储后端。
+
+**Raft 在 Kubernetes 中的应用**：
+1. **集群状态管理**：Kubernetes 将集群状态存储在 etcd 中，依赖 Raft 保证状态一致性
+2. **控制平面组件选主**：使用 etcd 的租约机制实现控制器的选主
+3. **配置数据一致性**：确保所有节点看到一致的配置信息
+
+**Kubernetes 中的 Raft 应用场景**：
+
+**场景一：控制平面组件选主**
+
+```mermaid
+sequenceDiagram
+    participant CM1 as Controller Manager 1
+    participant CM2 as Controller Manager 2
+    participant CM3 as Controller Manager 3
+    participant Etcd as etcd 集群
+    
+    CM1->>Etcd: 创建租约 /leader/controller-manager
+    Etcd-->>CM1: 成功
+    CM1->>CM1: 成为领导者
+    CM1->>Etcd: 定期续约
+    
+    CM2->>Etcd: 尝试创建租约
+    Etcd-->>CM2: 失败（已存在）
+    CM2->>Etcd: 监听租约
+    
+    CM3->>Etcd: 尝试创建租约
+    Etcd-->>CM3: 失败（已存在）
+    CM3->>Etcd: 监听租约
+    
+    CM1->>CM1: 崩溃
+    Etcd->>Etcd: 租约过期
+    CM2->>Etcd: 创建租约
+    Etcd-->>CM2: 成功
+    CM2->>CM2: 成为新领导者
+```
+
+**场景二：集群状态同步**
+
+```mermaid
+sequenceDiagram
+    participant API as API Server
+    participant Etcd as etcd 集群
+    participant Kubelet as Kubelet
+    participant Controller as Controller
+    
+    Client->>API: 创建 Pod
+    API->>Etcd: 写入 Pod 信息
+    Etcd->>Etcd: Raft 日志复制
+    Etcd-->>API: 确认写入
+    API-->>Client: 返回成功
+    
+    Controller->>Etcd: 监听 Pod 变化
+    Etcd-->>Controller: 通知 Pod 创建
+    Controller->>API: 执行调度
+    API->>Etcd: 更新 Pod 状态
+    Etcd->>Etcd: Raft 日志复制
+    
+    Kubelet->>Etcd: 监听分配给自己的 Pod
+    Etcd-->>Kubelet: 通知 Pod 分配
+    Kubelet->>Kubelet: 创建容器
+    Kubelet->>API: 更新 Pod 状态
+    API->>Etcd: 写入状态
+    Etcd->>Etcd: Raft 日志复制
+```
+
+**Kubernetes 依赖 Raft 的核心功能**：
+- **服务发现**：通过 etcd 存储服务端点信息
+- **配置管理**：存储和同步配置数据
+- **集群状态管理**：维护集群的整体状态
+- **控制器选主**：确保每个控制器只有一个活跃实例
+
+### 9.3 Consul
 
 - **基于 Raft**：使用 Raft 算法保证一致性
 - **主要功能**：服务发现，健康检查，KV 存储，DNS 服务
 - **应用场景**：微服务架构中的服务管理
 
-### 9.3 CockroachDB
+### 9.4 CockroachDB
 
 - **基于 Raft**：使用 Raft 实现分布式一致性
 - **主要功能**：分布式 SQL 数据库
 - **应用场景**：需要水平扩展的 OLTP 工作负载
 
-### 9.4 TiDB
+### 9.5 TiDB
 
 - **基于 Raft**：使用 Raft 管理数据一致性
 - **主要功能**：分布式 NewSQL 数据库
