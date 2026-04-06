@@ -224,6 +224,111 @@ kafka-console-consumer.sh \
 
 ### 1. 消息可靠性
 
+Kafka 通过多层机制保证消息的可靠性，下面通过图表详细说明：
+
+#### 1.1 整体可靠性架构
+
+```mermaid
+graph TD
+    subgraph 生产者端
+        A[生产者] --> B[消息发送]
+        B --> C[ACK确认]
+        C --> D[重试机制]
+        D --> E[幂等性保证]
+    end
+    
+    subgraph Broker端
+        F[Leader副本] --> G[Follower副本]
+        G --> H[ISR同步]
+        F --> I[数据持久化]
+        F --> J[Leader选举]
+    end
+    
+    subgraph 消费者端
+        K[消息消费] --> L[处理逻辑]
+        L --> M[偏移量提交]
+        M --> N[异常处理]
+    end
+    
+    A -- 发送消息 --> F
+    F -- 确认消息 --> C
+    F -- 消费消息 --> K
+```
+
+#### 1.2 生产者端可靠性保证
+
+```mermaid
+sequenceDiagram
+    participant Producer as 生产者
+    participant Kafka as Kafka Broker
+    
+    Producer->>Kafka: 发送消息 (acks=all)
+    Kafka->>Kafka: Leader接收消息
+    Kafka->>Kafka: Follower同步消息
+    Kafka-->>Producer: 所有ISR副本确认
+    Producer->>Producer: 发送成功
+    
+    alt 发送失败
+        Kafka-->>Producer: 发送失败
+        Producer->>Producer: 触发重试
+        Producer->>Kafka: 重新发送消息
+    end
+    
+    Note over Producer: 幂等性保证
+    Note over Producer: 事务支持
+```
+
+#### 1.3 Broker端可靠性保证
+
+```mermaid
+graph TD
+    subgraph 分区副本
+        A[Leader副本] --> B[Follower副本1]
+        A --> C[Follower副本2]
+    end
+    
+    subgraph 可靠性机制
+        D[ISR集合] --> E[同步状态]
+        E --> F[Leader选举]
+        G[数据持久化] --> H[刷盘策略]
+        I[故障检测] --> J[自动故障转移]
+    end
+    
+    A -- 复制数据 --> B
+    A -- 复制数据 --> C
+    B -- 确认同步 --> D
+    C -- 确认同步 --> D
+    D -- 监控状态 --> E
+    E -- 触发 --> F
+    A -- 写入 --> G
+    G -- 配置 --> H
+    A -- 健康检查 --> I
+    I -- 检测到故障 --> J
+```
+
+#### 1.4 消费者端可靠性保证
+
+```mermaid
+sequenceDiagram
+    participant Consumer as 消费者
+    participant Kafka as Kafka Broker
+    
+    Consumer->>Kafka: 拉取消息
+    Kafka-->>Consumer: 返回消息
+    Consumer->>Consumer: 处理消息
+    alt 处理成功
+        Consumer->>Kafka: 手动提交偏移量
+        Kafka-->>Consumer: 提交确认
+    else 处理失败
+        Consumer->>Consumer: 记录异常
+        Consumer->>Kafka: 不提交偏移量
+        Consumer->>Kafka: 重新拉取消息
+    end
+    
+    Note over Consumer: 批量处理
+    Note over Consumer: 消费幂等性
+```
+
 - **生产者端**：使用 `acks=all`、重试机制、幂等性
 - **Broker 端**：多副本、合理的刷盘策略
 - **消费者端**：手动提交偏移量、处理消费异常
@@ -247,6 +352,84 @@ kafka-console-consumer.sh \
   - 解决方案：合理设置 `session.timeout.ms` 和 `max.poll.interval.ms`
 
 ### 3. 高可用架构
+
+Kafka 通过以下机制实现高可用，下面通过图表详细说明：
+
+#### 3.1 Kafka集群高可用架构
+
+```mermaid
+graph TD
+    subgraph Kafka集群
+        B1[Broker 1] --> T1[主题1-分区0-Leader]
+        B1 --> T2[主题1-分区1-Follower]
+        B1 --> T3[主题2-分区0-Follower]
+        
+        B2[Broker 2] --> T4[主题1-分区0-Follower]
+        B2 --> T5[主题1-分区1-Leader]
+        B2 --> T6[主题2-分区0-Leader]
+        
+        B3[Broker 3] --> T7[主题1-分区0-Follower]
+        B3 --> T8[主题1-分区1-Follower]
+        B3 --> T9[主题2-分区0-Follower]
+    end
+    
+    subgraph 客户端
+        P[生产者] --> B1
+        P --> B2
+        P --> B3
+        
+        C[消费者] --> B1
+        C --> B2
+        C --> B3
+    end
+    
+    subgraph 控制器
+        Controller[Controller] --> B1
+        Controller --> B2
+        Controller --> B3
+    end
+    
+    Controller -- 管理 --> T1
+    Controller -- 管理 --> T5
+    Controller -- 管理 --> T6
+```
+
+#### 3.2 副本同步机制
+
+```mermaid
+sequenceDiagram
+    participant Leader as Leader副本
+    participant Follower as Follower副本
+    participant Producer as 生产者
+    
+    Producer->>Leader: 发送消息
+    Leader->>Leader: 写入本地日志
+    Leader-->>Producer: 确认消息
+    Leader->>Follower: 推送消息
+    Follower->>Follower: 写入本地日志
+    Follower-->>Leader: 确认同步
+    Leader->>Leader: 更新ISR集合
+```
+
+#### 3.3 Leader选举与故障转移
+
+```mermaid
+graph TD
+    A[检测到Leader故障] --> B[Controller选举新Leader]
+    B --> C[从ISR中选择新Leader]
+    C --> D[更新元数据]
+    D --> E[通知所有Broker]
+    E --> F[客户端重连新Leader]
+    
+    subgraph 故障转移流程
+        G[Leader故障] --> H[Follower检测]
+        H --> I[Controller介入]
+        I --> J[新Leader选举]
+        J --> K[服务恢复]
+    end
+    
+    F --> K
+```
 
 - **集群部署**：多节点部署，避免单点故障
 - **多副本配置**：为每个分区配置多个副本
