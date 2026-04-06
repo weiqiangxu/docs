@@ -384,25 +384,334 @@ Go语言选择了6.5作为负载因子阈值，这是在时间效率和空间效
 
 Go语言的map不是并发安全的。如果在多个goroutine中同时读写同一个map，会导致数据竞争和未定义行为。
 
-解决方案：
-- 使用`sync.RWMutex`或`sync.Mutex`进行并发控制
-- 使用`sync.Map`（专为并发访问优化的map实现）
+#### 为什么map不是并发安全的？
+
+从底层实现来看，map的并发不安全主要源于以下几个方面：
+
+1. **hmap结构体的并发访问**：map的核心结构`hmap`包含多个字段（如count、buckets等），这些字段在并发读写时没有原子性保证
+2. **扩容期间的竞态条件**：在渐进式扩容过程中，读写操作可能同时访问新旧桶数组，导致数据不一致
+3. **哈希计算的竞态**：多个goroutine同时写入可能导致哈希冲突处理出现问题
+4. **性能考虑**：如果map内置锁机制，在单goroutine场景下会带来不必要的性能开销
+
+#### 并发访问会导致的问题
 
 ```go
-// 使用互斥锁实现并发安全的map
-var mu sync.RWMutex
-var safeMap = make(map[string]int)
-
-// 读取操作
-mu.RLock()
-value, exists := safeMap["key"]
-mu.RUnlock()
-
-// 写入操作
-mu.Lock()
-safeMap["key"] = value
-mu.Unlock()
+// 危险示例：并发写入会导致panic
+func dangerousConcurrentWrite() {
+    m := make(map[int]int)
+    
+    for i := 0; i < 100; i++ {
+        go func(n int) {
+            m[n] = n  // fatal error: concurrent map writes
+        }(i)
+    }
+    
+    time.Sleep(time.Second)
+}
 ```
+
+运行结果：
+```
+fatal error: concurrent map writes
+```
+
+#### 解决方案一：使用互斥锁（sync.RWMutex）
+
+适用场景：读多写少的场景，性能较好
+
+```go
+type SafeMap struct {
+    mu   sync.RWMutex
+    data map[string]int
+}
+
+func NewSafeMap() *SafeMap {
+    return &SafeMap{
+        data: make(map[string]int),
+    }
+}
+
+func (sm *SafeMap) Get(key string) (int, bool) {
+    sm.mu.RLock()
+    defer sm.mu.RUnlock()
+    val, ok := sm.data[key]
+    return val, ok
+}
+
+func (sm *SafeMap) Set(key string, value int) {
+    sm.mu.Lock()
+    defer sm.mu.Unlock()
+    sm.data[key] = value
+}
+
+func (sm *SafeMap) Delete(key string) {
+    sm.mu.Lock()
+    defer sm.mu.Unlock()
+    delete(sm.data, key)
+}
+
+func (sm *SafeMap) Range(f func(key string, value int) bool) {
+    sm.mu.RLock()
+    defer sm.mu.RUnlock()
+    for k, v := range sm.data {
+        if !f(k, v) {
+            break
+        }
+    }
+}
+```
+
+#### 解决方案二：使用sync.Map
+
+`sync.Map`是Go 1.9引入的并发安全的map实现，专为高并发场景优化。
+
+**特点：**
+- 空间换时间：使用冗余的数据结构来减少锁竞争
+- 读写分离：读操作使用原子操作，写操作使用互斥锁
+- 适合读多写少、key相对稳定的场景
+
+**API差异：**
+```go
+// sync.Map的方法
+type Map struct { ... }
+
+func (m *Map) Store(key, value interface{})        // 存储
+func (m *Map) Load(key interface{}) (value interface{}, ok bool)  // 读取
+func (m *Map) Delete(key interface{})              // 删除
+func (m *Map) Range(f func(key, value interface{}) bool)  // 遍历
+func (m *Map) LoadOrStore(key, value interface{}) (actual interface{}, loaded bool)  // 读取或存储
+```
+
+**使用示例：**
+
+```go
+func useSyncMap() {
+    var m sync.Map
+    
+    // 存储
+    m.Store("name", "Alice")
+    m.Store("age", 25)
+    
+    // 读取
+    if value, ok := m.Load("name"); ok {
+        fmt.Println("name:", value)
+    }
+    
+    // 读取或存储（原子操作）
+    actual, loaded := m.LoadOrStore("city", "Beijing")
+    fmt.Println("city:", actual, "loaded:", loaded)
+    
+    // 遍历
+    m.Range(func(key, value interface{}) bool {
+        fmt.Printf("%v: %v\n", key, value)
+        return true
+    })
+    
+    // 删除
+    m.Delete("age")
+}
+```
+
+**sync.Map性能对比：**
+
+```go
+func benchmarkMapComparison() {
+    const n = 100000
+    
+    // 测试1：sync.RWMutex + map
+    rwMap := NewSafeMap()
+    start := time.Now()
+    
+    var wg sync.WaitGroup
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            for j := 0; j < n/10; j++ {
+                key := fmt.Sprintf("key-%d-%d", id, j)
+                rwMap.Set(key, j)
+                rwMap.Get(key)
+            }
+        }(i)
+    }
+    wg.Wait()
+    fmt.Printf("RWMutex+map: %v\n", time.Since(start))
+    
+    // 测试2：sync.Map
+    var syncMap sync.Map
+    start = time.Now()
+    
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            for j := 0; j < n/10; j++ {
+                key := fmt.Sprintf("key-%d-%d", id, j)
+                syncMap.Store(key, j)
+                syncMap.Load(key)
+            }
+        }(i)
+    }
+    wg.Wait()
+    fmt.Printf("sync.Map: %v\n", time.Since(start))
+}
+```
+
+#### 解决方案三：分片锁（Sharding）
+
+对于超高并发场景，可以使用分片锁来减少锁竞争：
+
+```go
+type ShardedMap struct {
+    shards [16]struct {
+        sync.RWMutex
+        data map[string]int
+    }
+}
+
+func NewShardedMap() *ShardedMap {
+    sm := &ShardedMap{}
+    for i := 0; i < 16; i++ {
+        sm.shards[i].data = make(map[string]int)
+    }
+    return sm
+}
+
+func (sm *ShardedMap) getShard(key string) int {
+    hash := fnv32(key)
+    return int(hash % 16)
+}
+
+func (sm *ShardedMap) Get(key string) (int, bool) {
+    shard := sm.getShard(key)
+    sm.shards[shard].RLock()
+    defer sm.shards[shard].RUnlock()
+    val, ok := sm.shards[shard].data[key]
+    return val, ok
+}
+
+func (sm *ShardedMap) Set(key string, value int) {
+    shard := sm.getShard(key)
+    sm.shards[shard].Lock()
+    defer sm.shards[shard].Unlock()
+    sm.shards[shard].data[key] = value
+}
+
+func fnv32(key string) uint32 {
+    hash := uint32(2166136261)
+    const prime32 = uint32(16777619)
+    for i := 0; i < len(key); i++ {
+        hash *= prime32
+        hash ^= uint32(key[i])
+    }
+    return hash
+}
+```
+
+#### 实际应用场景示例
+
+**场景1：缓存系统**
+
+```go
+type Cache struct {
+    mu    sync.RWMutex
+    items map[string]interface{}
+}
+
+func (c *Cache) Get(key string) (interface{}, bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    item, found := c.items[key]
+    return item, found
+}
+
+func (c *Cache) Set(key string, value interface{}, ttl time.Duration) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.items[key] = value
+    
+    // 异步清理过期缓存
+    go func() {
+        time.Sleep(ttl)
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        delete(c.items, key)
+    }()
+}
+```
+
+**场景2：计数器**
+
+```go
+type Counter struct {
+    mu    sync.Mutex
+    counts map[string]int64
+}
+
+func (c *Counter) Incr(key string) int64 {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.counts[key]++
+    return c.counts[key]
+}
+
+func (c *Counter) Get(key string) int64 {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    return c.counts[key]
+}
+```
+
+**场景3：并发安全的配置管理**
+
+```go
+type Config struct {
+    mu     sync.RWMutex
+    values map[string]interface{}
+}
+
+func (c *Config) Load(filename string) error {
+    data, err := os.ReadFile(filename)
+    if err != nil {
+        return err
+    }
+    
+    var config map[string]interface{}
+    if err := json.Unmarshal(data, &config); err != nil {
+        return err
+    }
+    
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.values = config
+    return nil
+}
+
+func (c *Config) Get(key string) interface{} {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    return c.values[key]
+}
+```
+
+#### 最佳实践总结
+
+1. **选择合适的方案**：
+   - 读多写少：使用`sync.RWMutex`
+   - key集合稳定、大量并发读：使用`sync.Map`
+   - 超高并发：使用分片锁
+
+2. **避免锁粒度过大**：
+   - 不要在持有锁时执行耗时操作（如I/O、网络请求）
+   - 尽量减少锁的持有时间
+
+3. **注意死锁**：
+   - 避免在持有锁时调用可能获取同一锁的其他函数
+   - 使用`defer`确保锁一定会释放
+
+4. **性能测试**：
+   - 在实际场景中进行基准测试，选择最适合的方案
+   - 关注锁竞争的指标（如mutex等待时间）
 
 ### 2. 内存泄漏问题
 
