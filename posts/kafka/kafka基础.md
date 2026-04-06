@@ -1,33 +1,58 @@
----
-title: kafka基础
-tags:
-  - kafka
-categories:
-  - kafka
----
+## 一、Kafka 简介
 
+### 1. 什么是 Kafka
 
-### 一、kafka安装
+**Kafka** 是一个分布式流处理平台，具有高吞吐、低延迟、可扩展和持久化的特点。它主要用于：
 
-> Kafka本质上是高性能低延迟的分布式文件系统、分布式流处理平台主要用于处理和存储大量的实时数据流。数据以topics主题类别存储，每条记录有键、值、时间戳。
+- **消息队列**：实现应用间的异步通信
+- **流处理**：实时数据处理和分析
+- **日志聚合**：集中收集和处理日志数据
+- **事件溯源**：记录和重放业务事件
+
+### 2. 核心特性
+
+- **高吞吐**：单节点支持每秒数十万条消息
+- **低延迟**：端到端延迟可低至毫秒级
+- **可扩展**：支持水平扩展，增加节点提升性能
+- **持久化**：消息持久化到磁盘，支持长期存储
+- **容错性**：多副本机制，确保数据安全
+- **分布式**：分布式架构，无单点故障
+
+## 二、Kafka 核心概念
+
+### 1. 基本概念
+
+- **主题（Topic）**：消息的分类，每条消息都属于一个主题
+- **分区（Partition）**：主题的物理分组，提高并行处理能力
+- **消息（Record）**：Kafka 中的基本数据单元，包含键、值和时间戳
+- **生产者（Producer）**：消息的发送者，负责将消息发送到 Kafka 集群
+- **消费者（Consumer）**：消息的接收者，从 Kafka 集群订阅并消费消息
+- **消费者组（Consumer Group）**：一组协同工作的消费者，实现负载均衡和故障转移
+- **Broker**：Kafka 服务器节点，存储消息并处理客户端请求
+- **副本（Replica）**：分区的备份，分为 Leader 副本和 Follower 副本
+- **偏移量（Offset）**：消息在分区中的唯一标识，用于跟踪消费进度
+- **协调者（Coordinator）**：负责管理消费者组的状态和重平衡
+- **控制器（Controller）**：Kafka 集群的中心管理器，负责 Leader 选举等操作
+- **重平衡（Rebalance）**：消费者组内分区的重新分配过程
+
+### 2. 核心 API
+
+1. **Producer API**：生产者 API，用于发送消息
+2. **Consumer API**：消费者 API，用于消费消息
+3. **Streams API**：流处理 API，用于实时数据处理
+4. **Connector API**：连接器 API，用于与外部系统集成
+
+## 三、Kafka 安装与部署
+
+### 1. Docker 部署（KRaft 模式）
+
+从 Kafka 2.8.0 版本开始，可以在不依赖 Zookeeper 的情况下运行 Kafka，通过引入 Kafka Raft（KRaft）模式实现。
 
 ```bash
-# 从 Kafka 2.8.0 版本开始，可以在不依赖 Zookeeper 的情况下运行 Kafka。
-# 通过引入 Kafka Raft（KRaft）模式实现的
-# bitnami/kafka:3.4 可以选择使用zookeeper
+# 拉取镜像
 docker pull bitnami/kafka:3.9.0
-```
 
-```bash
-# 容器的主机名（hostname）为kafka-server
-# KAFKA_CFG_NODE_ID 节点ID为0
-# KAFKA_CFG_PROCESS_ROLES 节点角色为controller(控制器)和broker(代理)
-# KAFKA_CFG_LISTENERS 服务的监听器 
-# PLAINTEXT指普通文本协议(非加密)在9092端口监听client(如生产者和消费者)的连接
-# CONTROLLER指9093端口监听与控制器相关的通信
-# KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP 指定监听器的安全协议映射全用普通文本(不加密)
-# KAFKA_CFG_CONTROLLER_QUORUM_VOTERS 配置控制器仲裁投票者用于KafkaRaft选举和协调控制器
-# KAFKA_CFG_CONTROLLER_LISTENER_NAMES 监听器名称为CONTROLLER
+# 运行容器
 docker run -d --name kafka-server --hostname kafka-server \
     -p 9092:9092 \
     -p 9093:9093 \
@@ -39,311 +64,338 @@ docker run -d --name kafka-server --hostname kafka-server \
     -e KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER \
     bitnami/kafka:3.9.0
 
-# 如果不是windows不用加winpty
+# 进入容器
+# Windows 系统
 winpty docker exec -it kafka-server sh
+# Linux/Mac 系统
+docker exec -it kafka-server sh
+```
 
-# 1.查看主题列表
+### 2. 基本操作
+
+```bash
+# 进入 bin 目录
 cd /opt/bitnami/kafka/bin
+
+# 1. 查看主题列表
 kafka-topics.sh --list --bootstrap-server kafka-server:9092
 
-# 2.创建主题
-# replication-factor复制因子: 分区的副本数 (如果只有1个broker最多设置为1)
-# partitions分区: 表示这个topic会被划分为3个分区
+# 2. 创建主题
+# replication-factor：副本因子（如果只有1个broker最多设置为1）
+# partitions：分区数
 kafka-topics.sh --create --topic mytopic \
   --replication-factor 1 \
   --partitions 3 \
   --bootstrap-server kafka-server:9092
 
-# 3.查看主题详情
+# 3. 查看主题详情
 kafka-topics.sh --describe --topic mytopic \
   --bootstrap-server kafka-server:9092
 
-# 4.启动生产者生产消息
+# 4. 启动生产者生产消息
 kafka-console-producer.sh --topic mytopic \
   --bootstrap-server kafka-server:9092
 
-
-# 5.启动消费者消费消息
+# 5. 启动消费者消费消息
 kafka-console-consumer.sh --topic mytopic \
   --bootstrap-server kafka-server:9092 --from-beginning
 
-
-# 6.查看消费者组列表
+# 6. 查看消费者组列表
 kafka-consumer-groups.sh --bootstrap-server kafka-server:9092 --list
 
-# 7.查看特定消费者组的详细信息
+# 7. 查看特定消费者组的详细信息
 kafka-consumer-groups.sh --bootstrap-server kafka-server:9092 \
   --describe --group console-consumer-73857
 
-GROUP TOPIC PARTITION CURRENT-OFFSET LOG-END-OFFSET LAG CONSUMER-ID
-
-# 8.查看消费者组的偏移量信息
-kafka-consumer-groups.sh --bootstrap-server kafka-server:9092 \
-  --describe --group console-consumer-73857 --offsets
-
-
-# 9.批量消费主题数据
+# 8. 批量消费主题数据
 # 当接收到10个消息以后会停止脚本运行
 kafka-console-consumer.sh \
   --bootstrap-server localhost:9092 \
   --topic mytopic \
   --max-messages 10
-
-# 核心API
-1. ProducerAPI 生产者API.
-2. ConsumerAPI 消费者API.
-3. StreamsAPI 流API.
-4. ConnectorAPI 连接器API.
 ```
 
-### 三、概念
+## 四、Kafka 架构与原理
 
-1. 主题topic
-2. 分区patitions
-3. 消费组consumerGroup 
-4. 消费者
-5. 生产者
-6. 消息Record
-7. 服务器Broker
-8. Leader/Follower分区副本
-9. Offset偏移量
-10. Coodinator协调者
-11. Controller控制器
-12. Rebalance重平衡
+### 1. 系统架构
 
-### 四、1个Topic的多分区如何分配给1个消费者组的多消费者
+**Kafka 架构**由以下组件组成：
 
-> 当消费者组中的消费者数量发生变化（如新增或者减少消费者）或者主题的分区数量发生变化时，Kafka 会触发分区的再平衡过程。
+- **生产者（Producer）**：发送消息到 Kafka 集群
+- **消费者（Consumer）**：从 Kafka 集群订阅并消费消息
+- **Broker**：Kafka 服务器节点，存储消息
+- **主题（Topic）**：消息的分类
+- **分区（Partition）**：主题的物理分组
+- **副本（Replica）**：分区的备份
+- **Zookeeper/KRaft**：集群协调和元数据管理
 
-1. Range范围分区(默认)
-  
-  假设一个主题有10个分区（0-9），消费者组有3个消费者，消费者A可能负责分区`0-3`，消费者B负责分区`4-6`，消费者C负责分区`7-9`。如果主题的分区数不能被消费者数量整除，那么前面的消费者会分配到更多的分区。
+### 2. 消息存储原理
 
-2. RoundRobin轮询
+- **分区存储**：每个主题分为多个分区，每个分区是一个有序的日志文件
+- **日志文件**：消息以追加方式写入分区日志文件
+- **索引文件**：维护消息偏移量和物理位置的映射，加速消息查找
+- **页缓存（PageCache）**：利用操作系统的页缓存提高读写性能
+- **零拷贝**：减少数据复制次数，提高传输效率
 
-  假设一个主题有10个分区，消费者组有3个消费者。第一个分区分配给消费者A，第二个分区分配给消费者B，第三个分区分配给消费者C，第四个分区又分配给消费者A，以此类推。
+### 3. 副本机制
 
-### 五、kafka如何保证消息的可靠性
+- **Leader 副本**：负责处理读写请求
+- **Follower 副本**：从 Leader 副本同步数据，作为冗余
+- **ISR（In-Sync Replicas）**：与 Leader 保持同步的副本集合
+- **Leader 选举**：当 Leader 副本故障时，从 ISR 中选举新的 Leader
 
-1. 生产者发送消息丢失
+### 4. 消费者组原理
 
-  生产者消息发出去了，但是网络原因或者其他导致kafka没收到。那么异步加异常重试是比较稳妥的做法，如果接受慢一点可以同步提交。那么提交结果的响应`success`也是有条件可以设置的，服务端达到什么样子的条件可以返回`success`呢，`acks= 0\1\all`，0就是发了就不管了，1 要求起码1个leader是返回ok了（leader返回ok，follower没ok，leader挂了，一样丢失）,all 要求leader\follower所有副本都ok才表示ok。
+- **组协调器（Group Coordinator）**：负责管理消费者组的状态
+- **重平衡触发条件**：
+  - 消费者数量变化
+  - 分区数量变化
+  - 订阅的主题变化
+- **重平衡过程**：
+  1. 选择组协调器
+  2. 加入消费组（JOIN GROUP）
+  3. 同步组状态（SYNC GROUP）
+- **分区分配策略**：
+  1. **Range**：按范围分配分区
+  2. **RoundRobin**：轮询分配分区
+  3. **Sticky**：粘性分配，尽量保持原有分配
 
+## 五、生产者原理与实践
 
-2. Kafka自身消息丢失
+### 1. 消息发送模式
 
-  kafka通过pageCache异步写入磁盘，有可能到了pageCache后没写入磁盘宕机了，那么消息丢失。解决的方案是增加副本数量并且规定Client生产消息的时候必须写入多个个副本才能认为成功。
-  
+- **发后即忘（Fire-and-Forget）**：发送消息后不关心结果，可靠性最低
+- **同步发送**：发送消息后等待响应，可靠性高，延迟较大
+- **异步发送**：发送消息时指定回调函数，可靠性和延迟平衡
 
-3. 消费者消息丢失
+### 2. 分区策略
 
-   Kafka消费者配置中，`enable.auto.commit`属性的默认值是true，也就是说`Client`读取到消息以后，过了`auto.commit.interval.ms`大概`5`秒，服务端会自动提交`Offset`。如果客户端拿到数据后宕机了，没有对消息做业务逻辑处理，服务端就自动改变了偏移量，那么`offset`就被改变了，那么这条消息永远不会被这个消费者消费了，消息丢失了。解决方案是关闭服务端的自动提交属性，就算消息被客户端读了，`offset`也不会变，直到`client`主动提交偏移量。
+- **手动指定分区**：生产者明确指定消息发送到哪个分区
+- **按 Key 分区**：根据消息 Key 的哈希值与分区数取模
+- **轮询分区**：顺序轮询分配分区
+- **自定义分区器**：实现自定义的分区逻辑
 
+### 3. 可靠性保证
 
-### 六、高吞吐的原因
+- **ACK 机制**：
+  - `acks=0`：发送后不等待确认，可能丢失消息
+  - `acks=1`：等待 Leader 确认，Leader 故障可能丢失消息
+  - `acks=all`：等待所有 ISR 副本确认，可靠性最高
+- **重试机制**：发送失败后自动重试
+- **幂等性生产者**：通过 PID 和序列号确保消息不重复
+- **事务生产者**：提供原子性的消息发送
 
-- PageCache和零拷贝
-- 顺序IO
-- 多分区
+### 4. 性能优化
+
+- **批量发送**：通过 `batch.size` 和 `linger.ms` 配置
+- **消息压缩**：减少网络传输开销
+- **缓冲区配置**：合理设置 `buffer.memory`
+- **并发发送**：通过 `max.in.flight.requests.per.connection` 配置
+
+## 六、消费者原理与实践
+
+### 1. 消费模式
+
+- **订阅模式**：订阅一个或多个主题
+- **消费组模式**：多个消费者组成一个组，共同消费主题
+- **单消费者模式**：单个消费者消费所有分区
+
+### 2. 偏移量管理
+
+- **自动提交**：定期自动提交偏移量，可能导致消息丢失或重复
+- **手动提交**：
+  - **同步提交**：阻塞直到提交完成
+  - **异步提交**：非阻塞，通过回调处理结果
+- **偏移量存储**：新版本存储在 `__consumer_offsets` 主题
+
+### 3. 批量消费
+
+- **批量拉取**：通过 `max.poll.records` 配置每次拉取的最大记录数
+- **批量处理**：一次性处理多条消息，提高处理效率
+- **异常处理**：处理批量消息中的异常情况
+
+### 4. 消费性能优化
+
+- **多线程消费**：每个消费者使用多个线程处理消息
+- **批量拉取参数调优**：合理设置 `fetch.min.bytes` 和 `fetch.max.wait.ms`
+- **消费速度监控**：监控消费 lag，确保消费速度跟上生产速度
+
+## 七、Kafka 可靠性与容错
+
+### 1. 消息可靠性
+
+- **生产者端**：使用 `acks=all`、重试机制、幂等性
+- **Broker 端**：多副本、合理的刷盘策略
+- **消费者端**：手动提交偏移量、处理消费异常
+
+### 2. 常见问题与解决方案
+
+- **消息丢失**：
+  - 原因：自动提交偏移量、`acks` 配置不当、刷盘策略不合理
+  - 解决方案：手动提交偏移量、设置 `acks=all`、合理配置刷盘策略
+
+- **重复消费**：
+  - 原因：手动提交偏移量时机不当、生产者重试
+  - 解决方案：实现幂等性消费、使用事务
+
+- **消息堆积**：
+  - 原因：消费者处理速度跟不上生产速度
+  - 解决方案：增加消费者数量、优化消费逻辑、增加分区数
+
+- **重平衡频繁**：
+  - 原因：消费者心跳超时、处理时间过长
+  - 解决方案：合理设置 `session.timeout.ms` 和 `max.poll.interval.ms`
+
+### 3. 高可用架构
+
+- **集群部署**：多节点部署，避免单点故障
+- **多副本配置**：为每个分区配置多个副本
+- **故障转移**：自动 Leader 选举，确保服务连续性
+
+## 八、Kafka 高级特性
+
+### 1. Kafka Streams
+
+- **流处理概念**：实时处理连续的数据流
+- **核心 API**：DSL（领域特定语言）和 Processor API
+- **应用场景**：实时数据分析、ETL 处理、事件驱动应用
+
+### 2. Kafka Connect
+
+- **连接器概念**：用于与外部系统集成
+- **源连接器**：从外部系统导入数据到 Kafka
+- **汇连接器**：从 Kafka 导出数据到外部系统
+- **常见连接器**：数据库连接器、文件连接器、消息队列连接器
+
+### 3. Kafka Schema Registry
+
+- **Schema 管理**：统一管理消息的 schema
+- **数据序列化与反序列化**：支持 Avro、JSON Schema、Protobuf
+- **兼容性管理**：确保 schema 变更的兼容性
+
+## 九、监控与运维
+
+### 1. 监控指标
+
+- **生产端指标**：消息发送速率、成功率、延迟
+- **Broker 端指标**：请求速率、磁盘使用、ISR 状态
+- **消费端指标**：消费速率、lag、提交频率
+
+### 2. 日志管理
+
+- **日志级别配置**：根据需要调整日志级别
+- **日志轮转**：定期轮转日志文件
+- **日志清理策略**：根据保留策略清理过期日志
+
+### 3. 常见运维操作
+
+- **主题扩容**：增加分区数，提高并行处理能力
+- **集群扩容**：增加 Broker 节点，提升整体性能
+- **数据备份与恢复**：定期备份数据，确保数据安全
+- **版本升级**：平滑升级 Kafka 版本
+
+## 十、最佳实践
+
+### 1. 架构设计
+
+- **主题设计**：根据业务逻辑合理划分主题
+- **分区规划**：根据吞吐量和消费者数量设置分区数
+- **消费者组设计**：根据消费能力设置消费者数量
+
+### 2. 性能调优
+
+- **生产者调优**：批量发送、消息压缩、合理的 ACK 配置
+- **Broker 调优**：合理的刷盘策略、内存配置、网络配置
+- **消费者调优**：批量拉取、多线程消费、合理的提交策略
+
+### 3. 安全配置
+
+- **认证与授权**：启用 SASL 或 SSL 认证
+- **传输加密**：使用 SSL/TLS 加密传输
+- **访问控制**：设置细粒度的权限控制
+
+## 十一、常见问题与解答（Q&A）
+
+### 1. 基础概念
+
+**Q1: Kafka 的 Zookeeper 是干嘛的？**
+A: 在传统模式下，Zookeeper 用于存储 Kafka 集群的元数据，管理 Broker 节点、主题配置、分区分配等。在 KRaft 模式下，Kafka 不再依赖 Zookeeper，而是使用内置的 Raft 协议管理元数据。
+
+**Q2: 消费者组的作用是什么？**
+A: 消费者组实现了消息的负载均衡和故障转移。同一个消费者组内的多个消费者可以并行消费不同分区的消息，当消费者发生故障时，其他消费者会接管其负责的分区。
+
+**Q3: 分区有什么好处？**
+A: 分区的好处包括：
+- 提高并行处理能力
+- 实现数据的水平扩展
+- 便于数据的负载均衡
+- 支持顺序消息的局部有序性
+
+### 2. 可靠性问题
+
+**Q4: 如何保证消息不丢失？**
+A: 保证消息不丢失需要从三个方面考虑：
+- 生产者端：设置 `acks=all`、启用重试机制
+- Broker 端：配置足够的副本数、合理的刷盘策略
+- 消费者端：使用手动提交偏移量，确保消息处理成功后再提交
+
+**Q5: 如何避免重复消费？**
+A: 避免重复消费的方法包括：
+- 生产者端：启用幂等性
+- 消费者端：实现幂等性消费（如使用唯一消息 ID）
+- 使用事务：确保消息的原子性处理
+
+**Q6: 如何处理消息堆积？**
+A: 处理消息堆积的方法包括：
+- 增加消费者数量（不超过分区数）
+- 增加分区数
+- 优化消费逻辑，提高处理速度
+- 使用批量消费
+
+### 3. 性能问题
+
+**Q7: Kafka 的高吞吐是如何实现的？**
+A: Kafka 高吞吐的实现原理包括：
+- 页缓存和零拷贝
+- 顺序 I/O
+- 多分区并行处理
 - 批量处理和压缩
+- 高效的网络传输
 
+**Q8: 如何提高 Kafka 的性能？**
+A: 提高 Kafka 性能的方法包括：
+- 合理设置分区数
+- 启用批量发送和压缩
+- 优化 Broker 配置（如内存、磁盘 I/O）
+- 合理设置消费者数量
+- 使用适当的 ACK 级别
 
-### 七、副本同步原理
+### 4. 架构问题
 
-Kafka副本分为Leader副本和Follower副本（主从）只有Leader副本会对外提供服务，Follower副本只是单纯地和Leader保持数据同步，作为数据冗余容灾的作用。正常情况下来说，Follower副本是不提供服务的，不管是生产还是消费。
+**Q9: 分区数量如何设置？**
+A: 分区数量的设置应考虑以下因素：
+- 预期的吞吐量
+- 消费者数量
+- 存储和内存资源
+- 重平衡的开销
+一般建议：分区数应大于等于消费者数量，以充分利用并行处理能力。
 
+**Q10: 增加分区后会发生什么？**
+A: 增加分区后：
+- 提高了并行处理能力
+- 触发消费者组的重平衡
+- 可能影响消息的顺序性（跨分区）
+- 增加了集群的存储和管理开销
 
-### 八、重复消费场景
+## 十二、参考资料
 
-先消费后提交`offset`会有可能出现重复消费。`client`拿到了消息并且做了业务逻辑处理，但是没有提交`Offset`，下次拿数据又拿到了同一个`Offset`的消息。
-
-### 九、消息丢失场景
-
-1. kafka设置自动提交就有可能丢消息，Client读取了消息以后，Server自动更改了偏移量Offset，Client没有做业务逻辑处理，下次读取数据时候却读不到这个消息了，就出现了消息丢失，也就是没有消费到这个消息。
-2. Producer发消息至Broker的时候，就有可能会丢消息，比如消息发到Broker了，并且Broker返回一个success了，但是消息丢失了，问题是出现在Broker收到消息以后数据存在PageCache还没有落到磁盘，宕机了，应该设置罗盘机制马上落盘，或者多副本的情况下保证其他副本也已经拿到消息了，才回复success给客户端。
-
-### 十、消息堆积场景
-
-出现的原因是消费者跟不上生产者的速度，解决方案时增加`partition`增加消费者`consumer`，那么只有1个分区在一个消费者组却有多个消费者呢，这个时候有多少个消费者真正的拿得到消息的，其实只有一个消费者能够真正拿到该分区的消息。
-分区数量严重比消费者数量多，也会导致消费速度跟不上。
-
-
-Kafka默认创建主题的时候，会有多少个分区，默认是一个，可以通过`server.properties`文件的`num.partitions=3`配置
-
-### 十一、高可用的架构下（多副本）如何保证数据的一致性
-
-高可用是通过数据冗余的方式实现，如每个分区都有多副本，分成leader\follower副本。而一致性是因为消费消息的时候，都是从Leader消费，Follower副本仅仅做冗余处理。并且Leader和Follower的同步时机，可以定期、Leader的新消息字节数积累触发、生产者写入消息后触发、消费者消费到高水位（High - Watermark）附近消息时触发等，及时触发Leader和Follower之间的消息同步。
-
-### 十二、message究竟要存到topic下面的哪个分区
-
-1. 手动指定partition
-2. 随机轮询
-3. 按key存储 (key的hash和分区数取余数)
-4. 顺序轮询（round-robin）（第一次调用随机生成整数，后续每次调用自增，用这个数于分区数取余数）
-
-
-### 十二、重平衡
-
-  触发重平衡：
-  - 消费组的消费者数量变化
-  - 消费组消费的主题的主题分区数量变化
-  - 消费组订阅的Topic发生了变化。
-
-  rebalance过程中消费者无法从kafka消费消息，这对kafka的TPS会有影响，如果kafka集群内节点较多，比如数百个，那重平衡可能会耗时极多，所以应尽量避免在系统高峰期的重平衡发生。
-
-
-### 十二、消费者Rebalance分区分配策略
-
-
-range
-round-robin(轮询)
-sticky(粘性)
-
-Rebalance过程
-第一阶段：选择组协调器
-第二阶段：加入消费组JOIN GROUP
-第三阶段 SYNC GROUP
-
-
-### 十三、生产消息时候同步发送和异步发送
-
-> 同步和异步指client(producer)是否收到leader给的ack后才发下一条
-
-- 逐个发送
-
-1. Fire-and-forget (不关心可靠性)
-2. Synchronous send (关心次序)
-3. Asynchronous send (不关心次序)
-
-```
-逐条发送
-请求队列InFlightRequest中永远最多有一条数据
-批量发送参数：max.in.flight.requests.per.connection=1 & batch.size=1 效果也是逐条发送
-```
-- 批量发送
-
-```
-批量发送
-
-运行生产者以batch的形式push数据
-
-queue.buffering.max.ms = 5000 缓存5s的数据后batch发送
-queue.buffering.max.messages = 100  缓存队列最大数(尽量大)超过了会丢弃消息或阻塞
-queue.enqueue.timeout.ms = 0/-1 设置0时丢弃消息，设置-1是阻塞
-batch.num.messages = 100 batch缓存的消息数量达到了才会发送出去
-```
-
-#### 十四、ack机制
-
-broker收到消息之后在什么状态下（直接返回,leader success, follower&leader success）返回success。Java生产消息时候的策略:
-1. 发后即忘 (发送了不管成功与否)
-2. 同步(发送后等待结果)
-3. 异步（发送消息时指定回调函数，Kafka在返回响应时会调用该函数实现异步的发送确认）
-
-### 十五、批量生产和批量消费
-
-批量生产。指`生产者（Producer）`一次性向 Kafka 主题（Topic）发送多条消息。原理是客户端有一个消息缓冲区，当缓冲区到达某阙值的时候，或者等待时间到达设定的时间的时候，将缓冲区的消息发送到kafka集群。生产者往往是有参数`batch.size`和`linger.ms`最长时间限制，触发批量生产消息。Kafka 服务端是支持批量接收消息的，`Kafka broker` 的接收接口能够处理多个消息的批量到达。在协议层面，Kafka 的消息格式和协议允许一次接收多个消息记录。假设Kafka 的主题（Topic）是由一个或多个分区（Partition）组成的，生产者批量发送了 6 条消息。`Kafka broker` 会根据消息的分区策略（如基于消息键的哈希值或者轮询策略等）将这 6 条消息分配到不同的分区中。
-
-批量消费。消费者（Consumer）一次性从 Kafka 主题中获取并处理多条消息，而不是一条一条地处理。原理消费者通过配置参数来控制批量消费。例如，`max.poll.records`参数决定了每次调用`poll()`方法时能够获取的最大记录数。消费者在拉取消息时，会根据这个参数以及其他相关参数（如`fetch.min.bytes`和`fetch.max.wait.ms`）来决定获取多少条消息。kafka的消息拉取接口支持设置最大记录数量、最小字节数满足或者最大等大时长超过、批量拉取消息，Kafka的客户端主动pull数据而不是kafka主动Push数据。不过对于Java实现的客户端指定批量消费100条消息，和Java客户端不批量消费，两个方式来说，客户端调kafka消息获取接口的时间间隔是不一样的，只是kafka消息接口在批量获取消息不满足条件的时候不返回消息呢。是的，Java客户端什么时候poll消息呢，是在消息消费以后、或者达到了固定的时间间隔之后，而kafka的消息获取接口呢，会因为条件达不到而给批量获取消息Java客户端返回空。本质上不管单个还是批量，都是Java客户端主动pull数据。
-
-> kafka在读取消息以后是否手动提交，是poll数据的参数传递过去，还是kafka服务器上设置。答案是消费者客户端配置决定是否手动提交，不是通过poll数据的参数传递，也不是在 Kafka 服务器上设置。执行`new KafkaConsumer<>(props)` 的时候 `propos.ENABLE_AUTO_COMMIT_CONFIG = false`就是手动提交.
-
-批量消费的Offset提交怎么做，批量获取到100个消息，其中第50个处理异常了，我怎么处理好呢。直接记录
-
-
-### 十六、 Kafka Streams
-
-> 一个用于构建实时流处理应用程序的客户端库。并且支持的语言目前只有Java。特点就是实现低延迟实时处理。原理是事件驱动、多线程并行处理多分区消息、Kafka 的原生协议调用、
-
-
-### 十七、Go的SDK调用Kafka获取消息
-
-Go 语言的 Kafka SDK 调用 Kafka 获取数据时，通常走的是 Kafka 的原生协议，而不是 HTTP 协议。Kafka 的原生协议是基于 TCP 的二进制协议，相比于 HTTP 等文本协议，开销更小，减少了数据转换，不需要文本再转二进制了起码，Confluent 的 Kafka Go 客户端使用的是 Kafka 原生协议与 Kafka 集群进行通信。
-
-> 二进制数据和文本数据有什么不一样。字母A对应的字节序列是01000001。通常存储效率更高，因为不需要像文本数据那样使用特定的字符编码（字母 A 的 Unicode 码点是U+0041（十进制是 65））、CPU和其他硬件组处理更快、不需要进行复杂的字符编码和解码操作。
-
-
-### Q&A
-
-1. kafka的zookeeper是干嘛的，Coordinator 和 Controller 和 Leader/Follower
-2. 说说消息队列模型 (点对点\发布订阅)
-3. 通信过程原理
-4. 发送消息时候如何选择分区，分区有什么用
-5. Rebalance重平衡
-6. 分区分配策略
-7. 如何保证消息可靠性
-8. AR（Assigned Replicas）副本的集合
-9. 和Leader副本保持同步的副本集合称为ISR（InSyncReplicas）(所有follower)
-10. kafka的流Streams是什么
-11. 为什么Kafka的性能在数据大小方面实际上是恒定的且长时间存储数据不是问题
-12. kafka怎么设置记录保留期
-13. 一个分区只能被同一个组的一个消费者消费
-14. 一个消费者可以消费同一个topic的多个分区
-15. 如果有2个消费者持有同一个groupId消费同一个分区,那么其中只有1个可以消费到
-16. 消费者数量大于分区数时候，多余的消费者会处于闲置的状态
-17. consumer订阅topic以后，底层的逻辑是怎么样的呢
-19. 生产者生产消息怎么做到高效率的
-20. Kafka消费者消费消息的时候是怎么做到高效可靠的
-21. Client生产消息时候Kafka如何选择分区存储消息
-22. Kafka分区有什么好处
-23. kafka的一个topic生产了2条数据,如果有2个分区那么消息会如何存储
-24. 如何优化Rebalance防止频繁重平衡，重平衡的过程是怎么样的
-    重平衡过程整个消费群组停止工作且期间无法消费消息。1. 消费者数量和分区数量保持一致最好。2. 当消费者数量小于分区数量的时候，那么必然会有一个消费者消费多个分区的消息。3. 消费者数量超过分区的数量的时候，那么必然会有消费者没有分区可以消费
-25. 消费者与订阅主题topic之间消费策略有哪几种以及怎么设置
-26. 如何提高消费者消费的速度
-27. 一个topic的多个分区之间消息会有重复的吗
-28. 堆积量告警怎么做的
-29. 分区数量的数量设置依据什么合适
-30. 增加分区后会有什么情况发生
-31. 1个topic_1有4个分区且只有group_a订阅topic_1，对应的 group_a 的消费者consumer只有一个A，那么这个A可以订阅所有的分区吗
-32. 重平衡问题。我的client_A目前占有1个topic的2个分区(p1,p2)，pull了500条数据(offset = 10~510)正在消费，消费到50%的时候260，重新加入了一个 client_B订阅该topic，那么这个时候会把client_A正在消费的另一个分区给p2 rebalance给 client_B 吗，如果会的话，会把 10~510的数据给 client_B 消费吗
-33. rebalance的触发情形有哪些rebalance的过程是怎么样的
-35. kafka的可靠性体现在哪些方面
-    消费可靠（提交offset和消费动作次序、重复消费还是消息丢失、消息堆积）。生产可靠（ack、批量发送还是单个发送）。kafka可靠（落盘机制、副本机制）。
-36. kafka的流比普通的有什么区别
-    - 普通的数据处理通常是基于批处理（Batch Processing）模式。
-    - Kafka 流处理是基于实时流（Real-Time Streaming）模式。数据在产生后几乎是立即被处理，没有明显的等待积累阶段。
-37. kafka的吞吐有多大
-    - 普通单机能达到消息数量10w/s
-    - 三个节点组成的 Kafka 集群测试环境中，配置 100 个分区，消息大小为 1KB。启用批处理机制，生产者`batch.size` 设置为 1MB，`linger.ms` 设置为 `10`，`acks` 设置为 `all`，`min.in.sync.replicas` 设置为 2 时，该集群能够达到接近磁盘 I/O 饱和的高峰稳定吞吐量.
-38. kafka的批量发送和批量接收情况下，其中一个任务失败会怎么样。直接同批次的全部重来吗
-39. acks设置为all会怎么样
-      生产者（Producer）配置参数，当acks设置为all时，发送的消息在所有同步副本（in - sync replicas）都成功写入消息后才会收到确认。
-
-### 参考资料
-
-- [Kafka的消费者提交方式手动同步提交、和异步提交](https://cloud.tencent.com/developer/article/1772208)
-- [Kafka消息的同步发送和异步发送](https://blog.csdn.net/m0_45406092/article/details/119546471)
-- [kafka 如何保证不重复消费又不丢失数据](https://www.zhihu.com/question/483747691/answer/2392949203)
-- [图解Kafka的架构和消费原理](https://zhuanlan.zhihu.com/p/442468709)
-- [Kafka的Rebalance机制](https://blog.csdn.net/Blackic_960703/article/details/126179913)
-- [Kafka的分区和副本机制](https://blog.csdn.net/weixin_45970271/article/details/126550115)
-- [Kafka 源码解析之 Consumer 如何加入一个 Group](https://blog.csdn.net/weixin_43956062/article/details/106784984)
-- [Kafka查看topic、consumer group状态命令](http://wjhsh.net/timor19-p-12742362.html)
-- [kafka对topic的CRUD](https://blog.csdn.net/javahelpyou/article/details/125887294)
-- [Kafka增加分区导致业务数据异常](https://zhuanlan.zhihu.com/p/392921569)
-- [一文读懂kafka](https://baijiahao.baidu.com/s?id=1719501564805569513)
-- [自动提交和手动提交-漏消费和重复消费](https://www.cnblogs.com/auuv/articles/15984585.html)
-- [Kafka自动提交 offset 尚硅谷](https://www.cnblogs.com/jelly12345/p/16018287.html)
-- [kafka auto commit官方手册](https://blog.csdn.net/chaiyu2002/article/details/89472416)
-- [Kafka 分区分配策略（Range分配策略 && RoundRobin分配策略）](https://blog.csdn.net/lzb348110175/article/details/100773487)
-- [超详细“零”基础kafka入门篇](https://www.cnblogs.com/along21/p/10278100.html)
-- [csdn offset参数详解](https://blog.csdn.net/qq_44170834/article/details/108670595)
-- [kafka参数解析](https://www.cnblogs.com/luckyna/p/12066431.html)
-- [kafka参数：max.poll.interval.ms 和 session.timeout.ms](https://www.jianshu.com/p/86e42f3ee7b9)
-- [kafka系列七、kafka核心配置 - 写的很好](https://www.cnblogs.com/wangzhuxing/p/10111831.html)
-- [面试题系列：Kafka 夺命连环11问](https://mp.weixin.qq.com/s/SuALTpvI3IMPSja9pacJ7Q)
-- [31个Kafka常见面试题（很全）](https://mp.weixin.qq.com/s/NrltMqfDvwlbb9F0rNx5wA)
-- [架构师面试题系列之Kafka面试专题及答案（26题）](https://mp.weixin.qq.com/s/QfcyaR4EV0-JC-3kU-S9MA)
-- [图解 kafka 架构与工作原理](https://zhuanlan.zhihu.com/p/442468709)
-- [kafka为什么有消费者组](https://cloud.tencent.com/developer/article/1540509)
-- [怎么创建新的消费组在kafka](https://stackoverflow.com/questions/61770993/how-to-create-a-new-consumer-group-in-kafka)
-- [Group CLI 教程中的 Kafka 消费者](https://www.conduktor.io/kafka/kafka-consumers-in-group-cli-tutorial)
-- [group配置](https://www.csdn.net/tags/MtjaQg0sODkzNjEtYmxvZwO0O0OO0O0O.html)
-- [华为云开发者联盟​-带你认识三种kafka消息发送模式](https://zhuanlan.zhihu.com/p/451678059)
-- [kafka生产同步发送和异步发送](https://zhuanlan.zhihu.com/p/531447457)
-- [Kafka的消费者提交方式手动同步提交、和异步提交](http://t.zoukankan.com/biehongli-p-14105658.html)
-- [kafka重复消费消息设置](https://www.csdn.net/tags/MtjaEgysNTc2NjEtYmxvZwO0O0OO0O0O.html)
-- [kafka poll](https://blog.csdn.net/qq_55548053/article/details/114055254)
-- [bitnami/kafka](https://hubgw.docker.com/r/bitnami/kafka)
-- [rebalance重平衡过程图示](https://mp.weixin.qq.com/s/SuALTpvI3IMPSja9pacJ7Q)
+- [Kafka 官方文档](https://kafka.apache.org/documentation/)
+- [Kafka: The Definitive Guide](https://www.oreilly.com/library/view/kafka-the-definitive/9781491936153/)
+- [Apache Kafka 实战](https://book.douban.com/subject/30386102/)
+- [Kafka 权威指南](https://book.douban.com/subject/27038551/)
+- [Kafka 设计与实现](https://book.douban.com/subject/34996737/)
+- [Kafka 消费者提交方式：手动同步提交与异步提交](https://cloud.tencent.com/developer/article/1772208)
+- [Kafka 消息的同步发送和异步发送](https://blog.csdn.net/m0_45406092/article/details/119546471)
+- [Kafka 如何保证不重复消费又不丢失数据](https://www.zhihu.com/question/483747691/answer/2392949203)
+- [图解 Kafka 的架构和消费原理](https://zhuanlan.zhihu.com/p/442468709)
+- [Kafka 的 Rebalance 机制](https://blog.csdn.net/Blackic_960703/article/details/126179913)

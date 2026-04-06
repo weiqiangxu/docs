@@ -1,4 +1,0 @@
-{
-  "insecure-registries" : [ "registry.company.net" ],
-  "experimental": true
-}
