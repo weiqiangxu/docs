@@ -179,6 +179,93 @@ sequenceDiagram
     Note over C: 事务终止
 ```
 
+### 协调者故障时的参与者自主决策流程
+
+这是3PC相比2PC的核心改进！当协调者故障时，参与者不再永久阻塞，而是可以根据自身状态自主决策。
+
+```mermaid
+sequenceDiagram
+    participant C as 协调者
+    participant P1 as 参与者1
+    participant P2 as 参与者2
+    participant P3 as 参与者3
+    
+    Note over C: PreCommit阶段完成
+    C->>P1: PreCommit请求
+    C->>P2: PreCommit请求
+    C->>P3: PreCommit请求
+    
+    P1->>P1: 执行事务
+    P2->>P2: 执行事务
+    P3->>P3: 执行事务
+    
+    P1->>C: Ack
+    P2->>C: Ack
+    P3->>C: Ack
+    
+    Note over C: 协调者崩溃!
+    
+    Note over P1: 等待DoCommit超时
+    Note over P2: 等待DoCommit超时
+    Note over P3: 等待DoCommit超时
+    
+    Note over P1: 参与者自主决策
+    Note over P2: 参与者自主决策
+    Note over P3: 参与者自主决策
+    
+    Note over P1: 已收到PreCommit,说明其他参与者也准备好了
+    P1->>P1: 自主Commit
+    
+    Note over P2: 已收到PreCommit,说明其他参与者也准备好了
+    P2->>P2: 自主Commit
+    
+    Note over P3: 已收到PreCommit,说明其他参与者也准备好了
+    P3->>P3: 自主Commit
+    
+    Note over P1&P2&P3: 事务完成,无需等待协调者
+```
+
+**关键逻辑说明：**
+
+1. **为什么可以自主决策？**
+   - 如果参与者已经完成了PreCommit阶段，说明：
+     - 协调者已经确认所有参与者都通过了CanCommit
+     - 协调者已经向所有参与者发送了PreCommit
+     - 所有参与者都回复了Ack
+   - 这意味着"其他参与者也准备好了"是大概率事件
+
+2. **不同阶段的自主决策策略：**
+
+| 参与者当前阶段 | 协调者状态 | 自主决策 | 逻辑依据 |
+|-------------|-----------|---------|---------|
+| **CanCommit阶段** | 故障/无响应 | **Abort** | 还没执行实际操作，可以安全终止 |
+| **PreCommit阶段** | 故障/无响应 | **Commit** | 已收到PreCommit，说明其他参与者也准备好了 |
+| **DoCommit阶段** | 故障/无响应 | **Commit** | 已经到了最后阶段，应该完成提交 |
+
+**与2PC的对比：**
+
+```mermaid
+graph TD
+    subgraph 2PC: 协调者故障
+        A[参与者进入<br/>Prepare状态] --> B[等待协调者<br/>指令]
+        B --> C[永久阻塞!<br/>资源锁定]
+        C --> D[系统不可用]
+        
+        style C fill:#ffcdd2
+        style D fill:#ffcdd2
+    end
+    
+    subgraph 3PC: 协调者故障
+        E[参与者进入<br/>PreCommit状态] --> F[等待协调者<br/>DoCommit]
+        F --> G{超时触发}
+        G -->|是| H[自主决策: Commit]
+        H --> I[释放资源<br/>系统继续运行]
+        
+        style H fill:#c8e6c9
+        style I fill:#c8e6c9
+    end
+```
+
 ### 状态转换图
 
 ```mermaid
