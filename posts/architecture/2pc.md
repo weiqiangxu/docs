@@ -401,34 +401,88 @@ MySQL有两个重要的日志系统：
 - 崩溃恢复后数据丢失
 - 备份数据不可用
 
+**协调者与参与者角色：**
+
+在MySQL内部的两阶段提交中，各个组件扮演的角色如下：
+
+```mermaid
+graph TD
+    A[MySQL Server<br/>协调者] --> B[InnoDB引擎<br/>参与者1]
+    A --> C[Binlog日志<br/>参与者2]
+    
+    B --> D[管理Redo Log]
+    C --> E[管理Binlog文件]
+    
+    A --> F[事务协调器<br/>TC]
+    F --> G[决策提交或回滚]
+    
+    style A fill:#e1f5fe
+    style B fill:#c8e6c9
+    style C fill:#c8e6c9
+    style F fill:#fff3e0
+```
+
+**角色详解：**
+
+| 角色 | 组件 | 职责 | 说明 |
+|------|------|------|------|
+| **协调者** | MySQL Server（事务协调器TC） | 协调InnoDB和Binlog的提交 | 决定何时Prepare、何时Commit |
+| **参与者1** | InnoDB引擎 | 管理Redo Log | 执行事务操作，写入Redo Log |
+| **参与者2** | Binlog日志系统 | 管理Binlog | 记录数据变更，用于主从复制 |
+
+**为什么这样设计？**
+
+```mermaid
+graph LR
+    A[应用程序COMMIT] --> B{MySQL Server<br/>协调者}
+    
+    B --> C[InnoDB引擎<br/>参与者1]
+    B --> D[Binlog<br/>参与者2]
+    
+    C --> E[Redo Log<br/>崩溃恢复]
+    D --> F[主从复制<br/>数据备份]
+    
+    E --> G[需要保证一致性]
+    F --> G
+    
+    G --> H[两阶段提交]
+    
+    style B fill:#e1f5fe
+    style C fill:#c8e6c9
+    style D fill:#c8e6c9
+    style H fill:#fff3e0
+```
+
 **两阶段提交流程：**
 
 ```mermaid
 sequenceDiagram
     participant App as 应用程序
-    participant MySQL as MySQL Server
-    participant InnoDB as InnoDB引擎
+    participant TC as MySQL Server<br/>协调者
+    participant InnoDB as InnoDB引擎<br/>参与者1
+    participant Binlog as Binlog<br/>参与者2
     participant Redo as Redo Log
-    participant Binlog as Binlog
     
-    App->>MySQL: COMMIT事务
+    App->>TC: COMMIT事务
     
-    Note over MySQL: 阶段一：Prepare阶段
-    MySQL->>InnoDB: Prepare请求
+    Note over TC: 阶段一：Prepare阶段
+    TC->>InnoDB: Prepare请求
     InnoDB->>Redo: 写入Redo Log<br/>状态=prepare
     Redo-->>InnoDB: 写入成功
-    InnoDB-->>MySQL: Prepare成功
+    InnoDB-->>TC: Prepare成功
     
-    Note over MySQL: 阶段二：Commit阶段
-    MySQL->>Binlog: 写入Binlog
-    Binlog-->>MySQL: 写入成功
+    Note over TC: 阶段二：Commit阶段
+    TC->>Binlog: 写入Binlog
+    Binlog-->>TC: 写入成功
     
-    MySQL->>InnoDB: Commit请求
+    TC->>InnoDB: Commit请求
     InnoDB->>Redo: 更新Redo Log<br/>状态=commit
     Redo-->>InnoDB: 更新成功
-    InnoDB-->>MySQL: Commit成功
+    InnoDB-->>TC: Commit成功
     
-    MySQL-->>App: 事务提交完成
+    TC-->>App: 事务提交完成
+    
+    Note over TC: 协调者决策<br/>参与者执行
 ```
 
 **详细步骤说明：**
@@ -437,23 +491,70 @@ sequenceDiagram
 graph TD
     A[事务提交开始] --> B[阶段一: Prepare]
     
-    B --> C[写入Redo Log]
-    C --> D[设置事务状态为prepare]
-    D --> E[持久化到磁盘]
+    B --> C[协调者请求InnoDB Prepare]
+    C --> D[参与者1: InnoDB写入Redo Log]
+    D --> E[设置事务状态为prepare]
+    E --> F[持久化到磁盘]
+    F --> G[回复协调者Prepare成功]
     
-    E --> F[阶段二: Commit]
-    F --> G[写入Binlog]
-    G --> H[持久化Binlog到磁盘]
+    G --> H[阶段二: Commit]
+    H --> I[协调者写入Binlog]
+    I --> J[参与者2: Binlog持久化]
+    J --> K[协调者请求InnoDB Commit]
     
-    H --> I[提交InnoDB事务]
-    I --> J[更新Redo Log状态为commit]
-    J --> K[释放锁和资源]
+    K --> L[参与者1: 提交InnoDB事务]
+    L --> M[更新Redo Log状态为commit]
+    M --> N[释放锁和资源]
     
-    K --> L[事务提交完成]
+    N --> O[事务提交完成]
     
     style B fill:#e1f5fe
-    style F fill:#c8e6c9
-    style L fill:#c8e6c9
+    style H fill:#c8e6c9
+    style O fill:#c8e6c9
+```
+
+**关键点说明：**
+
+1. **协调者（MySQL Server）**：
+   - 负责协调整个事务提交流程
+   - 决定何时进入Prepare阶段
+   - 决定何时进入Commit阶段
+   - 确保InnoDB和Binlog的一致性
+
+2. **参与者1（InnoDB引擎）**：
+   - 管理Redo Log，保证事务持久性
+   - 在Prepare阶段写入Redo Log（状态=prepare）
+   - 在Commit阶段更新Redo Log（状态=commit）
+   - 负责崩溃恢复
+
+3. **参与者2（Binlog日志系统）**：
+   - 记录数据变更，用于主从复制
+   - 在Commit阶段写入Binlog
+   - 保证主从数据一致性
+
+**为什么Binlog也是参与者？**
+
+虽然Binlog在时序图中看起来只是被动写入，但它确实是参与者：
+
+```mermaid
+graph LR
+    A[MySQL Server<br/>协调者] --> B{Prepare阶段}
+    
+    B --> C[InnoDB: 写入Redo Log<br/>参与者1响应]
+    B --> D[Binlog: 暂不写入<br/>等待Commit]
+    
+    C --> E{Commit阶段}
+    D --> E
+    
+    E --> F[InnoDB: 更新Redo Log<br/>参与者1响应]
+    E --> G[Binlog: 写入日志<br/>参与者2响应]
+    
+    F --> H[事务完成]
+    G --> H
+    
+    style A fill:#e1f5fe
+    style C fill:#c8e6c9
+    style G fill:#c8e6c9
 ```
 
 **崩溃恢复机制：**
