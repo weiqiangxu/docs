@@ -1,11 +1,4 @@
----
-title: node_exporter指标
-tags:
-  - prometheus
-  - api
-categories:
-  - prometheus
----
+# node_exporter指标
 
 > 使用docker搭建prometheus和node exporter，解释本机cpu、内存等指标查看方式，以及如何通过http api接口查看监控数据
 

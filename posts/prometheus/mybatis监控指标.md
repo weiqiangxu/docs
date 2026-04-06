@@ -1,12 +1,3 @@
----
-title: mybatis监控指标
-tags:
-  - mongodb
-  - prometheus
-categories:
-  - prometheus
----
-
 ### 一、定义各个prometheus指标
 
 ``` java
