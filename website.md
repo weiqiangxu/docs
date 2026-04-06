@@ -49,4 +49,4 @@
 ### 8.算法
 
 - [labuladong的算法笔记](https://labuladong.online/algo/home/)
-- [leetcode.cn/](https://leetcode.cn/)
+- [leetcode.cn](https://leetcode.cn/)
