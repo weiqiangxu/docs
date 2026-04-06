@@ -1,14 +1,3 @@
----
-title: CDN技术详解
-
-tags:
-  - CDN
-  - 内容分发网络
-  - 网络加速
-categories:
-  - 网络技术
----
-
 ## 一、CDN概述
 
 ### 1. 什么是CDN？
