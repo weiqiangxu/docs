@@ -8,33 +8,40 @@ categories:
 
 > iperf压测网速
 
-### 一、工具用途
+## 目录
 
-测试带宽工具，具备类似功能的工具还有scp、wget。
+- [一、工具用途](#一工具用途)
+- [二、安装方式](#二安装方式)
+- [三、带宽测试](#三带宽测试)
+- [四、Kubernetes中使用iperf3](#四kubernetes中使用iperf3)
+- [五、测试指标解读](#五测试指标解读)
+- [六、相关资料](#六相关资料)
 
-### 二、开始带宽测试
+## 一、工具用途
 
-1. 直接容器启动一个iperf3的server和client测试带宽，来一个[quickstart](https://github.com/nerdalert/iperf3/blob/master/README.md)
+iperf是一款广泛使用的网络带宽测试工具，主要用于评估网络性能。它能够测量TCP和UDP协议的吞吐量、延迟、抖动等关键指标。
 
-2. 服务器之间带宽测试
+| 工具 | 主要用途 | 特点 |
+|------|----------|------|
+| iperf | 带宽测试 | 支持TCP/UDP，可测试双向带宽 |
+| scp | 文件传输 | 基于SSH，测试实际文件传输速度 |
+| wget | 下载测试 | 测试下载速度，适合外网带宽 |
 
-- install iperf3 
+## 二、安装方式
 
-安装包下载地址[iperf.fr/iperf-download](https://iperf.fr/iperf-download.php)
+### 2.1 包管理工具安装
 
 ``` bash
-# 包管理工具安装rpm或者deb
-$ rpm -ih *.rpm
-$ dpkg -i *.deb
-$ apt install *.deb
+# Debian/Ubuntu
+apt install iperf3
 
-# 在线安装
-# 如果没有找一个可靠的yum源
+# RHEL/CentOS
 yum install iperf3
 ```
 
+### 2.2 源码编译安装
+
 ``` bash
-# 源码编译安装
 yum -y install gcc make wget
 cd /tmp
 wget https://iperf.fr/download/source/iperf-3.1.3-source.tar.gz
@@ -45,80 +52,137 @@ make
 make install
 ```
 
-``` bash
-# 启动client && server测试
-iperf3 有客户端 和 服务端之别：
+## 三、带宽测试
 
-服务端：收包，使用 -s 参数指定， iperf3 -s
-客户端：发包，使用 -c xx.xx.xx.xx 来指定要往哪个服务端发包， iperf3 -c 172.20.20.200
+### 3.1 客户端与服务端模式
+
+iperf3采用客户端-服务端架构进行测试：
+
+```mermaid
+flowchart LR
+    subgraph Server[服务端 Node B]
+        S[iperf3 -s]
+    end
+    subgraph Client[客户端 Node A]
+        C[iperf3 -c 172.20.20.200]
+    end
+    C -->|发送测试流量| S
+    S -->|返回测试结果| C
 ```
+
+### 3.2 基本使用
+
+``` bash
+# 服务端：监听5201端口，等待客户端连接
+iperf3 -s
+
+# 客户端：连接服务端并开始测试
+iperf3 -c 172.20.20.200
+
+# 客户端：指定测试时长（30秒）
+iperf3 -c 172.20.20.200 -t 30
+
+# 客户端：指定带宽上限（例如100Mbps）
+iperf3 -c 172.20.20.200 -b 100M
+
+# 客户端：反向测试（服务端发送，客户端接收）
+iperf3 -c 172.20.20.200 -R
+```
+
+### 3.3 常用参数
+
+| 参数 | 说明 |
+|------|------|
+| `-s` | 服务端模式 |
+| `-c host` | 客户端模式，指定服务端地址 |
+| `-p port` | 指定端口（默认5201） |
+| `-t time` | 测试时长（秒） |
+| `-b bandwidth` | 带宽限制 |
+| `-R` | 反向模式（服务端发送） |
+| `-J` | JSON格式输出 |
+| `-f` | 输出格式（k/K/m/M/g/G） |
 
 [iperf3详细参数说明](https://www.cnblogs.com/yingsong/p/5682080.html)
 
-### Q&A
+## 四、Kubernetes中使用iperf3
 
-##### 1.wget怎么测试带宽
+### 4.1 部署iperf3服务端
 
-可以使用 `wget` 命令来测试带宽，方法如下：
-1. 找到一个大文件的下载链接，比如一个 ISO 镜像文件或者大型软件的安装包。
-2. 在终端中使用以下命令下载该文件，并指定输出日志：
-``` bash
-$ wget -O /dev/null http://example.com/largefile.iso 2>&1 | tee speedtest.log
+``` yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: iperf3-server
+  labels:
+    app: iperf3
+spec:
+  containers:
+  - name: iperf3
+    image: networkstatic/iperf3:latest
+    args:
+    - -s
+    ports:
+    - containerPort: 5201
+      name: iperf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iperf3-server
+spec:
+  selector:
+    app: iperf3
+  ports:
+  - protocol: TCP
+    port: 5201
+    targetPort: 5201
+  type: ClusterIP
 ```
-其中，`-O /dev/null` 表示将下载的文件输出到空设备，而不是存储在本地磁盘上，`2>&1` 表示将错误输出也重定向到日志中，`tee` 命令则将 `wget` 命令的输出同时输出到终端和日志文件中。
 
-3. 等待下载完成后，查看日志文件中的下载速度，例如：
+### 4.2 执行测试
+
 ``` bash
-Downloaded: 1 files, 734M in 8m 30s (1.44 MB/s)
+# 获取服务端IP
+kubectl get svc iperf3-server -o wide
+
+# 运行客户端测试
+kubectl run iperf3-client --rm -ti --image=networkstatic/iperf3:latest -- \
+  -c iperf3-server -t 30
 ```
-其中 `1.44 MB/s` 就是下载速度，单位为兆字节每秒。可以多次测试，取平均值作为最终的带宽测试结果。
 
-##### 2.scp如何测试带宽
+## 五、测试指标解读
 
-使用 scp 测试带宽的过程如下:
-1. 在一台机器上，作为服务器运行 scp 命令来监听端口。
-``` bash
-$ scp -v -l 8192 file.tar.gz user@remote-host:/dev/null
+### 5.1 输出示例
+
 ```
-其中 8192 是带宽大小，文件名为 file.tar.gz，路径为远程主机的 /dev/null（即丢弃该文件，只是测试带宽）。
-2. 在另一台机器上，作为客户端运行 scp 命令进行下载文件。
-``` bash
-$ scp -v user@remote-host:/path/to/file.tar.gz /dev/null
-```
-该命令将从远程主机下载文件并丢弃该文件，只是测试带宽。
-3. 在下载完毕后，scp 将输出带宽测试结果。
-
-``` bash
-Transferred: ...........Total...........   Speed
-100% ................ byes  time (s) ...  KB/s
-```
-其中 KB/s 表示测试的带宽。
-
-##### 3. iperf指标查看
-
-``` bash
 Connecting to host 172.17.0.2, port 5201
 [  5] local 172.17.0.3 port 33370 connected to 172.17.0.2 port 5201
 [ ID] Interval           Transfer     Bitrate         Retr  Cwnd
-[  5]   0.00-1.00   sec  3.55 GBytes  30.5 Gbits/sec    0    185 MBytes       
-[  5]   1.00-2.00   sec  3.54 GBytes  30.5 Gbits/sec  25972    185 MBytes       
-[  5]   2.00-3.00   sec  3.57 GBytes  30.6 Gbits/sec    0    185 MBytes       
-[  5]   3.00-4.00   sec  3.57 GBytes  30.7 Gbits/sec    0    185 MBytes       
-[  5]   4.00-5.00   sec  3.58 GBytes  30.7 Gbits/sec    0    185 MBytes       
-[  5]   5.00-6.00   sec  3.54 GBytes  30.4 Gbits/sec    0    185 MBytes       
-[  5]   6.00-7.00   sec  3.49 GBytes  30.0 Gbits/sec    0    185 MBytes       
-[  5]   7.00-8.00   sec  3.55 GBytes  30.5 Gbits/sec    0    185 MBytes       
-[  5]   8.00-9.00   sec  3.52 GBytes  30.2 Gbits/sec    0    185 MBytes       
-[  5]   9.00-10.00  sec  3.54 GBytes  30.4 Gbits/sec  4294941326   0.00 Bytes    
+[  5]   0.00-1.00   sec  3.55 GBytes  30.5 Gbits/sec    0    185 MBytes
+[  5]   1.00-2.00   sec  3.54 GBytes  30.5 Gbits/sec  25972    185 MBytes
+[  5]   2.00-3.00   sec  3.57 GBytes  30.6 Gbits/sec    0    185 MBytes
+[  5]   3.00-4.00   sec  3.57 GBytes  30.7 Gbits/sec    0    185 MBytes
+[  5]   4.00-5.00   sec  3.58 GBytes  30.7 Gbits/sec    0    185 MBytes
+[  5]   5.00-6.00   sec  3.54 GBytes  30.4 Gbits/sec    0    185 MBytes
+[  5]   6.00-7.00   sec  3.49 GBytes  30.0 Gbits/sec    0    185 MBytes
+[  5]   7.00-8.00   sec  3.55 GBytes  30.5 Gbits/sec    0    185 MBytes
+[  5]   8.00-9.00   sec  3.52 GBytes  30.2 Gbits/sec    0    185 MBytes
+[  5]   9.00-10.00  sec  3.54 GBytes  30.4 Gbits/sec  4294941326   0.00 Bytes
 ```
 
-- Interval：测试的时长
-- Transfer：在 Interval 时长里，传输的数据量
-- Bitrate：传输速率
-- Jitter：网络抖动，连续发送数据包时延差值的平均值，越小说明网络质量越好
-- Lost/Total Datagrams：丢失的数据包与发送的总数据包
+### 5.2 指标说明
 
-### 相关资料
+| 指标 | 说明 |
+|------|------|
+| Interval | 测试的时间间隔 |
+| Transfer | 在该间隔内传输的数据量 |
+| Bitrate | 传输速率（bits/sec） |
+| Retr | 重传的数据包数量 |
+| Cwnd | 拥塞窗口大小 |
+| Jitter | 网络抖动，连续发送数据包时延差值的平均值，越小说明网络质量越好 |
+| Lost/Total | 丢失的数据包与发送的总数据包的比例 |
+
+## 六、相关资料
 
 - [iperf下载](https://iperf.fr/iperf-download.php)
 - [IPerf3 Docker Build 用于网络性能和带宽测试](https://github.com/nerdalert/iperf3)
