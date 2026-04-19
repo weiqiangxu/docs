@@ -36,6 +36,21 @@ sudo tcpdump -i lo0 host localhost and src port 9292 -n
 22:38:22.028278 IP 127.0.0.1.50139 > 127.0.0.1.9292: Flags [.], ack 2936404471, win 6379, options [nop,nop,TS val 2939320578 ecr 2141525572], length 0
 ```
 
+```mermaid
+sequenceDiagram
+    participant Client as 客户端
+    participant Server as 服务端
+    
+    Client->>Server: SYN (seq=2399477564)
+    Note right of Client: 状态: SYN-SENT
+    Server->>Client: SYN+ACK (seq=2936404470, ack=2399477565)
+    Note left of Server: 状态: SYN-RCVD
+    Client->>Server: ACK (ack=2936404471)
+    Note right of Client: 状态: ESTABLISHED
+    Note left of Server: 状态: ESTABLISHED
+    Client->>Server: 数据传输 (可选)
+```
+
 ```bash
 # 简化一下
 
@@ -63,6 +78,24 @@ client   Flags [.],ack 2936404471, win 6379                      [报文发送�
 
 22:44:13.099535 IP 127.0.0.1.9292 > 127.0.0.1.50943: Flags [.], ack 2, win 6379, options [nop,nop,TS val 2373686619 ecr 1048610910], length 0
 22:44:13.099681 IP 127.0.0.1.9292 > 127.0.0.1.50943: Flags [F.], seq 1, ack 2, win 6379, options [nop,nop,TS val 2373686619 ecr 1048610910], length 0
+```
+
+```mermaid
+sequenceDiagram
+    participant Client as 客户端
+    participant Server as 服务端
+    
+    Client->>Server: FIN+ACK (seq=0, ack=1)
+    Note right of Client: 状态: FIN-WAIT-1
+    Server->>Client: ACK (ack=2)
+    Note left of Server: 状态: CLOSE-WAIT
+    Note right of Client: 状态: FIN-WAIT-2
+    Server->>Client: FIN+ACK (seq=1, ack=2)
+    Note left of Server: 状态: LAST-ACK
+    Client->>Server: ACK (ack=2)
+    Note right of Client: 状态: TIME-WAIT
+    Note left of Server: 状态: CLOSED
+    Note right of Client: 状态: CLOSED (2MSL后)
 ```
 
 ```bash

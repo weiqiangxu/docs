@@ -13,6 +13,48 @@ categories:
 
 在Linux上，有几个与DNS相关的配置：
 
+#### DNS解析流程图
+
+```mermaid
+flowchart TD
+    subgraph "DNS解析流程"
+        A[客户端] --> B[本地DNS缓存]
+        B --> C{缓存命中?}
+        C -->|是| D[返回IP地址]
+        C -->|否| E[本地DNS服务器]
+        E --> F[根域名服务器]
+        F --> G[TLD域名服务器]
+        G --> H[权威域名服务器]
+        H --> I[返回IP地址]
+        I --> E
+        E --> B
+        B --> D
+        D --> A
+    end
+```
+
+#### DNS配置示意图
+
+```mermaid
+flowchart TD
+    subgraph "DNS配置结构"
+        A[客户端] --> B[resolv.conf配置]
+        B --> C[DNS服务器1]
+        B --> D[DNS服务器2]
+        B --> E[DNS服务器3]
+        
+        subgraph "resolv.conf配置"
+            B1[nameserver 114.114.114.114] --> B
+            B2[nameserver 8.8.8.8] --> B
+            B3[search domain.com] --> B
+        end
+        
+        C --> F[域名解析服务]
+        D --> F
+        E --> F
+    end
+```
+
 ### 二、Linux与DNS相关命令
 
 1. `/etc/resolv.conf`文件：这个文件包含了DNS服务器的配置信息，如名称服务器的IP地址、搜索域等。

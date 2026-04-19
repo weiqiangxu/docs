@@ -7,6 +7,28 @@
 - 发送方多次调用 `Write` 发送的小数据包，在接收方被一次性读取
 - 接收方无法区分数据包的边界，导致数据解析错误
 
+#### TCP粘包原理图
+
+```mermaid
+flowchart TD
+    subgraph "发送方"
+        A1[Write Hello] --> B[发送缓冲区]
+        A2[Write World] --> B
+        A3[Write !] --> B
+    end
+    
+    subgraph "TCP传输"
+        B --> C[网络传输]
+    end
+    
+    subgraph "接收方"
+        C --> D[接收缓冲区]
+        D --> E[Read 可能一次性读取全部]
+    end
+    
+    E --> F["\"HelloWorld!\""]
+```
+
 ### 2. 粘包现象示例
 
 **发送方**：
@@ -448,6 +470,28 @@ func receiveFile(conn net.Conn, saveDir string) error {
 | 分隔符法 | 实现简单，可读性好 | 数据中可能包含分隔符 | 文本数据 |
 | 固定长度法 | 实现简单 | 浪费空间，不适合变长数据 | 固定格式数据 |
 | 协议格式法 | 功能强大，扩展性好 | 实现复杂 | 复杂应用 |
+
+#### 解决方案流程对比图
+
+```mermaid
+flowchart LR
+    subgraph "长度前缀法"
+        A1[数据包] --> A2[添加4字节长度前缀]
+        A2 --> A3[发送]
+        A3 --> A4[先读长度再读数据]
+    end
+    
+    subgraph "分隔符法"
+        B1[数据包] --> B2[添加分隔符\n]
+        B2 --> B3[发送]
+        B3 --> B4[按分隔符拆包]
+    end
+    
+    subgraph "固定长度法"
+        C1[数据包] --> C2[填充到固定长度]
+        C2 --> C3[发送]
+        C3 --> C4[每次读固定长度]
+    end
 
 ### 2. 性能优化
 

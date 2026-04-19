@@ -18,10 +18,78 @@ categories:
 
 用户空间的程序可以通过 TUN/TAP 设备发送数据。常见于基于TUN/TAP设备实现的VPN。比如VPN软件在用户空间创建一个TUN/TAP设备，并将其配置为将网络流量导入到VPN隧道中。然后，VPN软件可以通过TUN/TAP设备读取和写入数据，将它们加密并通过隧道发送到VPN服务器。在服务器端，VPN软件将收到的数据解密并通过TUN/TAP设备发送到网络接口，从而实现了VPN连接。
 
+#### TUN/TAP工作原理图
+
+```mermaid
+flowchart TD
+    subgraph "用户空间"
+        A[VPN应用程序]
+    end
+    
+    subgraph "内核空间"
+        B[TUN/TAP设备]
+        C[网络协议栈]
+        D[物理网卡]
+    end
+    
+    A <--> B
+    B <--> C
+    C <--> D
+    
+    subgraph "TUN vs TAP"
+        E[TUN设备] --> E1[网络层设备]
+        E1 --> E2[处理IP数据包]
+        F[TAP设备] --> F1[链路层设备]
+        F1 --> F2[处理以太网帧]
+    end
+```
+
+#### TUN/TAP数据流向图
+
+```mermaid
+flowchart LR
+    subgraph "出站数据流"
+        A[应用程序] --> B[Socket]
+        B --> C[网络协议栈]
+        C --> D{TUN/TAP设备}
+        D --> E[VPN隧道加密]
+        E --> F[物理网络]
+    end
+    
+    subgraph "入站数据流"
+        F --> G[VPN隧道解密]
+        G --> H{TUN/TAP设备}
+        H --> I[网络协议栈]
+        I --> J[应用程序]
+    end
+```
+
 ##### 2.特点
 
 TUN：三层设备、IP数据包、实现三层的ip隧道
 TAP：二层设备、MAC地址、通常接入到虚拟交换机(bridge)上作为局域网的一个节点
+
+#### TUN与应用程序交互流程图
+
+```mermaid
+sequenceDiagram
+    participant App as 应用程序
+    participant Stack as 网络协议栈
+    participant Tun as TUN设备
+    participant VPN as VPN程序
+    participant Network as 物理网络
+    
+    App->>Stack: 发送数据
+    Stack->>Tun: 写入IP数据包
+    Tun->>VPN: 读取数据包
+    VPN->>VPN: 加密处理
+    VPN->>Network: 发送加密数据
+    Network->>VPN: 接收加密数据
+    VPN->>VPN: 解密处理
+    VPN->>Tun: 写入数据包
+    Tun->>Stack: 读取数据包
+    Stack->>App: 接收数据
+```
 
 ##### 3.隧道
 

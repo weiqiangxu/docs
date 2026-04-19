@@ -10,7 +10,7 @@ categories:
 
 1. 什么是VXLAN
 
-一种网络虚拟化技术。
+一种网络虚拟化技术，通过在UDP数据包中封装二层以太网帧，实现跨三层网络的二层通信。
 
 2. GRE隧道是什么
 
@@ -23,6 +23,51 @@ categories:
 4. 原理
 
 GRE协议将原始的数据包封装在一个新的IP头中，使得数据包能够跨越多个网络端口传输，借助IP协议中的IP数据报文来传输数据。要实现VXLAN网络隔离，需要使用Linux中的网络命名空间来创建多个隔离的虚拟网络环境，并将VXLAN设备连接到相应的命名空间。
+
+#### VXLAN架构图
+
+```mermaid
+flowchart TD
+    subgraph "VXLAN网络架构"
+        A[物理网络] --> B[VTEP设备]
+        B --> C[VXLAN隧道]
+        C --> D[VTEP设备]
+        D --> E[物理网络]
+        
+        subgraph "VTEP 1"
+            B1[本地网络] --> B2[VXLAN封装]
+            B2 --> B3[UDP传输]
+        end
+        
+        subgraph "VTEP 2"
+            D1[UDP接收] --> D2[VXLAN解封装]
+            D2 --> D3[本地网络]
+        end
+        
+        B --> B1
+        B3 --> C
+        C --> D1
+        D3 --> D
+    end
+```
+
+#### VXLAN数据传输流程
+
+```mermaid
+sequenceDiagram
+    participant HostA as 源主机
+    participant VTEP1 as VTEP设备1
+    participant Network as 物理网络
+    participant VTEP2 as VTEP设备2
+    participant HostB as 目标主机
+    
+    HostA->>VTEP1: 发送原始以太网帧
+    VTEP1->>VTEP1: 封装为VXLAN数据包
+    VTEP1->>Network: 发送UDP数据包
+    Network->>VTEP2: 传输UDP数据包
+    VTEP2->>VTEP2: 解封装VXLAN数据包
+    VTEP2->>HostB: 转发原始以太网帧
+```
 
 ### 二、使用vxlan建立点对点通信
 

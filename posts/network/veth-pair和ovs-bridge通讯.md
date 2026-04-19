@@ -8,6 +8,30 @@ categories:
 
 > 使用 openvswitch bridge 和 veth pair 实现两个网络命名空间下的网卡通信
 
+#### OVS网桥通信架构图
+
+```mermaid
+flowchart TD
+    subgraph "宿主机"
+        A[ovs-br网桥] --> B[物理网卡]
+        
+        subgraph "网络命名空间ns1"
+            C1[ovs-veth-a] --> C2[10.1.1.2/24]
+        end
+        
+        subgraph "网络命名空间ns2"
+            D1[ovs-veth-c] --> D2[10.1.1.3/24]
+        end
+        
+        subgraph "veth pair"
+            C1 <--> E[ovs-veth-b]
+            D1 <--> F[ovs-veth-d]
+        end
+        
+        E --> A
+        F --> A
+    end
+```
 
 ### 创建 veth-pair 和 ovs-br
 

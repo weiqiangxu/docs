@@ -45,6 +45,36 @@ categories:
 
 ### TCP SOCKET 状态表：
 
+```mermaid
+flowchart TD
+    A[CLOSED] --> B[LISTEN]
+    B --> C[SYN_SENT]
+    C --> D[SYN_RCVD]
+    D --> E[ESTABLISHED]
+    E --> F[FIN_WAIT_1]
+    F --> G[FIN_WAIT_2]
+    G --> H[CLOSING]
+    H --> I[TIME_WAIT]
+    F --> J[CLOSE_WAIT]
+    J --> K[LAST_ACK]
+    E --> L[CLOSE_WAIT]
+    K --> A
+    I --> A
+    
+    A1[CLOSED]:::init
+    E1[ESTABLISHED]:::active
+    F1[FIN_WAIT_1]:::closing
+    G1[FIN_WAIT_2]:::closing
+    J1[CLOSE_WAIT]:::wait
+    K1[LAST_ACK]:::closing
+    I1[TIME_WAIT]:::wait
+    
+    classDef init fill:#f9f,stroke:#333
+    classDef active fill:#9f9,stroke:#333
+    classDef closing fill:#ff9,stroke:#333
+    classDef wait fill:#99f,stroke:#333
+```
+
 ``` bash
 CLOSED: 关闭状态，没有连接活动
 LISTEN: 监听状态，服务器正在等待连接进入

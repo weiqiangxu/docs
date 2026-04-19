@@ -8,6 +8,31 @@ categories:
 
 > 使用 host bridge 和 veth pair 实现两个网络命名空间下的网卡通信
 
+#### Host网桥通信架构图
+
+```mermaid
+flowchart TD
+    subgraph "宿主机"
+        A[br0网桥] --> B[物理网卡]
+        
+        subgraph "网络命名空间ns1"
+            C1[peer-veth1] --> C2[10.1.1.2/24]
+        end
+        
+        subgraph "网络命名空间ns2"
+            D1[peer-veth2] --> D2[10.1.1.3/24]
+        end
+        
+        subgraph "veth pair"
+            C1 <--> E[veth1]
+            D1 <--> F[veth2]
+        end
+        
+        E --> A
+        F --> A
+    end
+```
+
 ### 1.网络命名空间创建
 
 ``` bash

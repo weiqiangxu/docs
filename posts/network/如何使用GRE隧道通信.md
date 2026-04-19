@@ -24,6 +24,53 @@ categories:
 
 GRE协议将原始的数据包封装在一个新的IP头中，使得数据包能够跨越多个网络端口传输。（借助IP协议中的IP数据报文来传输数据）
 
+#### GRE隧道架构图
+
+```mermaid
+flowchart TD
+    subgraph "GRE隧道架构"
+        A[网络A] --> B[GRE封装]
+        B --> C[公共网络]
+        C --> D[GRE解封装]
+        D --> E[网络B]
+        
+        subgraph "GRE封装过程"
+            B1[原始IP数据包] --> B2[GRE头部封装]
+            B2 --> B3[外部IP头部封装]
+        end
+        
+        subgraph "GRE解封装过程"
+            D1[外部IP数据包] --> D2[移除外部IP头]
+            D2 --> D3[移除GRE头部]
+            D3 --> D4[原始IP数据包]
+        end
+        
+        A --> B1
+        B3 --> C
+        C --> D1
+        D4 --> E
+    end
+```
+
+#### GRE隧道配置流程
+
+```mermaid
+sequenceDiagram
+    participant HostA as 主机A
+    participant HostB as 主机B
+    
+    HostA->>HostA: 创建GRE隧道接口
+    HostA->>HostA: 配置隧道IP地址
+    HostA->>HostA: 启用隧道接口
+    
+    HostB->>HostB: 创建GRE隧道接口
+    HostB->>HostB: 配置隧道IP地址
+    HostB->>HostB: 启用隧道接口
+    
+    HostA->>HostB: 测试GRE隧道连通性
+    HostB-->>HostA: 响应测试数据包
+```
+
 
 
 ### 二、初始化环境

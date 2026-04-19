@@ -27,6 +27,51 @@ ip tunnel help
 - isatap：即站内自动隧道寻址协议（Intra-Site Automatic Tunnel Addressing Protocol），和 sit 类似，也是用于 IPv6 的隧道封装。
 - vti：即虚拟隧道接口（Virtual Tunnel Interface），是 cisco 提出的一种 IPsec 隧道技术。
 
+#### IPIP隧道结构图
+
+```mermaid
+flowchart TD
+    subgraph "IPIP隧道结构"
+        A[源网络] --> B[IPIP封装]
+        B --> C[公共网络]
+        C --> D[IPIP解封装]
+        D --> E[目标网络]
+        
+        subgraph "IPIP封装过程"
+            B1[原始IP数据包] --> B2[添加外层IP头]
+            B2 --> B3[IPIP封装数据包]
+        end
+        
+        subgraph "IPIP解封装过程"
+            D1[IPIP封装数据包] --> D2[移除外层IP头]
+            D2 --> D3[原始IP数据包]
+        end
+        
+        A --> B1
+        B3 --> C
+        C --> D1
+        D3 --> E
+    end
+```
+
+#### IPIP隧道工作原理图
+
+```mermaid
+sequenceDiagram
+    participant HostA as 主机A
+    participant TunnelA as 隧道接口A
+    participant Network as 公共网络
+    participant TunnelB as 隧道接口B
+    participant HostB as 主机B
+    
+    HostA->>TunnelA: 发送原始IP数据包
+    TunnelA->>TunnelA: 封装为IPIP数据包
+    TunnelA->>Network: 发送IPIP数据包
+    Network->>TunnelB: 传输IPIP数据包
+    TunnelB->>TunnelB: 解封装IPIP数据包
+    TunnelB->>HostB: 转发原始IP数据包
+```
+
 ### 二、初始化环境
 
 ``` bash
