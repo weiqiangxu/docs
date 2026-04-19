@@ -1,11 +1,3 @@
----
-title: Maven包制作与使用
-tags:
-  - java
-categories:
-  - java
----
-
 ### 1.IDEA创建一个Maven工具包
 
 ```bash

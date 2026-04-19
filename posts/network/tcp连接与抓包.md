@@ -1,11 +1,3 @@
----
-title: TCP连接与抓包
-tags:
-  - network
-categories:
-  - network
----
-
 ### 一、抓包理解tcp连接
 
 1. 使用golang做tcp网络编程创建client && server
@@ -183,7 +175,7 @@ RTT是一个往返
 ##### 12.四次挥手的性能提升
 
 ##### 13.滑动窗口是如何影响传输速度的
-  
+
   包的往返时间越长，网络的吞吐量就会越低；所以单程携带更多，就是批量发送报文批量处理报 文字
 
 ##### 14.Connection reset by peer是什么意思（读）

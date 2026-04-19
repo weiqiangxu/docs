@@ -1,11 +1,3 @@
----
-title: NAT配置公网访问
-tags:
-  - network
-categories:
-  - network
----
-
 > 使用NAT实现数据转发其中包括DNAT和SNAT实验实现公网访问后转发到局域网的服务以及从内部网络命名空间配置SNAT访问公网服务
 
 ### 一、概念

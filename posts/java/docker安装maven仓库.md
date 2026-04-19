@@ -1,11 +1,3 @@
----
-title: docker安装maven仓库
-tags:
-  - java
-categories:
-  - java
----
-
 ### 1. maven仓库安装
 
 ```bash

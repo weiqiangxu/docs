@@ -1,11 +1,3 @@
----
-title: veth-pair和ovs-bridge通讯
-tags:
-  - network
-categories:
-  - network
----
-
 > 使用 openvswitch bridge 和 veth pair 实现两个网络命名空间下的网卡通信
 
 #### OVS网桥通信架构图

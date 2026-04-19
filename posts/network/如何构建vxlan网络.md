@@ -1,11 +1,3 @@
----
-title: 如何构建vxlan网络
-tags:
-  - network
-categories:
-  - network
----
-
 ### 一、概念
 
 1. 什么是VXLAN

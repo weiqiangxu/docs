@@ -1,12 +1,3 @@
----
-title: prometheus
-tags:
-  - prometheus
-  - linux
-categories:
-  - prometheus
----
-
 ### 一、本地启动Prometheus
 
 ``` bash
