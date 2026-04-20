@@ -70,10 +70,10 @@ flowchart TD
 # 参考：https://book.kubebuilder.io/quick-start.html#installation
 
 # 创建项目
-kubebuilder init --domain example.com
+$ kubebuilder init --domain example.com
 
 # 创建API
-kubebuilder create api --group webapp --version v1 --kind Guestbook
+$ kubebuilder create api --group webapp --version v1 --kind Guestbook
 ```
 
 ### 3.2 使用Operator SDK
@@ -83,10 +83,10 @@ kubebuilder create api --group webapp --version v1 --kind Guestbook
 # 参考：https://github.com/operator-framework/operator-sdk
 
 # 创建项目
-operator-sdk init --project-version 3
+$ operator-sdk init --project-version 3
 
 # 创建API和控制器
-operator-sdk create api --group apps --version v1alpha1 --kind MyApp
+$ operator-sdk create api --group apps --version v1alpha1 --kind MyApp
 ```
 
 ### 3.3 部署Nginx Operator示例

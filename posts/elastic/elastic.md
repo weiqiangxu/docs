@@ -1,8 +1,25 @@
-# elastic
+# Elasticsearch 全面指南
 
-### 一、基本使用
+## 目录
 
-##### 1.docker启动Elastic
+- [第一章：入门基础](#第一章入门基础)
+- [第二章：核心概念](#第二章核心概念)
+- [第三章：索引与管理](#第三章索引与管理)
+- [第四章：查询详解](#第四章查询详解)
+- [第五章：聚合分析](#第五章聚合分析)
+- [第六章：性能优化](#第六章性能优化)
+- [第七章：集群架构](#第七章集群架构)
+- [第八章：底层原理](#第八章底层原理)
+- [第九章：高级特性](#第九章高级特性)
+- [第十章：实战问题](#第十章实战问题)
+
+---
+
+# 第一章：入门基础
+
+## 1.1 快速开始
+
+### Docker启动Elasticsearch
 
 ```bash
 $ docker run -d --name elasticsearch \
@@ -13,21 +30,16 @@ $ docker run -d --name elasticsearch \
     docker.elastic.co/elasticsearch/elasticsearch:7.17.3
 ```
 
-- [http://127.0.0.1:9200](http://127.0.0.1:9200)
+访问地址：[http://127.0.0.1:9200](http://127.0.0.1:9200)
 
-
-##### 2.基本概念
-
-- 索引（Index）文档的集合比如产品信息创建一个索引\用户信息创建另一个索引
-- 文档（Document）数据存储的基本单位JSON格式表示的数据结构
-- 类型（Type）用于在索引中对文档进行分类但现在一般一个索引只存放一种类型的文档
+### 基本操作
 
 ```bash
 # 创建索引
 $ curl -X PUT "http://localhost:9200/products"
 
 # 查看索引列表
-$ http://localhost:9200/_cat/indices?format=json
+$ curl "http://localhost:9200/_cat/indices?format=json"
 
 # 插入文档
 $ curl -X POST "http://localhost:9200/products/_doc" \
@@ -37,276 +49,577 @@ $ curl -X POST "http://localhost:9200/products/_doc" \
 # 查询文档
 $ curl -X GET "http://localhost:9200/products/_search?size=1000"
 
+# 条件查询
 $ curl -X GET "http://localhost:9200/products/_search" \
     -H 'Content-Type: application/json' \
     -d '{"query": {"range": {"price": {"gt": 7000}}}}'
 
 # 更新文档
-$ curl -X POST "http://localhost:9200/products/_update/文档_id" \
+$ curl -X POST "http://localhost:9200/products/_update/<doc_id>" \
     -H 'Content-Type: application/json' \
     -d '{"doc": {"price": 6999}}'
 
 # 删除文档
-$ curl -X DELETE "http://localhost:9200/products/_doc/文档_id"
+$ curl -X DELETE "http://localhost:9200/products/_doc/<doc_id>"
 
-# 删除整个products索引
+# 删除索引
 $ curl -X DELETE "http://localhost:9200/products"
 ```
 
-3. 多重聚合桶
+---
 
-```bash
-# sales 的索引 { 
-#     region地区:xxx,
-#     product_category产品类别:xxx,
-#     sales_amount销售额:xxx,
-#     quantity_sold销售数量:xxx
-# }
+# 第二章：核心概念
 
-$ curl -X GET "http://localhost:9200/sales/_search" -H 'Content-Type: application/json' -d '
-{
-  "size": 0,
-  "aggs": {
-    "region_aggregation": {
-      "terms": {
-        "field": "region.keyword"
-      },
-      "aggs": {
-        "total_sales_amount": {
-          "sum": {
-            "field": "sales_amount"
-          }
-        }
-      }
-    },
-    "category_aggregation": {
-      "terms": {
-        "field": "product_category.keyword"
-      },
-      "aggs": {
-        "total_quantity_sold": {
-          "sum": {
-            "field": "quantity_sold"
-          }
-        }
-      }
-    }
-  }
-}'
+## 2.1 核心术语对比
+
+| 概念 | 关系型数据库对比 | 说明 |
+|------|------------------|------|
+| Index（索引） | Database（数据库） | 文档的集合 |
+| Document（文档） | Row（行） | JSON格式的数据单位 |
+| Field（字段） | Column（列） | 文档的数据属性 |
+| Mapping（映射） | Schema（表结构） | 字段类型定义 |
+| Type（类型） | Table（表） | 已废弃，1.x曾使用 |
+
+## 2.2 数据结构特点
+
 ```
-
-```json
+文档（Document）示例：
 {
-  "took": 3,
-  "timed_out": false,
-  "hits": {
-    "total": {
-      "value": 100,
-      "relation": "eq"
-    },
-    "hits": []
-  },
-  "aggregations": {
-    "region_aggregation": {
-      "buckets": [
-        {
-          "key": "North",
-          "doc_count": 30,
-          "total_sales_amount": {
-            "value": 15000.0
-          }
-        },
-        {
-          "key": "South",
-          "doc_count": 40,
-          "total_sales_amount": {
-            "value": 20000.0
-          }
-        }
-      ]
-    },
-    "category_aggregation": {
-      "buckets": [
-        {
-          "key": "Electronics",
-          "doc_count": 50,
-          "total_quantity_sold": {
-            "value": 1000.0
-          }
-        },
-        {
-          "key": "Clothes",
-          "doc_count": 30,
-          "total_quantity_sold": {
-            "value": 500.0
-          }
-        }
-      ]
-    }
+  "name": "iPhone 14",
+  "price": 7999,
+  "tags": ["手机", "苹果", "旗舰"],
+  "specs": {
+    "screen": "6.1寸",
+    "storage": "128GB"
   }
 }
 ```
 
-##### 3.Elastic术语
+| 特点 | 说明 |
+|------|------|
+| JSON格式 | 简单、扁平的数据结构更高效 |
+| 动态映射 | 自动推断字段类型 |
+| 嵌套对象 | 支持复杂的层级结构 |
+| 向量化 | 支持稀疏字段 |
 
-- 数据分片（Sharding）将索引数据划分为多个独立的部分，每个部分称为一个分片。每个分片本质上是一个独立的Lucene索引
-- 副本Replica ES还支持为每个分片创建副本
-- 数据结构 以JSON文档的形式存储,简单、扁平的数据结构通常比复杂的嵌套数据结构在存储和查询时更高效
-- 索引策略
-- 分析器（Analyzer）词法分析、小写转换、停用词去除、构建倒排索引
-- 倒排索引
-- 自定义分析器通过组合字符过滤器（Character Filter）、分词器（Tokenizer）和词过滤器（Token Filter）来实现
-- 索引生命周期管理（ILM）策略
-- 映射（Mapping）类似于数据库中的表结构定义，它用于定义索引（Index）中的文档（Document）结构,数据类型定义,如文本（Text）、关键字（Keyword）、长整型（Long）、日期（Date）、布尔（Boolean）等。默认启用动态映射,所以向索引中插入新的文档时，如果文档中的字段在索引的映射中不存在，ES 会自动根据插入文档的字段类型来推断并创建相应的映射。静态映射是在创建索引之前或者索引没有数据时，手动预先定义好索引的映射。
+## 2.3 核心概念架构图
+
+```mermaid
+flowchart TD
+    subgraph Index[索引]
+        Doc1[文档1]
+        Doc2[文档2]
+        DocN[文档N]
+    end
+
+    subgraph Shard[分片]
+        PShard1[主分片1]
+        PShard2[主分片2]
+        RShard1[副本分片1]
+        RShard2[副本分片2]
+    end
+
+    subgraph Storage[存储层]
+        Lucene1[Lucene索引1]
+        Lucene2[Lucene索引2]
+    end
+
+    Doc1 --> PShard1
+    Doc2 --> PShard2
+    PShard1 -->|复制| RShard1
+    PShard2 -->|复制| RShard2
+    PShard1 --> Lucene1
+    PShard2 --> Lucene2
+```
+
+---
+
+# 第三章：索引与管理
+
+## 3.1 分片与副本机制
+
+```mermaid
+flowchart LR
+    subgraph Node1[节点1]
+        PS1[主分片 P0]
+        RS2[副本分片 R1]
+    end
+
+    subgraph Node2[节点2]
+        PS2[主分片 P1]
+        RS1[副本分片 R0]
+    end
+
+    PS1 -->|数据同步| RS1
+    PS2 -->|数据同步| RS2
+```
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| 主分片数 | 1 | 索引创建后不可更改 |
+| 副本分片数 | 1 | 可动态调整 |
+| 刷新间隔 | 1秒 | 文档可被搜索的延迟 |
+
+## 3.2 映射类型
 
 ```bash
-curl -X PUT "http://localhost:9200/my_index" -H 'Content - Type: application/json' -d '
+# 静态映射示例
+$ curl -X PUT "http://localhost:9200/my_index" -H 'Content-Type: application/json' -d '
 {
   "mappings": {
     "properties": {
       "title": {
-        "type": "text"
+        "type": "text",
+        "analyzer": "standard"
       },
       "price": {
         "type": "double"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "tags": {
+        "type": "keyword"
       }
     }
   }
 }'
 ```
- 
 
-##### 4.Elasticsearch的默认索引设置是什么
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| text | 全文搜索 | 文章内容 |
+| keyword | 精确匹配 | 标签、ID |
+| long/double | 数值 | 价格、数量 |
+| date | 日期时间 | 创建时间 |
+| boolean | 布尔值 | 是否启用 |
+| nested | 嵌套对象 | 数组对象 |
 
-- 分片数量: 一个索引会被分配 1 个主分片（Primary Shard）.
-- 副本数量：默认副本数量为 1,副本分片（Replica Shard）是主分片的拷贝.
-- 映射（Mapping）
-- 默认的刷新间隔（Refresh Interval）是1秒
-- lasticsearch 使用 Lucene 的默认存储格式存储索引数据
+## 3.3 分析器原理
 
-##### 5.Elasticsearch为什么快
+```mermaid
+flowchart TD
+    Input["原始文本：The Quick Browns!"] --> CharFilter[字符过滤器 CharFilter]
 
-- 倒排索引（Inverted Index）
-- 缓存机制如查询缓存（Query Cache）\过滤器缓存（Filter Cache）
-- 分布式架构和分片（Sharding）并行处理. ES 是分布式系统，数据可以被分片存储在多个节点上。当执行查询时，查询请求可以同时发送到多个节点上的分片，这些分片可以并行地处理查询请求，然后将结果汇总返回。
-- 高效的文本分析和检索算法: 高效的分析器（Analyzer）和检索算法,索引阶段会对文本进行处理，如词法分析、去除停用词、词干提取等操作，将文本转换为适合索引和查询的形式。
+    %% 字符过滤器子步骤
+    CharFilter --> CF1["去除HTML标签"]
+    CharFilter --> CF2["特殊符号过滤"]
+    CharFilter --> CF3["预处理清洗"]
+    
+    CF1 & CF2 & CF3 --> AfterCharFilter["处理后：The Quick Browns"]
 
-##### 6.Elasticsearch 支持的查询类型
+    %% 分词
+    AfterCharFilter --> Tokenizer[分词器 Tokenizer]
+    Tokenizer --> Tokens["分词结果：The、Quick、Browns"]
 
-- 词条查询（Term Query）不会对词条进行分析，适用于关键字段（如 ID、产品编号等）的精确匹配。
-- 全文查询（Full - Text Query）包括match查询，它会对查询词进行分析，然后查找包含这些分析后的词条的文档。
-- 范围查询（Range Query）
-- 嵌套查询（Nested Query）
-- 布尔查询（Boolean Query）处理嵌套对象（文档中包含的对象数组）的查询
-- 聚合查询（Aggregation Query）
+    %% 词过滤器
+    Tokens --> TokenFilter[词过滤器 TokenFilter]
+    TokenFilter --> TF1["小写转换"]
+    TokenFilter --> TF2["停用词过滤"]
+    TokenFilter --> TF3["词干提取"]
 
-
-### 7.到底什么是倒排索引（Inverted Index）
-
-正向索引会记录文档 1 对应的单词是 “apple” 和 “banana”，文档 2 对应的单词是 “banana” 和 “cherry”。
-倒排索引会记录 “apple” 出现在文档 1 中，“banana” 出现在文档 1 和文档 2 中，“cherry” 出现在文档 2 中。
-
-词汇表（Vocabulary）索引基础部分它包含了索引中所有出现过的单词（或词条）
-倒排列表（Postings List）记录了包含该单词的文档编号以及该单词在文档中的位置等信息
-
-
-### 8.ES深度分页
-
-常用的分页方式如 from + size 在深度分页时会暴露出性能问题。`GET /index/_search?from=10000&size=10`随着 from 值增大，Elasticsearch 需要跳过大量数据再获取目标数据，耗时会指数级增长，消耗大量内存与 CPU 资源。
-
-- search_after：它基于上一页最后一个文档的排序值来获取下一页数据。
-
-```json
-// 后续查询使用search_after
-{
-    "query": {
-        "match": {
-            "title": "keyword"
-        }
-    },
-    "sort": [
-        {"id": "asc"}
-    ],
-    "search_after": [123], // 123是上页最后一个文档的id值
-    "size": 10
-}
-```
-- scroll：开启一个滚动查询后，Elasticsearch 会生成一个上下文，在一段时间内保留这个查询的相关资源，让你持续拉取数据，不过它的资源开销较大，用完应及时清理。
-
-```json
-// 开启滚动查询
-{
-    "query": {
-        "match": {
-            "content": "特定文本"
-        }
-    },
-    "size": 100,
-    "scroll": "1m" // 滚动上下文保留1分钟
-}
+    TF1 & TF2 & TF3 --> FinalTokens["最终词项：the、quick、brown"]
+    
+    %% 建立索引
+    FinalTokens --> InvertedIndex[构建倒排索引]
 ```
 
-### 9.ES的唯一标识
+| 组件 | 作用 |
+|------|------|
+| Character Filter | 字符过滤（HTML标签、大小写） |
+| Tokenizer | 分词（按空格、标点分割） |
+| Token Filter | 词过滤（停用词、同义词、词干） |
 
-在 Elasticsearch 中，文档的唯一标识是 _id 字段。
-自动生成：当向索引插入文档，且未明确指定 _id 时，Elasticsearch 会自动为该文档分配一个唯一的、Base64 编码的 UUID ，长度为 20 个字符，确保集群范围内每份文档都能被精准区分。
-```bash
-POST /my_index/_doc/
-{
-    "title": "Sample Document"
-}
+---
+
+# 第四章：查询详解
+
+## 4.1 查询类型分类
+
+```mermaid
+flowchart TD
+    Query[查询] --> TL[全文查询]
+    Query --> TQ[词条查询]
+    Query --> RQ[范围查询]
+    Query --> BQ[布尔查询]
+    Query --> NQ[嵌套查询]
+    Query --> AQ[聚合查询]
+
+    TL --> Match[match]
+    TL --> MultiMatch[multi_match]
+    TQ --> Term[term]
+    TQ --> Terms[terms]
+    BQ --> Bool[bool]
+    BQ --> Boosting[boosting]
 ```
-手动指定：用户可自行设定 _id ，这在业务场景里很实用，方便关联外部系统数据、记忆重要文档。
 
-```bash
-# 手动指定_id的方式
-POST /my_index/_doc/1
-{
-    "title": "Custom ID Document"
-}
-```
+## 4.2 查询类型对比
 
-### 10.ES常见的出现性能问题的场景
+| 类型 | 特点 | 使用场景 |
+|------|------|----------|
+| match | 全文搜索，会分析查询词 | 搜索文章内容 |
+| term | 精确匹配，不分析词 | ID、状态、标签 |
+| terms | 多值精确匹配 | 多标签查询 |
+| range | 范围查询 | 价格区间、日期范围 |
+| bool | 布尔组合 | 复杂条件组合 |
 
-- 高写入吞吐量。 ES 在写入数据时，需要进行一系列操作，包括数据的解析、索引创建、分片分配等。当写入速度过快，这些操作可能无法及时完成，导致写入队列堆积，进而影响性能。
-- 索引设置不合理。索引的分片（shard）数量和副本（replica）数量设置不当。如果分片数量过多，会增加集群的管理开销。副本数量过多同样会带来性能问题。
-- 数据模型复杂。存在多层嵌套的 JSON 数据结构时，ES 在写入过程中需要进行复杂的解析和映射操作。
-- 复杂查询语句。使用了大量的嵌套查询、聚合操作和过滤条件。
-- 数据量过大的查询。当查询的数据量过大时，比如，在一个存储了多年历史数据的 ES 集群中，需要查询过去五年所有用户的行为记录。
-- 缓存未命中。果频繁执行的查询不能有效地利用缓存，每次查询都需要重新执行底层的数据检索和计算操作，查询的参数经常变化，或者数据更新频繁导致缓存失效。
-
-### 11.ES的优化手段
-
-
-### 12.ES多个索引联表查
-
-
-- 使用bool查询进行跨索引联合查询。找到同时满足index1和index2的两个数据
+## 4.3 查询示例
 
 ```json
 {
   "query": {
     "bool": {
       "must": [
+        { "match": { "title": "Elasticsearch教程" } }
+      ],
+      "should": [
+        { "term": { "featured": true } }
+      ],
+      "must_not": [
+        { "term": { "status": "deleted" } }
+      ],
+      "filter": [
+        { "range": { "price": { "gte": 100, "lte": 500 } } }
+      ]
+    }
+  }
+}
+```
+
+---
+
+# 第五章：聚合分析
+
+## 5.1 聚合架构
+
+```mermaid
+flowchart LR
+    subgraph Types[聚合类型]
+        B[桶聚合]
+        M[指标聚合]
+        P[管道聚合]
+    end
+
+    B --> B1[terms桶]
+    B --> B2[range桶]
+    B --> B3[date_histogram桶]
+
+    M --> M1[sum总和]
+    M --> M2[avg平均值]
+    M --> M3[cardinality基数]
+
+    P --> P1[累计求和]
+    P --> P2[移动平均]
+```
+
+## 5.2 聚合示例
+
+```bash
+$ curl -X GET "http://localhost:9200/sales/_search" -H 'Content-Type: application/json' -d '
+{
+  "size": 0,
+  "aggs": {
+    "by_region": {
+      "terms": { "field": "region.keyword" },
+      "aggs": {
+        "total_amount": { "sum": { "field": "sales_amount" } },
+        "avg_quantity": { "avg": { "field": "quantity_sold" } }
+      }
+    },
+    "by_category": {
+      "terms": { "field": "product_category.keyword" }
+    }
+  }
+}'
+```
+
+## 5.3 多重聚合桶
+
+```mermaid
+flowchart TD
+    Sales[销售数据] --> RegionAgg[按地区聚合]
+    RegionAgg --> North[北方区]
+    RegionAgg --> South[南方区]
+
+    North --> N_Amount[总额: 15000]
+    South --> S_Amount[总额: 20000]
+
+    Sales --> CategoryAgg[按类别聚合]
+    CategoryAgg --> Electronics[电子产品]
+    CategoryAgg --> Clothes[服装]
+
+    Electronics --> E_Quantity[销量: 1000]
+    Clothes --> C_Quantity[销量: 500]
+```
+
+---
+
+# 第六章：性能优化
+
+## 6.1 性能问题场景
+
+| 场景 | 问题原因 | 影响 |
+|------|----------|------|
+| 高写入吞吐量 | 写入速度超过处理能力 | 队列堆积、延迟增加 |
+| 分片过多 | 管理开销增大 | 内存占用高 |
+| 副本过多 | 写入复制成本 | 写入性能下降 |
+| 深度分页 | 跳过大量数据 | 内存溢出、耗时剧增 |
+| 复杂嵌套 | 解析和映射开销 | 查询性能下降 |
+| 缓存未命中 | 查询参数频繁变化 | 每次全量计算 |
+
+## 6.2 优化手段
+
+| 优化项 | 建议 |
+|--------|------|
+| 副本数量 | 读多写少可增加副本，读性能线性提升 |
+| 分片策略 | 单分片50GB左右，避免过多小分片 |
+| 路由优化 | 使用routingKey减少搜索范围 |
+| 字段类型 | 精确查询用keyword，避免text全文本 |
+| 禁用动态映射 | 避免字段爆炸，控制存储 |
+| 冷热分离 | 热数据用高性能节点，冷数据用大容量 |
+
+## 6.3 缓存机制
+
+```mermaid
+flowchart TD
+    Query[查询请求] --> Cache[查询缓存]
+    Cache -->|命中| Return[直接返回]
+    Cache -->|未命中| Shard[分片查询]
+    Shard -->|计算| Return
+
+    subgraph CacheTypes[缓存类型]
+        QC[Query Cache<br/>查询结果缓存]
+        FC[Filter Cache<br/>过滤器缓存]
+        SC[Shard Query Cache<br/>分片级缓存]
+    end
+```
+
+---
+
+# 第七章：集群架构
+
+## 7.1 集群特点
+
+| 特点 | 说明 |
+|------|------|
+| 分布式存储 | 数据分散在多个节点 |
+| 副本冗余 | 节点故障自动恢复 |
+| 水平扩展 | 新节点自动均衡 |
+| 故障转移 | Master选举自动进行 |
+
+## 7.2 Master选举机制
+
+```mermaid
+flowchart TD
+    Start[启动集群] --> Ping[节点互相Ping]
+    Ping --> Elect[ZenDiscovery选举]
+    Elect --> Minimum[至少N个节点参与]
+
+    Minimum -->|只有1个| Single[单节点模式]
+    Minimum -->|多个节点| Vote[投票]
+
+    Vote -->|票数最多| NewMaster[成为Master]
+    Vote -->|票数相同| Tie[重新投票]
+    Tie --> Minimum
+
+    NewMaster --> Monitor[监控节点状态]
+    Monitor -->|节点故障| Replica[分片重新分配]
+```
+
+## 7.3 脑裂问题处理
+
+| 参数 | 说明 |
+|------|------|
+| discovery.zen.minimum_master_nodes | 最小主节点数，防止脑裂 |
+| 公式 | (N/2) + 1，N为合格节点数 |
+
+---
+
+# 第八章：底层原理
+
+## 8.1 倒排索引原理
+
+### 正排索引 vs 倒排索引
+
+| 类型 | 结构 | 查询方式 |
+|------|------|----------|
+| 正排索引 | 文档 → 词列表 | 根据文档查词 |
+| 倒排索引 | 词 → 文档列表 | 根据词查文档 |
+
+### 倒排索引结构
+
+```mermaid
+flowchart LR
+    subgraph Documents[文档集合]
+        D1["文档1: Apple is fruit"]
+        D2["文档2: Banana is fruit"]
+        D3["文档3: Apple juice"]
+    end
+
+    subgraph InvertedIndex[倒排索引]
+        Apple["Apple → [D1, D3], 位置[0], 位置[0]"]
+        Banana["Banana → [D2], 位置[0]"]
+        Fruit["Fruit → [D1, D2], 位置[2], 位置[2]"]
+    end
+
+    D1 -->|分词| Apple
+    D2 -->|分词| Banana
+    D3 -->|分词| Apple
+    D1 -->|分词| Fruit
+    D2 -->|分词| Fruit
+```
+
+### 查询流程
+
+```mermaid
+sequenceDiagram
+    participant Q as Query["查询：Apple fruit"]
+    participant A as Analyzer[分析器处理]
+    participant I as Index[倒排索引]
+    participant R as Result[最终结果]
+
+    Q->>A: 提交查询语句
+    A-->>I: 分词结果 apple、fruit
+    I-->>I: 单词apple → D1、D3
+    I-->>I: 单词fruit → D1、D2
+    I-->>R: 取交集文档 D1
+```
+
+## 8.2 文档写入流程
+
+```mermaid
+flowchart TD
+    Client[客户端] -->|写入请求| Coordinator[协调节点]
+    Coordinator -->|路由计算| Primary[主分片]
+    Primary -->|写入内存| Memory[Memory Buffer]
+    Primary -->|异步| Replica[副本分片]
+    Replica -->|确认| Primary
+    Primary -->|ack| Coordinator
+    Coordinator -->|ack| Client
+
+    Memory -->|刷新| Refresh[Refresh Interval]
+    Refresh -->|生成| Segment[Lucene Segment]
+    Segment -->|可搜索| Searchable[可搜索文档]
+```
+
+## 8.3 文档更新/删除流程
+
+```mermaid
+flowchart TD
+    %% 上层：分段存储结构（只读+可写）
+    subgraph Layer1[Lucene Segment 分段存储]
+        direction TB
+        subgraph SegOld[旧 Segment 只读不可修改]
+            DocV1[Apple v1 原始文档]
+            Tombstone[Tombstone 删除标记]
+        end
+        subgraph SegNew[新 Segment 增量可写]
+            DocV2[Apple v2 最新文档]
+        end
+    end
+
+    %% 下层：删除&更新流程 + 查询流程 左右并排
+    subgraph Layer2[删除更新流程 & 查询流程]
+        direction TB
+        subgraph UpdateDel[更新 / 删除流程]
+            DelReq[删除/更新请求] --> Judge{文档所在段}
+            Judge -->|在旧只读段| Mark[Tombstone 逻辑标记删除]
+            Judge -->|直接写入新段| Write[新建版本写入新Segment]
+        end
+
+        subgraph QueryProcess[查询流程]
+            Query[查询请求] --> Scan[全量扫描所有Segment]
+            Scan --> Filter[过滤Tombstone标记文档]
+            Filter --> MergeResult[合并新旧段有效文档]
+        end
+    end
+```
+
+---
+
+# 第九章：高级特性
+
+## 9.1 深度分页方案
+
+### 问题说明
+
+| 方案 | 原理 | 限制 |
+|------|------|------|
+| from + size | 指定偏移和数量 | 最大10000条 |
+| search_after | 基于上一页最后一条排序值 | 需指定排序字段 |
+| scroll | 创建查询上下文 | 资源开销大，需清理 |
+
+### search_after示例
+
+```json
+// 首页查询
+{
+  "query": { "match": { "title": "keyword" } },
+  "sort": [{"id": "asc"}],
+  "size": 10
+}
+
+// 后续查询
+{
+  "query": { "match": { "title": "keyword" } },
+  "sort": [{"id": "asc"}],
+  "search_after": [123],
+  "size": 10
+}
+```
+
+## 9.2 联表查询方案
+
+### join数据类型
+
+```json
+{
+  "mappings": {
+    "properties": {
+      "join_field": {
+        "type": "join",
+        "relations": {
+          "customer": "order"
+        }
+      }
+    }
+  }
+}
+```
+
+```json
+// 查询某个客户的所有订单
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "customer",
+      "query": {
+        "term": { "customer_id": "customer123" }
+      }
+    }
+  }
+}
+```
+
+## 9.3 多索引查询
+
+```json
+// 跨索引查询
+{
+  "query": {
+    "bool": {
+      "should": [
         {
           "bool": {
             "must": [
-              {
-                "term": {
-                  "index1.field1": "value1"
-                }
-              }
+              { "term": { "index1.field1": "value1" } }
             ]
           }
         },
         {
           "bool": {
             "must": [
-              {
-                "term": {
-                  "index2.field2": "value2"
-                }
-              }
+              { "term": { "index2.field2": "value2" } }
             ]
           }
         }
@@ -316,93 +629,42 @@ POST /my_index/_doc/1
 }
 ```
 
-- 使用join数据类型实现关联查询（类似联表）
+---
 
-> 原理：join数据类型用于在一个索引内创建父子关系。例如有一个customers索引和一个orders索引，orders索引中的订单数据与customers索引中的客户数据相关联。
+# 第十章：实战问题
 
+## 10.1 为什么Elasticsearch查询快
 
-```json
-# 关系是customer（父）和order（子）
-{
-  "mappings": {
-    "properties": {
-      "customer_order_join": {
-        "type": "join",
-        "relations": {
-          "customer": "order"
-        }
-      },
-      "order_amount": {
-        "type": "float"
-      }
-    }
-  }
-}
+| 原因 | 说明 |
+|------|------|
+| 倒排索引 | 词到文档的直接映射 |
+| 缓存机制 | Query Cache、Filter Cache |
+| 分片并行 | 多节点并行计算 |
+| 文本分析 | 预处理的倒排索引 |
+| 分布式架构 | 横向扩展能力 |
 
-# 查询某个客户的所有订单
-{
-  "query": {
-    "has_parent": {
-      "parent_type": "customer",
-      "query": {
-        "term": {
-          "customers.customer_id": "customer123"
-        }
-      }
-    }
-  }
-}
-```
+## 10.2 一致性保证
 
+| 级别 | 说明 | 实现方式 |
+|------|------|----------|
+| 写入一致 | 写入主分片+指定数量副本 | wait_for_active_shards |
+| 读取一致 | 读取主分片或副本 | preference参数 |
+| 乐观锁 | 版本号控制并发 | if_seq_no + if_primary_term |
 
-### 13.elasticsearch的集群模式有什么特点
+## 10.3 面试高频问题
 
-- 通过副本（replica）机制实现数据冗余. 每个主分片（primary shard）可以有一个或多个副本分片。
-- 集群具有自动检测节点故障的能力.一个节点失效时，集群会自动将该节点上的主分片重新分配到其他健康节点上的副本分片。
-- 水平扩展方便。新的节点加入集群，Elasticsearch 就会自动对数据进行重新平衡。会自动将部分分片迁移到新节点上，使得数据分布更加均匀.
-- Elasticsearch 集群的分片（shard）机制灵活。如果预估数据量会快速增长，可以设置较多的分片.
-- 数据分布式存储。数据被分散存储在各个节点的分片上。
-- 分布式计算优势。对于聚合（aggregation）和复杂查询等操作,可以利用多个节点的计算资源进行分布式计算。每个节点负责处理一部分数据的计算，最后将所有节点的计算结果汇总.
+| 问题 | 关键点 |
+|------|--------|
+| 索引文档过程 | 分片路由 → 写入缓存 → 刷新 → 可搜索 |
+| 搜索过程 | 查询协调节点 → 并行搜索分片 → 结果汇总 |
+| 分片分配 | Master决策 → 副本复制 → 负载均衡 |
+| 性能优化 | 副本数、分片策略、缓存利用、字段类型 |
+| 集群高可用 | 副本机制、故障转移、脑裂防护 |
 
-### 14.elasticsearch 是如何实现 master 选举的
+---
 
--  Zen Discovery 机制
+# 相关资料
 
-    节点之间通过发送和接收 ping 消息来互相通信，以检查彼此的状态。节点的优先级设置,具有较高优先级的节点在选举中有更大的优势。
-    节点都维护着一个集群状态版本号。较新版本集群状态的节点会更有优势。
-
-
-### 15.描述一下Elasticsearch索引文档的过程
-
-### 16.详细描述一下 Elasticsearch 搜索的过程
-
-### 17.部署和使用Elastic的时候有哪些事项需要注意并且这些会带来什么影响
-
-
-### 18.Elasticsearch 对于大数据量（上亿量级）的聚合如何实现
-
-- Elasticsearch 的数据是分布在多个分片上的。在进行聚合操作时，每个分片会独立地计算本地部分数据的聚合结果。
-- 合理的字段类型选择。预聚合。例如，在一个日志索引中，如果经常需要统计每小时的日志数量，那么在写入日志数据时，可以每小时对日志数量进行一次简单的预聚合.
-- 查询缓存
-- 分片缓存
-
-7. Elasticsearch 中的节点（比如共 20 个），其中的 10 个选了一个 master，另外 10 个选了另一个 master，怎么办
-8. 客户端在和集群连接时，如何选择特定的节点执行请求的
-9. 详细描述一下 Elasticsearch 更新和删除文档的过程
-
-11. 在并发情况下，Elasticsearch 如果保证读写一致
-12. 介绍一下你们的个性化搜索方案
-13. Elasticsearch的调优手段(设计\写入查询)
-
-
-### 二、底层原理理解
-
-倒排索引...
-
-#### 三、高可用方案
-
-1. 多节点 多分片 [集群模式](https://blog.csdn.net/qq_41167306/article/details/122967059)
-
-2. 官方推荐的使用docker-compose搭建Elastic集群[bitnami/elasticsearch](https://registry.hub.docker.com/r/bitnami/elasticsearch)
-
+- [Elasticsearch官方文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
+- [Elasticsearch: The Definitive Guide](https://www.elastic.co/guide/en/elasticsearch/guide/current/index.html)
 - [10道不得不会的ElasticSearch面试题](https://cloud.tencent.com/developer/article/1964271)

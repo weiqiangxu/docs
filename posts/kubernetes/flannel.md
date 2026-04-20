@@ -1,11 +1,3 @@
----
-title: flannel
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 > kubernetes网络解决方案flannel如何使用，拓扑图理解
 
 ## 目录

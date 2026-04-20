@@ -1,11 +1,3 @@
----
-title: iperf
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 > iperf压测网速
 
 ## 目录

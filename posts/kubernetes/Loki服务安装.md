@@ -1,11 +1,3 @@
----
-title: Loki服务安装
-tags:
-  - loki
-categories:
-  - kubernetes
----
-
 ### 一、安装步骤
 
 1. 安装[helm](https://github.com/helm/helm/releases)工具

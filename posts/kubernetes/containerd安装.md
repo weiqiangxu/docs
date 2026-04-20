@@ -1,11 +1,3 @@
----
-title: containerd安装
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 ## 目录
 
 - [一、环境信息](#一环境信息)

@@ -1,11 +1,3 @@
----
-title: kata&firecracker
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 > 介绍如何安装kata和配置containerd使用kata&&firecracker创建容器.
 
 ### 一、环境

@@ -1,11 +1,3 @@
----
-title: CRD控制器
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 ## 目录
 
 - [一、创建自定义资源](#一创建自定义资源)

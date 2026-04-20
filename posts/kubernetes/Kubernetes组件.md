@@ -1,11 +1,3 @@
----
-title: Kubernetes组件
-category:
-  - docker
-tag:
-  - docker
----
-
 ## 目录
 
 - [一、组件概述](#一组件概述)

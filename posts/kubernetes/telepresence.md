@@ -1,16 +1,8 @@
----
-title: telepresence
-tags:
-  - telepresence
-categories:
-  - kubernetes
----
-
 ### 1.常用命令
 
 ```
-telepresence version
-telepresence connect
+$ telepresence version
+$ telepresence connect
 ```
 
 ### 2.集群连接

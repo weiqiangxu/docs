@@ -1,11 +1,3 @@
----
-title: nginx-ingress
-tags:
-  - kubernetes
-categories:
-  - kubernetes
----
-
 ## 目录
 
 - [一、概述](#一概述)

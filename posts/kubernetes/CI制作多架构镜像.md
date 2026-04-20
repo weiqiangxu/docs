@@ -1,12 +1,3 @@
----
-title: CI制作多架构镜像
-tags:
-  - cicd
-  - dockerfile
-categories:
-  - docker
----
-
 ### 一、总览
 
 1. 制作镜像支持编译SDN以及上传helm包和images

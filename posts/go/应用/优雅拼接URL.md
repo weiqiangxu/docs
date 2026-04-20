@@ -1,11 +1,3 @@
----
-title: 优雅拼接URL
-tags:
-  - golang
-categories:
-  - golang
----
-
 ### 一、代码
 
 ``` go
