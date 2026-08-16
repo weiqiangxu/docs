@@ -3,6 +3,7 @@
 ## 一、核心问题领域总览
 
 ```mermaid
+%%{init: {'themeVariables': { 'mainBkg': '#ffffff', 'textColor': '#000000'}}}%%
 mindmap
   root((分布式理论))
     一致性问题
@@ -47,38 +48,49 @@ mindmap
 
 ```mermaid
 flowchart TD
+    %% 第一层：一致性领域，整行横向排布
     subgraph Consistency[一致性领域]
         Raft[Raft算法<br/>解决：选主+日志复制]
         Paxos[Paxos算法<br/>解决：多节点达成一致]
         ZAB[ZAB协议<br/>解决：主备切换+数据同步]
         Gossip[Gossip协议<br/>解决：最终一致性传播]
     end
+    Raft --- Paxos --- ZAB --- Gossip
 
+    %% 第二层：可用性领域
     subgraph Availability[可用性领域]
         CAP[CAP定理<br/>解决：C/A/P三者权衡]
         BASE[BASE理论<br/>解决：高可用下的松绑一致性]
         Quorum[Quorum机制<br/>解决：读写仲裁平衡]
     end
+    CAP --- BASE --- Quorum
 
+    %% 第三层：事务领域
     subgraph Transaction[事务领域]
         TwoPC[2PC<br/>解决：分布式事务原子提交]
         ThreePC[3PC<br/>解决：2PC阻塞问题]
         TCC[TCC<br/>解决：业务侵入式最终一致]
         Saga[Saga<br/>解决：长事务补偿]
     end
+    TwoPC --- ThreePC --- TCC --- Saga
 
+    %% 第四层：数据分布领域
     subgraph DataDist[数据分布领域]
         ConsistHash[一致性哈希<br/>解决：节点增删时最小数据迁移]
         VNode[虚拟节点<br/>解决：数据倾斜问题]
         Sharding[范围分片<br/>解决：范围查询效率]
     end
+    ConsistHash --- VNode --- Sharding
 
+    %% 第五层：协调服务领域
     subgraph Coordination[协调服务领域]
         ZK[Zookeeper<br/>解决：分布式协调+配置管理]
         Etcd[etcd<br/>解决：服务发现+配置中心]
         Consul[Consul<br/>解决：服务注册+健康检查]
     end
+    ZK --- Etcd --- Consul
 
+    %% 垂直连接层与层之间
     Consistency --> Availability
     Availability --> Transaction
     Transaction --> DataDist
@@ -107,12 +119,12 @@ flowchart LR
     ZAB -->|阶段| Broadcast[广播]
 ```
 
-| 算法 | 解决问题 | 核心机制 | 典型应用 |
-|------|----------|----------|----------|
-| **Paxos** | 多节点如何对一个值达成一致 | 提案者/接受者/学习者 | 理论基础 |
-| **Raft** | 选主 + 日志复制一致性 | Leader选举+日志复制+安全性 | etcd, Consul |
-| **ZAB** | 主备数据同步 + 主备切换 | 发现+同步+广播三阶段 | Zookeeper |
-| **Gossip** | 最终一致性传播 | 流言传播+反熵 | Cassandra, Redis Cluster |
+| 算法         | 解决问题          | 核心机制              | 典型应用                     |
+| ---------- | ------------- | ----------------- | ------------------------ |
+| **Paxos**  | 多节点如何对一个值达成一致 | 提案者/接受者/学习者       | 理论基础                     |
+| **Raft**   | 选主 + 日志复制一致性  | Leader选举+日志复制+安全性 | etcd, Consul             |
+| **ZAB**    | 主备数据同步 + 主备切换 | 发现+同步+广播三阶段       | Zookeeper                |
+| **Gossip** | 最终一致性传播       | 流言传播+反熵           | Cassandra, Redis Cluster |
 
 ### 3.2 Raft 解决的具体问题
 
@@ -189,13 +201,13 @@ flowchart LR
     MsgChar --> Scene4[场景: 异步消息解耦]
 ```
 
-| 方案 | 解决问题 | 缺点 | 适用场景 |
-|------|----------|------|----------|
-| **2PC** | 强一致分布式事务 | 阻塞+单点故障 | 传统数据库 |
-| **3PC** | 2PC阻塞问题 | 仍可能不一致 | 理论改进 |
-| **TCC** | 业务层面最终一致 | 代码侵入大 | 电商支付 |
-| **Saga** | 长事务的一致性 | 补偿逻辑复杂 | 业务流程长 |
-| **本地消息表** | 跨服务最终一致 | 依赖消息系统 | 异步场景 |
+| 方案        | 解决问题     | 缺点      | 适用场景  |
+| --------- | -------- | ------- | ----- |
+| **2PC**   | 强一致分布式事务 | 阻塞+单点故障 | 传统数据库 |
+| **3PC**   | 2PC阻塞问题  | 仍可能不一致  | 理论改进  |
+| **TCC**   | 业务层面最终一致 | 代码侵入大   | 电商支付  |
+| **Saga**  | 长事务的一致性  | 补偿逻辑复杂  | 业务流程长 |
+| **本地消息表** | 跨服务最终一致  | 依赖消息系统  | 异步场景  |
 
 ## 六、数据分布策略
 
@@ -238,12 +250,12 @@ flowchart TD
     Sync --> ZK3[Zookeeper]
 ```
 
-| 服务 | 一致性算法 | 典型场景 | 语言 |
-|------|-----------|----------|------|
-| **Zookeeper** | ZAB | Hadoop/Kafka协调 | Java |
-| **etcd** | Raft | K8s配置/服务发现 | Go |
-| **Consul** | Raft | 服务注册+健康检查 | Go |
-| **Nacos** | Raft/Distro | 配置中心+服务发现 | Java |
+| 服务            | 一致性算法       | 典型场景           | 语言   |
+| ------------- | ----------- | -------------- | ---- |
+| **Zookeeper** | ZAB         | Hadoop/Kafka协调 | Java |
+| **etcd**      | Raft        | K8s配置/服务发现     | Go   |
+| **Consul**    | Raft        | 服务注册+健康检查      | Go   |
+| **Nacos**     | Raft/Distro | 配置中心+服务发现      | Java |
 
 ## 八、面试高频问题速查
 
@@ -277,3 +289,4 @@ mindmap
 - [Paxos Made Simple](https://lamport.orgpubs/paxos-simple.pdf)
 - [CAP定理](https://zh.wikipedia.org/wiki/CAP定理)
 - [分布式系统必读论文合集](https://github.com/papers-we-love/papers-we-love)
+
