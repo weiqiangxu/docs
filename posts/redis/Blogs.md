@@ -1,62 +1,92 @@
-# 使用Redis搭建博客
+> Redis 学习资料汇总与博客索引
 
-1. 存储文章内容k-v形式存储字符串(序列化内容)
+## 目录
 
-2. 文章访问量自增 INCRBY
+- [一、官方资料](#一官方资料)
+- [二、经典书籍](#二经典书籍)
+- [三、优质博客](#三优质博客)
+- [四、源码学习](#四源码学习)
+- [五、实践笔记](#五实践笔记)
 
-3. 文章内容访问或更改属性麻烦更换为散列 HSET key field value
+## 一、官方资料
 
-4. 获取文章列表使用列表类型list LPUSH RPUSH LPOP RPOP
+| 资源 | 链接 |
+|------|------|
+| 官网 | https://redis.io/ |
+| 文档 | https://redis.io/docs/ |
+| 命令参考 | https://redis.io/commands/ |
+| 源码仓库 | https://github.com/redis/redis |
+| 模块仓库 | https://github.com/redislabs |
 
-5. 文章的标签tags存储使用集合类型 SCARD key
+## 二、经典书籍
 
-6. 文章按照访问量排序 - 有序集合 ZCOUNT key min max
+| 书名 | 作者 | 说明 |
+|------|------|------|
+| 《Redis设计与实现》 | 黄健宏 | 数据结构与底层实现讲解透彻 |
+| 《Redis开发与运维》 | 付磊 | 实战开发+运维 |
+| 《Redis实战》 | Josiah L. Carlson | 应用场景与最佳实践 |
+| 《Redis 5设计与源码分析》 | 陈雷等 | 源码级剖析 |
 
-# 基础
+## 三、优质博客
 
-1. 字符串类型
-    简单的一对一映射关系，刚开始采用序列化数组为字符串存储 { name => 'jck' }
-2. 哈希类型
-    存储对象，并且可以直接对对象的某一个属性进行增删改查 {id => {'name':'jack','title'=>'taitannike','time'=>'2018-08-08 15:20'}}
-3. 列表类型（改变某一个的顺序需要把列表的每一个元素全部重新排列）
-    获取文章列表分页数据的时候，需要用列表，但是依然需要解决排序、取中间片段速度缓慢的问题  [1,2,3,4,5]
-4. 集合类型
-    存储文章标签的时候，如何做到标签唯一，有就无操作无就存入. id => {"美食","旅行","装饰"}
-5. 有序集合类型 - (散列+跳跃表实现，所以中间存取也是极快)
-    号称最高级的数据类型，就是序号加值，但是他可以做到按序号大小获取中间片段，以及按大小排序 {score => {['89','tom'],['99','marry']}}
+- [antirez 博客](http://antirez.com/) - Redis作者博客
+- [Redis Labs 博客](https://redis.com/blog/)
+- [黄健宏博客](http://huangz.me/)
+- [钱文品博客](https://www.cnblogs.com/happyhope/)
 
-# 数据类型
+## 四、源码学习
 
-Redis 提供了丰富的数据类型，常见的有五种数据类型：
+### 4.1 关键源码文件
 
-String（字符串）
+| 文件 | 内容 |
+|------|------|
+| `src/server.c` | Redis服务器主流程 |
+| `src/networking.c` | 网络层实现 |
+| `src/dict.c` | 哈希表实现 |
+| `src/t_string.c` | String类型实现 |
+| `src/t_hash.c` | Hash类型实现 |
+| `src/t_list.c` | List类型实现 |
+| `src/t_set.c` | Set类型实现 |
+| `src/t_zset.c` | SortedSet实现（含跳表） |
+| `src/expire.c` | 过期键实现 |
+| `src/aof.c` | AOF持久化 |
+| `src/rdb.c` | RDB持久化 |
+| `src/cluster.c` | 集群实现 |
+| `src/replication.c` | 主从复制 |
 
-Hash（哈希）
+### 4.2 数据结构源码
 
-List（列表）
+| 文件 | 数据结构 |
+|------|----------|
+| `src/sds.c` | 简单动态字符串 |
+| `src/adlist.c` | 双向链表 |
+| `src/dict.c` | 字典 |
+| `src/intset.c` | 整数集合 |
+| `src/ziplist.c` | 压缩列表 |
+| `src/quicklist.c` | 快速列表 |
+| `src/listpack.c` | 紧凑列表（Redis 7） |
+| `src/t_zset.c` | 跳表 |
 
-Set（集合）
+## 五、实践笔记
 
-Zset（有序集合）。
+### 5.1 学习路径建议
 
-# 进阶
+```mermaid
+flowchart TD
+    A[基础命令] --> B[数据结构原理]
+    B --> C[持久化机制]
+    C --> D[主从复制]
+    D --> E[哨兵模式]
+    E --> F[Cluster集群]
+    F --> G[源码阅读]
+    G --> H[性能调优]
+```
 
-1、事务
+### 5.2 进阶主题
 
-2、生存时间
-
-3、排序
-
-4、消息通知
-
-# 管理
-
-1、持久化
-
-2、复制
-
-3、安全
-
-4、通信协议
-
-5、管理工具
+- Redis 7.0 新特性：Functions、ACL v2、多线程AOF
+- Redis 6.0 多线程IO
+- Redis Modules（RediSearch、RedisGraph、RedisJSON）
+- Redis Stream 消息队列
+- Redis on Flash
+- Redis 8.0 AI向量检索
