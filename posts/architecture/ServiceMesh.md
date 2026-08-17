@@ -25,16 +25,25 @@
 将服务治理能力（负载均衡、熔断、限流、追踪、加密等）从应用代码下沉到 Sidecar 代理：
 
 ```mermaid
-flowchart LR
-    subgraph 传统SDK模式
-        App1[应用<br/>+治理SDK] --> App2[应用<br/>+治理SDK]
+flowchart TD
+    %% 第一层：传统SDK模式
+    subgraph Legacy[传统SDK模式]
+        App1[应用1<br/>+治理SDK]
+        App2[应用2<br/>+治理SDK]
+        App3[应用3<br/>+治理SDK]
     end
-    subgraph Service Mesh
-        A1[应用] --> S1[Sidecar]
-        S1 --> S2[Sidecar]
-        S2 --> A2[应用]
-        Note over S1,S2: 治理能力下沉
+    App1 --- App2 --- App3
+
+    %% 第二层：Service Mesh模式
+    subgraph Mesh[Service Mesh模式]
+        AppA[应用1] --> SidecarA[Sidecar1<br/>负载均衡]
+        AppB[应用2] --> SidecarB[Sidecar2<br/>熔断限流]
+        AppC[应用3] --> SidecarC[Sidecar3<br/>追踪加密]
     end
+    SidecarA --- SidecarB --- SidecarC
+
+    %% 演进方向
+    Legacy -->|治理能力下沉| Mesh
 ```
 
 ## 二、架构演进

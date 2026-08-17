@@ -21,8 +21,7 @@ flowchart LR
     A[物理机] --> B[虚拟机]
     B --> C[容器]
     C --> D[Kubernetes]
-    D --> E[Serverless]
-    Note over E: 用户只关心代码
+    D --> E[Serverless<br/>用户只关心代码]
 ```
 
 ### 1.2 两种形态
@@ -93,7 +92,7 @@ flowchart LR
     C --> D[加载代码]
     D --> E[初始化]
     E --> F[执行函数]
-    Note over A,F: 冷启动延迟 1-3 秒
+    G[冷启动延迟 1-3 秒]
 ```
 
 冷启动优化：

@@ -63,7 +63,7 @@ flowchart LR
     subgraph 5节点
         A1[A1]
         A2[A2]
-        A3[A3]
+        A3[A3<br/>交集]
         A4[A4]
         A5[A5]
     end
@@ -73,8 +73,7 @@ flowchart LR
     Q2[多数派2<br/>A3 A4 A5] -.-> A3
     Q2 -.-> A4
     Q2 -.-> A5
-    Q1 x--x Q2
-    Note over Q1,Q2: 必有交集 A3
+    Q1 ---|必有交集| Q2
 ```
 
 ## 三、Basic Paxos 流程
