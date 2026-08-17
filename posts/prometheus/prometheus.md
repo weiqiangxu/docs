@@ -1,61 +1,312 @@
-### 一、本地启动Prometheus
+# Prometheus
 
-``` bash
-$ /Users/xuweiqiang/Documents/data
+> Prometheus 是云原生时代的事实标准监控系统,采用 pull 模型 + 自研时序数据库(TSDB)。本章聚焦 **Prometheus 架构与 TSDB 存储原理**,告警、高可用等专题见 [alertmanager.md](./alertmanager.md)、[prometheus高可用.md](./prometheus高可用.md)。
+
+## 目录
+
+- [一、整体架构](#一整体架构)
+- [二、数据模型](#二数据模型)
+- [三、TSDB 时序数据库](#三tsdb-时序数据库)
+- [四、Metric 类型与客户端](#四metric-类型与客户端)
+- [五、配置体系](#五配置体系)
+- [六、资源占用与调优](#六资源占用与调优)
+- [七、数据备份与远程读写](#七数据备份与远程读写)
+- [八、联邦机制](#八联邦机制)
+- [九、面试要点](#九面试要点)
+- [十、相关资料](#十相关资料)
+
+## 一、整体架构
+
+```mermaid
+flowchart LR
+    Exp[Exporter<br/>被监控目标] -->|/metrics| Prom[Prometheus Server]
+    Push[Pushgateway<br/>短任务] -->|push| Prom
+    Prom -->|拉取/计算| Rules[告警/记录规则]
+    Rules --> AM[Alertmanager]
+    AM -->|邮件/钉钉/Slack| User[用户]
+    Prom --> TSDB[(本地 TSDB)]
+    Prom -->|remote_write| Remote[(远端存储<br/>Thanos/Mimir/VictoriaMetrics)]
+    Prom -->|PromQL| Dash[Grafana]
 ```
 
-``` bash
-$ ./prometheus --storage.tsdb.path=/Users/xuweiqiang/Documents/data \
---config.file=/Users/xuweiqiang/Documents/prometheus.yml \
---web.listen-address=:8989
+| 组件 | 职责 |
+|------|------|
+| Prometheus Server | 采集、存储、查询 |
+| Exporter | 暴露 `/metrics` 端点 |
+| Pushgateway | 短任务推送指标中转 |
+| Alertmanager | 告警去重、分组、路由 |
+| Grafana | 可视化 |
+| 远端存储 | 长期存储、全局查询 |
+
+### 1.1 Pull 模型
+
+Prometheus 主动拉取目标,而非被动接收。优点:
+- 主动控制采集节奏,避免被压垮
+- 目标无感知,故障时仍可探测
+- 便于水平扩展(多实例各自拉取)
+
+短任务(如 Cron)生命周期短,无法被 pull,改用 Pushgateway 中转:
+
+```mermaid
+flowchart LR
+    Job[短任务] -->|push| PG[Pushgateway]
+    Prom[Prometheus] -->|pull| PG
 ```
 
-``` yml
-# 自定义标签
-scrape_configs:
- - job_name: 'my_job'
-   static_configs:
-     - targets: ['my_target']
-       labels:
-         my_label: 'my_value'
+### 1.2 本地启动
+
+```bash
+./prometheus \
+  --storage.tsdb.path=/Users/xuweiqiang/Documents/data \
+  --config.file=/Users/xuweiqiang/Documents/prometheus.yml \
+  --web.listen-address=:8989
 ```
 
-> 动态地添加标签或从其他源配置目标，请考虑使用服务发现或Relabeling等更高级的配置选项
+健康检查:`http://localhost:8989/-/healthy`
 
+## 二、数据模型
 
-### 二、查看内存占用
+### 2.1 时间序列
 
-1. top的RES
+每个指标 = 指标名 + 一组标签,**由它们唯一确定一条时间序列**。
 
-  "top的RES"可能指的是Linux操作系统中"top"命令中的"RES"列，表示进程使用的实际物理内存大小（以KB为单位）
-
-2. top查看占用内存
-
-``` bash
-# 获取pid
-$ ps -ef | grep prometheus
-# 获取pid对应的内存大小
-$ top -p ${pid}
+```
+http_requests_total{method="POST", endpoint="/api/orders", status="200"}
 ```
 
-``` txt
-PID USER      PR  NI    VIRT    RES           
-4590 root      20   0 1205660  83016
+```mermaid
+flowchart LR
+    M["指标名<br/>http_requests_total"] --> S[时间序列]
+    L["标签集<br/>method=POST<br/>endpoint=/api/orders<br/>status=200"] --> S
+    S --> Samples[样本序列<br/>t1,v1  t2,v2  t3,v3 ...]
 ```
 
-3. metrics端口查看
+- **样本(Sample)**:`(timestamp, float64 value)` 二元组,默认 4-8 字节
+- **序列(Series)**:由 `metric_name + labelset` 唯一标识,基数 = 序列数
 
-``` bash
-# 指标获取
-$ curl localhost:9090/metrics
+### 2.2 指标类型
 
-# 查看 (与top的res一致) 单位kb
-process_resident_memory_bytes/1024
+| 类型 | 含义 | 例子 | 客户端 API |
+|------|------|------|----------|
+| Counter | 单调递增计数 | 请求总数、错误总数 | `Inc()` |
+| Gauge | 可增可减瞬时值 | 温度、内存、连接数 | `Set()`/`Inc()`/`Dec()` |
+| Histogram | 分桶统计分布 | 接口延迟分布 | `Observe()` |
+| Summary | 客户端分位数 | 95/99 延迟 | `Observe()` |
+
+Histogram vs Summary:
+
+| 维度 | Histogram | Summary |
+|------|-----------|---------|
+| 分位数计算 | 服务端 PromQL `histogram_quantile` | 客户端预计算 |
+| 跨实例聚合 | 支持 | 不支持 |
+| 多分位 | 服务端任意 | 客户端配置固定 |
+| 推荐 | ✓ 主流 | 仅特定场景 |
+
+### 2.3 基数控制
+
+**高基数标签是 Prometheus 内存爆炸的头号杀手**。每个标签的不同值都会倍增序列数:
+
+```
+http_requests_total{user_id="..."}  # ❌ user_id 千万级 → 千万条序列
+http_requests_total{tenant_id="..."}  # ✓ 租户数有限
 ```
 
-### 三、golang-metric-exporter
+| 标签来源 | 基数 | 是否安全 |
+|---------|------|---------|
+| `status` (200/404/500) | 几十 | ✓ |
+| `method` (GET/POST) | < 10 | ✓ |
+| `user_id` / `trace_id` / `ip` | 海量 | ✗ |
+| `endpoint` 全路径 | 数百 | 谨慎 |
 
-``` go
+## 三、TSDB 时序数据库
+
+> Prometheus 内置专用时序数据库,是理解内存占用、retention、调优参数的基石。
+
+### 3.1 设计目标
+
+- **写优化**:海量时间序列的追加写
+- **压缩友好**:同序列相邻样本变化小,Gorilla 等压缩算法
+- **范围查询快**:按时间分块、按序列索引
+- **本地存储**:不做分布式,长期存储交给远端
+
+### 3.2 存储层次:Head → 持久 Block
+
+```mermaid
+flowchart LR
+    subgraph 内存 Head
+        InMem[活跃样本<br/>最近 ~2h] --> HeadChunk[Chunk<br/>120 sample/chunk]
+        HeadChunk --> MMapChunk[mmap chunks<br/>超容量落盘]
+    end
+    subgraph 磁盘 持久 Block
+        Block1[Block<br/>2h 数据]
+        Block2[Block<br/>2h 数据]
+        Block3[Block<br/>2h 数据]
+    end
+    HeadChunk -->|满 2h 切片<br/>落盘| Block1
+    Block1 -.->|Compaction<br/>合并| Block2
+```
+
+| 层级 | 位置 | 内容 | 生命周期 |
+|------|------|------|---------|
+| Head | 内存 + mmap | 最新的活跃样本 | 2 小时窗口 |
+| 持久 Block | 磁盘 | 2 小时切片 | retention 期内 |
+| Compacted Block | 磁盘 | 多 Block 合并 | 长期保留 |
+
+### 3.3 Block 结构
+
+每个 2 小时 Block 是一个独立目录:
+
+```
+01H8XKPRJQK.../                  # Block ID = 时间范围起止
+├── chunks/                      # 实际样本数据
+│   ├── 000001                   # chunk 文件,默认 512KB
+│   └── 000002
+├── index                        # 倒排索引:标签 → 序列 → chunk
+├── meta.json                    # Block 元数据
+└── tombstones                   # 删除标记(不真删,标记后过滤)
+```
+
+| 文件 | 作用 |
+|------|------|
+| `chunks/` | 原始样本数据,按 chunk 组织 |
+| `index` | 标签倒排索引,支持快速查找匹配序列 |
+| `meta.json` | Block 时间范围、compaction level |
+| `tombstones` | 删除标记,查询时过滤 |
+
+### 3.4 Chunk:样本压缩单元
+
+每个 chunk 默认容纳 **120 个样本**(约 15s 采集间隔 × 30 分钟)。
+
+```mermaid
+flowchart LR
+    Series[一条时间序列] --> C1[Chunk1<br/>120 samples]
+    Series --> C2[Chunk2<br/>120 samples]
+    Series --> C3[Chunk3<br/>120 samples]
+```
+
+**Gorilla 压缩算法**(Facebook 提出):
+- **时间戳**:Delta-of-delta 编码,相邻样本时间差再差分
+- **值**:XOR 编码,相邻值按位异或后变长编码
+
+| 数据类型 | 未压缩 | Gorilla 压缩后 |
+|---------|-------|---------------|
+| 单样本 | 16 字节(8B ts + 8B value) | ~1-2 字节 |
+| 120 样本 chunk | 1920 字节 | ~120-240 字节 |
+
+**结论**:理论每样本 1-2 字节,30 天 2000 QPS 采集 ≈ 0.96 GB。
+
+### 3.5 Head Block:写入路径
+
+```mermaid
+flowchart LR
+    Scrape[Scrape 拉取] --> App[Appender]
+    App --> Active[活跃 Series<br/>内存]
+    Active -->|每 120 样本| Chunk[Chunk<br/>内存]
+    Chunk -->|满或 2h| MMap[mmap 文件]
+    MMap -->|2h 切片| Persist[新持久 Block]
+```
+
+**关键机制**:
+1. **Series 缓存**:活跃序列在内存中保留 1-2 小时(可查 `--query.lookback-delta`)
+2. **Chunk 写满即落 mmap**:避免内存暴涨
+3. **2 小时切片**:Head 周期性切成持久 Block,清空对应内存
+
+### 3.6 WAL(Write-Ahead Log)
+
+写入样本前先追加 WAL,防止宕机丢失:
+
+```mermaid
+flowchart LR
+    Write[写入样本] --> WAL[追加 WAL]
+    WAL --> Memory[更新内存 Series]
+    WAL -->|2h 切片| Checkpoint[Checkpoint]
+    Checkpoint -->|持久 Block 落盘后| Truncate[截断旧 WAL]
+```
+
+| 参数 | 含义 | 默认 |
+|------|------|------|
+| `--storage.tsdb.wal-segment-size` | WAL 段大小 | 128 MB |
+| `--storage.tsdb.wal-compression` | WAL 压缩 | 开启 |
+
+**remote write 与 WAL 的关系**:remote write 失败的数据保留在 WAL 中重试,超过 2 小时 WAL 被 compaction 压缩后**未发送的数据会丢失**。
+
+### 3.7 Compaction
+
+把多个 2h Block 合并成更大的 Block,降低 Block 数量、提升查询:
+
+```mermaid
+flowchart LR
+    subgraph Compaction前
+        B1[2h]
+        B2[2h]
+        B3[2h]
+        B4[2h]
+    end
+    subgraph Compaction后
+        C1[8h]
+        C2[8h]
+    end
+    B1 & B2 & B3 & B4 -->|合并| C1
+```
+
+| Level | 时间跨度 |
+|-------|---------|
+| L1 | 2h |
+| L2 | 8h(4×2h) |
+| L3 | 24h(3×8h) |
+| L4 | ...直到 retention |
+
+**关键参数**:
+
+| 参数 | 默认 | 含义 |
+|------|------|------|
+| `--storage.tsdb.min-block-duration` | 2h | 切片大小 |
+| `--storage.tsdb.max-block-duration` | 2h 或 retention/10 | Compaction 上限 |
+| `--storage.tsdb.retention.time` | 15d | 数据保留时长 |
+| `--storage.tsdb.retention.size` | 0(不限) | 数据保留大小上限 |
+
+> `max-block-duration` 默认为 `min(retention/10, 31d)`,设为 2h 可**加速落盘**(测试场景常用),但生产环境通常按默认。
+
+### 3.8 倒排索引
+
+`index` 文件是按**标签**建立的倒排索引,支持 PromQL 的标签匹配:
+
+```
+查询:http_requests_total{status="500"}
+索引:{status="500"} → [series_id_1, series_id_42, ...] → chunk 定位
+```
+
+```mermaid
+flowchart LR
+    Q["查询 status=500"] --> Postings[倒排表]
+    Postings --> SID1[Series 1]
+    Postings --> SID2[Series 42]
+    SID1 --> Chunk1[Chunk 定位]
+    SID2 --> Chunk2[Chunk 定位]
+```
+
+**基数影响**:每个标签值都生成一条倒排表,基数爆炸会撑爆 index。
+
+### 3.9 查询路径
+
+```mermaid
+flowchart TD
+    PromQL["PromQL<br/>http_req_total{status=500}[5m]"] --> Parse[解析]
+    Parse --> Ref[索引查询<br/>匹配 series]
+    Ref --> Block1[查 Head]
+    Ref --> Block2[查多个 Block]
+    Block1 & Block2 --> Merge[合并结果]
+    Merge --> Eval[PromQL 求值]
+    Eval --> Ret[返回]
+```
+
+**查询内存 = 命中序列数 × 样本数**。`--query.max-samples`(默认 5000 万)是安全上限,超过则查询中止。
+
+## 四、Metric 类型与客户端
+
+### 4.1 Go 自定义 Exporter 示例
+
+```go
 package main
 
 import (
@@ -79,8 +330,6 @@ func init() {
 	prometheus.MustRegister(requestCounter)
 }
 
-// go语言实现 http服务端
-// http://127.0.0.1:8989/hello
 func main() {
 	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		requestCounter.Inc()
@@ -92,194 +341,275 @@ func main() {
 		panic(err)
 	}
 }
-
 ```
 
-### 四、prometheus配置
+### 4.2 四大客户端 API 对比
 
-1. 默认配置
+| 类型 | Go API | 适用 |
+|------|--------|------|
+| Counter | `Inc()` | 累加指标 |
+| Gauge | `Set(v)` / `Inc()` / `Dec()` | 瞬时值 |
+| Histogram | `Observe(v)` | 延迟分布,服务端算分位 |
+| Summary | `Observe(v)` | 客户端预计算分位 |
+
+### 4.3 metric 端点查看
+
+```bash
+curl localhost:9090/metrics
+# process_resident_memory_bytes 进程内存(单位 byte)
+# process_cpu_seconds_total  累计 CPU 时间
+```
+
+## 五、配置体系
+
+### 5.1 配置分类
+
+```mermaid
+mindmap
+  root((prometheus.yml))
+    global
+      scrape_interval
+      evaluation_interval
+      query_timeout
+    alerting
+      alertmanagers
+    rule_files
+      告警规则
+      记录规则
+    scrape_configs
+      job_name
+      static_configs
+      服务发现
+      relabel_configs
+    remote_write
+      长期存储
+    remote_read
+      远端查询
+```
+
+### 5.2 默认配置示例
 
 ```yaml
 global:
-  scrape_interval: 15s # 将采集间隔设置为每15秒。默认为1分钟一次
-  evaluation_interval: 15s # 每15秒评估一次规则。默认为1分钟。
-  # Scrape_timeout被设置为全局默认值(10秒)。
+  scrape_interval: 15s      # 采集间隔,默认 1m
+  evaluation_interval: 15s  # 规则计算间隔,默认 1m
+  # scrape_timeout: 10s     # 默认 10s
 
-# 告警配置
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          # - alertmanager:9093
+        - targets: []
 
-# 加载规则一次，并定期根据全局的“evaluation_interval”计算它们
-rule_files:
+rule_files: []
   # - "first_rules.yml"
-  # - "second_rules.yml"
 
-# 一个抓取配置，只包含一个要抓取的端点:这里是Prometheus本身
 scrape_configs:
-  # 作业名称作为标签' job=<job_name> '添加到从此配置中提取的任何时间序列中
   - job_name: "prometheus"
-
-    # Metrics_path默认为“/metrics”
-    # scheme defaults to 'http'.
-
     static_configs:
       - targets: ["localhost:9090"]
 ```
 
-2. 配置分类
+### 5.3 配置源码结构
 
-- 全局配置 global
-- 告警配置 alerting
-- 规则文件配置 rule_files
-- 拉取配置 scrape_configs
-- 远程读写配置 remote_read、remote_write
-
-3. 源码配置结构
-
-``` go 
-// /prometheus/config/config.go
-// Config is the top-level configuration for Prometheus's config files.
+```go
+// prometheus/config/config.go
 type Config struct {
 	GlobalConfig   GlobalConfig    `yaml:"global"`
 	AlertingConfig AlertingConfig  `yaml:"alerting,omitempty"`
-  ...
+	RuleFiles      []string        `yaml:"rule_files,omitempty"`
+	ScrapeConfigs  []*ScrapeConfig `yaml:"scrape_configs,omitempty"`
+	RemoteWriteConfigs []*RemoteWriteConfig `yaml:"remote_write,omitempty"`
+	RemoteReadConfigs  []*RemoteReadConfig  `yaml:"remote_read,omitempty"`
 }
 ```
 
-### 五、prometheus的资源占用分析
+### 5.4 自定义标签
 
-##### 1.内存
+```yaml
+scrape_configs:
+  - job_name: 'my_job'
+    static_configs:
+      - targets: ['my_target']
+        labels:
+          my_label: 'my_value'
+```
 
-1. 怎么看当前实例消耗内存大小
+> 动态标签或从外部源配置目标,使用服务发现或 Relabeling。
+
+## 六、资源占用与调优
+
+### 6.1 内存消耗来源
+
+```mermaid
+flowchart TD
+    Mem[Prometheus 内存] --> A[活跃 Series 缓存<br/>Head Block]
+    Mem --> B[查询结果<br/>命中序列 × 样本]
+    Mem --> C[索引<br/>倒排表]
+    Mem --> D[remote_write 队列<br/>+25%]
+```
+
+### 6.2 内存查看
 
 ```bash
-$ ps -ef | grep prometheus
+# 方式 1:top RES
+ps -ef | grep prometheus
+top -p ${pid}
+
+# 方式 2:指标端点(单位 byte,与 top RES 一致)
+curl localhost:9090/metrics | grep process_resident_memory_bytes
 ```
 
-2. 内存消耗的来源是哪些
+### 6.3 影响内存的关键参数
 
-- 查询负载
-- 指标数据（落盘机制）
+| 参数 | 默认 | 影响 |
+|------|------|------|
+| `scrape_interval` | 15s | 越小,Head 内存越高 |
+| `evaluation_interval` | 15s | 越小,规则计算越频繁 |
+| `--storage.tsdb.retention.time` | 15d | 越大,查询大范围时内存越高 |
+| `--storage.tsdb.max-block-duration` | 2h | 越大,落盘越慢、内存越高 |
+| `--query.max-samples` | 5000万 | 单查询内存上限 |
+| `--query.lookback-delta` | 5m | 拉取缓点回溯窗口 |
 
-3. 影响内存消耗的配置有哪些
+### 6.4 内存消耗估算
 
-  - `scrape_interval`和`evaluation_interval`：这两个参数分别控制着Prometheus的采集频率和计算频率，值越小，内存消耗越高
+假设 1000 个指标,每指标 10 个标签,每标签 10 个值:
+- 时间序列数:1000 × 10 × 10 = 100,000
+- 每序列标签对字节:~200 字节(100 标签对 × 2 字节)
+- 单序列内存:~1-2 KB(含索引、缓存)
+- 总内存:**约 200 MB ~ 1 GB**(加上查询与缓存)
 
-  - `retention`：这个参数控制着数据的保留时间，值越大，内存消耗越高(查询范围大的时候)。
-    默认保留数据15天也就是在磁盘超过15天的数据会被清理。
-    --storage.tsdb.retention.time=15d
+### 6.5 磁盘消耗估算
 
-  - `chunk_size`：这个参数控制着每个时间序列数据块的大小，值越大，内存消耗越高。storage.tsdb.max-block-duration（MaxBlockDuration）TSDB 存储时每个块的最大时间范围。默认值为 2 小时. storage.tsdb.max-block-chunk-segment-size(MaxBlockChunkSegmentSize)默认值为32MB.控制每个块（block）中的chunk在持久化时是否分割成多个片段（segment），以及每个片段的大小
+每 5 秒采集 2000 个样本,每样本压缩后 ~2 字节:
 
-  - `query.max-samples`：这个参数控制着每个查询返回的最大样本数，值越大，内存消耗越高。指定了查询语句返回的最大样本数。它是一个安全机制，用于避免由于查询错误或者滥用，导致过多的样本数被返回.参数query.max-samples默认值为5000w.
-
-
-3. 怎样做可以降低内存消耗
-
-- 落盘机制（缩小数据块加速落盘）
-- 缩小指标数量
-- 限制查询时间范围
-- 减少标签数量
-
-4. 场景模拟
-
-  假设有1000个指标，每个指标有10个标签，每个标签有10种值类型，消耗的内存大小
-  Number of Time Series(时间序列数量):100,000
-  Average Labels Per Time Series(每个时间序列上平均的标签数):10
-  Number of Unique Label Pairs(一个时间序列的标签组合数量):100
-  Average Bytes per Label Pair(平均每个标签对所占用的字节数):20
-  Scrape Interval(拉取间隔):15s
-  Bytes per Sample(每个样本值所占用的字节数):4
-  理论上综合消耗内存：827MB
-
-##### 2.磁盘
-
-1. 影响磁盘损耗的因素有：
-
-- 样本数据的数量
-- 每个数据点的标签数量和标签值的长度
-- 数据点的采样频率
-- 存储时间范围
-
-2. 场景
-
-  如果每5秒钟采集`2000`个样本，每个样本在磁盘占用大约1~2字节，假设2字节.那么30天大概需要 0.96GB. `2000*(86400/5)*30/(1024*1024*1024)`=`0.96GB`
-
-##### 3.CPU
-
-1. 怎么查看cpu消耗
-
-``` bash
-# metrics端点查看
-$ curl http://localhost:9300/metrics
-
-# 指标名称
-process_cpu_seconds_total
+```
+30 天容量 = 2000 × (86400/5) × 30 × 2 / (1024³) ≈ 0.96 GB
 ```
 
-``` bash
-# top命令查看
-$ ps -ef | grep prometheus
+### 6.6 CPU 消耗
 
-$ top -p ${pid}
+| 来源 | 占比 |
+|------|------|
+| 采集 scrape | 中 |
+| 规则 evaluation | 低 |
+| 查询 query | 高(突发) |
+| Compaction | 低(后台周期) |
+
+```bash
+# 查看 CPU
+curl http://localhost:9090/metrics | grep process_cpu_seconds_total
 ```
 
-2. cpu消耗大小
+经验值:Prometheus 启动 7 天,`process_cpu_seconds_total` 约 1260s,平均每小时 7.5 秒 CPU。
 
-  prometheus启动时长7天左右，process_cpu_seconds_total大概是 1260.77s. 平均每小时占用cpu 7.5秒
+### 6.7 Query 调优
 
-3. 影响cpu消耗的因素
+| 策略 | 做法 |
+|------|------|
+| 缩小时间范围 | `metric{label=v}[5m]` 而非全 retention |
+| 带具体标签 | `{instance="...",job="..."}` |
+| 配置超时 | `global.query_timeout: 30s` |
+| 子查询带步长 | `metric[5m:10s]` |
+| 多实例分担 | 联邦机制或分片 |
 
-  作为一个开源的监控系统，Prometheus 的 CPU 消耗并不算特别大。它的 CPU 消耗主要来源于收集数据、数据进行存储和分析以便后续的查询和报警Prometheus 使用了一些高效的算法和技术，它的 CPU 消耗并不会特别高
+### 6.8 降低内存消耗
 
-4. 如何降低cpu消耗
-
-- 降低抓取频率
-- 缩小指标种类
-- 优化内存分配
-- 优化查询（如时间范围）
-
-##### 4.Query
-
-1. 查询带来的内存消耗多大
-
-  假设范围查询1个月内一个指标的所有样本，假设指标每秒钟有1个样本，一个月大概有30 * 24 * 60 * 60 = 2,592,000个样本。假设该指标的值是64位双精度浮点数，则每个样本需要8个字节。因此，查询一个月内的所有样本将需要大约20 MB的内存。
-  但真实的场景下，查询1个月的所有样本，不会把所有样本读取，会设置步长，并且设置标签可以筛选掉很多数据，所以1个查询最多也就10MB不到，并发20个图表的情况下是200MB.查询消耗取决于TSDB查询性能。
-
-2. 如何优化查询降低内存消耗
-
-- 缩小时间范围
-- 查询带着具体标签值查询
-- 多个Prometheus实例分摊查询压力
-- 全局配置超时global.query_timeout:30s
-- 单个查询5min以内数据并配置10s超时 query_name{label=value}[5m:10s]
-
-3. 如何强制限制查询时间范围
-
-  storage.retention.time历史数据存储最大时长就等于了最大的查询的时长范围
-
-
-### 六、snapshot备份数据
-
-##### 1.主库搭建
-
-1. 创建配置文件
-
-``` bash
-$ touch /Users/xuweiqiang/Desktop/master.yml
-$ mkdir /Users/xuweiqiang/Desktop/tmp
+```mermaid
+flowchart LR
+    A[内存优化] --> B[缩小指标数量<br/>只采集需要的]
+    A --> C[减少标签基数<br/>移除高基数标签]
+    A --> D[限制查询时间范围<br/>retention 设小]
+    A --> E[加速落盘<br/>max-block-duration 调小]
+    A --> F[分片<br/>多 Prometheus 实例]
 ```
 
-2. 文件配置内容
+## 七、数据备份与远程读写
 
-``` yml
-# remote write
+### 7.1 Snapshot 快照备份
+
+调用 admin API 触发 Head 数据落盘生成快照:
+
+```bash
+# 启动时需 --web.enable-admin-api
+curl -XPOST http://127.0.0.1:9090/api/v1/admin/tsdb/snapshot
+```
+
+返回快照目录名:
+
+```json
+{"status":"success","data":{"name":"20230418T015823Z-29b962a698b24a01"}}
+```
+
+快照位于 `--storage.tsdb.path/snapshots/<name>`。
+
+### 7.2 remote_write 机制
+
+```mermaid
+flowchart LR
+    Prom[Prometheus] -->|WAL 暂存| Queue[队列<br/>每 25% 内存]
+    Queue -->|批量发送| Remote[(远端存储)]
+    Remote -->|ACK| Queue
+    Queue -.->|失败重试| Remote
+```
+
+```yaml
+remote_write:
+  - url: "http://slave:9090/api/v1/write"
+    queue_config:
+      capacity: 10000
+      max_samples_per_send: 200
+      min_backoff: 30ms
+      max_backoff: 5s
+```
+
+**重试机制**(源码 `storage/remote/queue_manager.go`):
+
+```go
+// sendWriteReqWithBackoff
+// MinBackoff: 30ms, MaxBackoff: 5s
+// 失败后 sleep 30ms 重试,每次间隔翻倍,最大 5s
+// 持续失败不跳过,直到超过 2 小时 WAL 被压缩,数据丢失
+func sendWriteReqWithBackoff(ctx context.Context, cfg config.QueueConfig, ...) error
+```
+
+| 失败时长 | 结果 |
+|---------|------|
+| < 2h | 重试成功,不丢数据 |
+| > 2h | WAL 被压缩,**未发送数据丢失** |
+
+**内存代价**:开启 remote_write 内存增加约 25%。
+
+### 7.3 搭建 remote_write 集群
+
+#### 从库(接收方)
+
+```yaml
+# slave.yml
 global:
-  scrape_interval: 1s
-  evaluation_interval: 1s
+  scrape_interval: 15s
+  evaluation_interval: 15s
+```
+
+```bash
+docker run \
+    --name slave \
+    -d \
+    -p 7979:9090 \
+    --network p_net \
+    --network-alias slave \
+    -v /Users/prometheus/write.yml:/etc/prometheus/prometheus.yml \
+    prom/prometheus \
+    --web.enable-remote-write-receiver \
+    --config.file=/etc/prometheus/prometheus.yml
+```
+
+#### 主库(发送方)
+
+```yaml
+# master.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
 remote_write:
   - url: "http://slave:9090/api/v1/write"
 scrape_configs:
@@ -289,171 +619,8 @@ scrape_configs:
       - targets: ["docker.for.mac.host.internal:6969"]
 ```
 
-3. 启动数据采集节点
-
-``` bash
-$ docker run \
-    --name master \
-    -d \
-    -p 8989:9090 \
-    --network p_net \
-    --network-alias master \
-    -v /Users/xuweiqiang/Desktop/tmp:/tmp \
-    -v /Users/xuweiqiang/Desktop/master.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus \
-    --storage.tsdb.path=/tmp \
-    --web.enable-admin-api \
-    --config.file=/etc/prometheus/prometheus.yml
-```
-
-##### 2.将主库的历史数据同步过来
-
-``` bash
-# master
-$ curl -XPOST 127.0.0.1:9090/api/v1/admin/tsdb/snapshot
-```
-
-``` json
-{"status":"success","data":{"name":"20230418T015823Z-29b962a698b24a01"}}
-```
-
-##### 3.从库搭建
-
-1. 创建写主机配置
-
-``` bash
-$ touch /Users/xuweiqiang/Desktop/slave.yml
-```
-
-2. 写主机配置内容
-
-``` yml
-# write config
-global:
-  scrape_interval: 1s
-  evaluation_interval: 1s
-```
-
-3. 启动写主机
-
-``` bash
-# 注意:storage.tsdb.path执行快照数据
-# 也就是执行 /api/v1/admin/tsdb/snapshot 后返回的data里面的name表示文件夹名称 
-# 原来的prometheus的实例指向的 storage.tsdb.path/data.name
-$ docker run \
-    --name slave \
-    -d \
-    -p 7979:9090 \
-    --network p_net \
-    --network-alias slave \
-    -v /Users/xuweiqiang/Desktop/tmp:/tmp \
-    -v /Users/xuweiqiang/Desktop/slave.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus \
-    --storage.tsdb.path=/tmp/snapshots/20230418T015823Z-29b962a698b24a01 \
-    --web.enable-remote-write-receiver \
-    --config.file=/etc/prometheus/prometheus.yml
-```
-
-##### 4.如何保证主库数据完整
-
-  主库执行snapshot之前，更改master.prometheus.yml的配置，remote write到slave，此刻开始所有push不过去的数据会被加入队列重试，当slave使用备份快照启动成功后，这些数据会被写入，从而保证不丢失。
-  > 2小时内（取决于落盘时间）
-
-
-##### 5.remote write数据完整性
-
-  > 发送失败会不断重试,而不是直接跳过发送失败的数据,如果发送失败超过2个小时,WAL日志会被压缩,没有发送的数据会丢失.
-
-  ``` go
-  // /prometheus/storage
-  package remote
-
-  // AppendMetadata 发送数据到远程存储,批量发送, 但并未进行并行化处理。
-  func (t *QueueManager) AppendMetadata(ctx context.Context, metadata []scrape.MetricMetadata)
-
-  // 具体发送动作
-  // /Users/xuweiqiang/Documents/code/prometheus/storage/remote/queue_manager.go
-  type WriteClient interface {
-      Store(context.Context, []byte) error
-  }
-
-  // sendWriteRequestWithBackoff 发送失败动作
-  // MinBackoff: model.Duration(30 * time.Millisecond) MaxBackoff: model.Duration(5 * time.Second)
-  // 发送失败以后sleep 30 * time.Millisecond然后再次重试，每次重试间隔不断double，直至最大5s，
-  // 如果一直失败，不是会跳过而是直接不再发送 func (t *QueueManager) Stop()
-  // 使用远程写入会增加 Prometheus 的内存占用。大多数用户报告内存使用量增加了约 25%，但该数字取决于数据的形状
-  // 除非远程端点保持关闭超过 2 小时，否则将重试失败而不会丢失数据。2小时后，WAL会被压缩，没有发送的数据会丢失
-  func sendWriteReqWithBackoff(ctx context.Context, cfg config.QueueConfig, l log.Logger, att func(int) error, onRetry func()) error
-  ```
-
-### 七、TSDB
-
-	时间序列数据库（Time - Series Database）专门用于存储和管理时间序列数据的数据库。时间序列数据是按时间顺序排列的一系列数据点，通常由一个或多个指标（metric）在不同时间点的值组成。
-
-
-### 八、Prometheus远程写集群
-
-##### 1.从库搭建
-
-1. 创建写主机配置
-
-``` bash
-$ touch /Users/prometheus/slave.yml
-```
-
-2. 写主机配置内容
-
-``` yml
-# write config
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-```
-
-3. 启动写主机
-
-``` bash
-$ docker run \
-    --name slave \
-    -d \
-    -p 7979:9090 \
-    --network p_net \
-    --network-alias slave \
-    -v /Users/prometheus/write.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus \
-    --web.enable-remote-write-receiver \
-    --config.file=/etc/prometheus/prometheus.yml 
-```
-
-
-##### 2.主库搭建
-
-1. 创建配置文件
-
-``` bash
-$ touch /Users/prometheus/master.yml
-```
-
-2. 文件配置内容
-
-``` yml
-# remote write
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-remote_write:
-  - url: "http://slave:9090/api/v1/write"
-scrape_configs:
-  - job_name: "request_count"
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ["docker.for.mac.host.internal:6969"] # 宿主机IP ifconfig获取 en0 的IP
-```
-
-3. 启动数据采集节点
-
-``` bash
-$ docker run \
+```bash
+docker run \
     --name master \
     -d \
     -p 8989:9090 \
@@ -463,51 +630,37 @@ $ docker run \
     prom/prometheus
 ```
 
+### 7.4 snapshot + remote_write 保证数据完整
 
-
-### 九、联邦机制
-
-##### 1.配置热重载
-
-1. main.main函数启动时候更改 config.LoadFile(cfg.configFile 为 config.LoadConfigFromEtcd(cfg.configFile,
-2. 在 <-hub (chan os.Signal) 监听的select之中添加 <-etcd.Listen() 监听，有配置更改时候调用 reladConfig 函数
-
-##### 2.federation
-
-1. docker install两个prometheus
-2. 本地mac启动一个exporter暴露系统指标
-3. 指定一个prometheus采集指标
-4. federation机制让另一个prometheus也采集到一样的指标
-
-##### 3.mac的本机器指标
-
-``` bash
-# https://prometheus.io/download/
-# http://localhost:9100/metrics
-$ ./node_exporter
+```mermaid
+flowchart TD
+    A[主库配置 remote_write] --> B[发送失败入队重试]
+    B --> C[执行 snapshot]
+    C --> D[从库用快照启动]
+    D --> E[队列中数据补写]
+    E --> F[数据完整]
 ```
 
-##### 4.主节点prometheus
+主库执行 snapshot 之前,先配置 remote_write 到 slave。push 失败的数据进入队列重试,slave 用快照启动后,队列数据被写入,**2 小时内不丢**(WAL 压缩周期)。
 
-``` bash
-$ docker network create p_net
+## 八、联邦机制
 
-$ docker run \
-    --name master \
-    -d \
-    -p 9090:9090 \
-    --network p_net \
-    --network-alias master \
-    -v /Users/master.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus \
-    --query.lookback-delta=15d \
-    --config.file=/etc/prometheus/prometheus.yml
+### 8.1 原理
 
-$ ./prometheus --query.lookback-delta=15d \
---config.file=/prometheus/config.yml
+```mermaid
+flowchart LR
+    PromA[Prometheus A<br/>采集节点1] -->|scrape| Exp1[Exporter]
+    PromB[Prometheus B<br/>采集节点2] -->|scrape| Exp2[Exporter]
+    Fed[中心 Prometheus] -->|/federate?match[]=...| PromA
+    Fed -->|/federate| PromB
+    Fed --> Grafana[Grafana<br/>全局视图]
 ```
 
-``` yml
+从节点通过 `/federate` 端点拉取主节点的指标。主节点继续正常 scrape,从节点周期性"拉取拉取到的数据"。
+
+### 8.2 主节点配置
+
+```yaml
 # master.yml
 global:
   scrape_interval: 15s
@@ -519,206 +672,111 @@ scrape_configs:
       - targets: ["docker.for.mac.host.internal:6969"]
 ```
 
-##### 5.从节点prometheus
+启动:
 
-``` bash
-$ docker run \
-    --name slave \
-    -d \
-    -p 8989:9090 \
-    --network p_net \
-    --network-alias slave \
-    -v /home/prometheus.yml:/etc/prometheus/prometheus.yml \
-    prom/prometheus
+```bash
+docker run \
+    --name master -d -p 9090:9090 \
+    --network p_net --network-alias master \
+    -v /Users/master.yml:/etc/prometheus/prometheus.yml \
+    prom/prometheus \
+    --query.lookback-delta=15d \
+    --config.file=/etc/prometheus/prometheus.yml
 ```
 
-``` yml
+### 8.3 从节点配置
+
+```yaml
 # slave.yml
 global:
-  scrape_interval: 15s 
-  evaluation_interval: 15s 
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
   - job_name: 'federate'
-    scrape_timeout: 15s # timeout limit small than scrape_interval
-    body_size_limit: 0 # no limit size
+    scrape_timeout: 15s
     scrape_interval: 15s
-    honor_labels: true # 保留原有metrics的标签
+    honor_labels: true              # 保留原 metrics 的标签
     metrics_path: '/federate'
     params:
       'match[]':
-        - '{__name__=~".+"}'
+        - '{__name__=~".+"}'        # 拉取所有指标
     static_configs:
-      - targets:
-        - 'master:9090'
+      - targets: ['master:9090']
 ```
 
+### 8.4 联邦 vs remote_write
 
-### Q&A
+| 维度 | 联邦 | remote_write |
+|------|------|-------------|
+| 方向 | pull(从节点拉主) | push(主节点推从) |
+| 协议 | HTTP `/federate` | Protobuf over HTTP |
+| 实时性 | 受 scrape_interval 限制 | 准实时 |
+| 数据完整 | 可能漏(查询时窗) | WAL 重试 |
+| 适用 | 分级采集、跨集群汇总 | 长期存储、灾备 |
 
-- 理论上prometheus的内存和指标等计算规则是什么
+## 九、面试要点
 
-- evaluation 和 scrape 是什么意思
+### 9.1 高频概念题
 
-``` txt
-evaluation_interval被设置为1分钟。Prometheus会在每分钟计算一次告警规则和记录规则。
-scrape_interval被设置为15秒，表示Prometheus每15秒向job_name为prometheus的job收集监控数据
-```
+1. **Prometheus 为什么用 pull 而不用 push?**
+   - 主动控制采集节奏,避免被压垮;目标无感知,故障时仍可探测;便于水平扩展。
 
-- chunk_size是什么意思
+2. **什么是时间序列?Series 数怎么算?**
+   - `metric_name + labelset` 唯一确定一条序列;Series 数 = 各标签基数乘积,如 `1000 指标 × 10 标签 × 10 值 = 100,000`。
 
-``` txt 
-一个概念，tsdb的数据块大小，以时间为单位的。
-在prometheus的main.go之中有配置项（storate.tsdb为前缀的配置）
-默认2小时；
+3. **Histogram 和 Summary 的区别?**
+   - Histogram 在服务端用 `histogram_quantile` 算分位,可跨实例聚合;Summary 在客户端预算分位,无法聚合。
 
-1. 当查询Prometheus时，如果需要的数据超出了一个块的范围，那么Prometheus会将多个块合并成一个大块
-然后在该大块上执行查询操作。chunk_size参数的值越小，需要合并的块的数量就越多，查询效率就越低；
+4. **Prometheus 内存为什么会暴涨?**
+   - 高基数标签(如 user_id)撑爆 Series 数,Head 缓存 + 索引 + 查询结果三处都涨。
 
-2. 设置的块很大查询的时候如果需要合并数据块，又会因为合并的时间很久而降低了查询效率；
-```
+5. **TSDB 的 Block 是什么?为什么是 2 小时?**
+   - Block 是 Head 落盘后的持久化单元,2 小时是写性能与查询性能的折衷。太小 Block 数量爆炸,太大 Head 内存暴涨。
 
-- storage.tsdb.max-block-duration的具体意义
+6. **Chunk 是什么?用什么压缩?**
+   - Chunk 是序列内 120 样本的压缩单元;用 Gorilla 算法(delta-of-delta 时间戳 + XOR 值),单样本压到 1-2 字节。
 
-``` txt
-该参数确实可以影响Prometheus的落盘机制的时间，因为它决定了TSDB块文件的最大持续时间。
-当块文件的持续时间达到该参数设置的值时，Prometheus会停止在该文件中写入新的数据，并创建一个新的块文件。
-从而实现了落盘机制。默认情况下，该参数设置为2小时。
-因此，可以通过调整该参数的值来控制Prometheus的落盘机制的时间
-```
+7. **WAL 在 remote_write 中起什么作用?**
+   - 写入先落 WAL,remote_write 失败的数据保留在 WAL 重试;超过 2 小时 WAL 被压缩后未发送的数据会丢。
 
-- 时间序列
+8. **Prometheus 单点容量是多少?如何扩展?**
+   - 单实例约 100-200 万 Series、80 万 samples/s;扩展用分片(多 Prometheus 实例)+ 联邦 + 远端存储。
 
-``` txt
-每个指标（Metric）都有一个名称（Name）和多个标签（Label）
-指标将与时间戳形成一个样本（Sample），它包含指标值、时间戳和标签值。
-这些样本被存储在称为时间序列（Time Series）的数据结构中。
-时间序列将由指标名称和标签集合唯一确定
-每一个时间序列由指标名称和一组标签共同标识
-```
+9. **federation 和 remote_write 选哪个?**
+   - 联邦适合分级采集、跨集群汇总;remote_write 适合长期存储、灾备、实时性要求高。
 
-- prometheus理论上每个样本在磁盘之中占据多少内存
+10. **如何避免高基数标签?**
+    - 不用 user_id/trace_id/ip 等高基标签;用聚合后的维度(租户、地区);在 relabel 阶段丢弃。
 
-``` txt
-prometheus的存储模型是基于TSDB，影响样本在磁盘占据内存大小的因素有：
-压缩格式、标签数量、附加属性预测、抽样和分析等；
+### 9.2 易错点
 
-通常情况下，一个时间序列的每个样本占用的磁盘空间大约在1-2字节左右
-```
+1. **Counter 不能减**:`http_requests_total` 是单调增,失败重启后会重置,PromQL 用 `rate()`/`increase()` 自动处理。
+2. **`rate()` 必须有范围**:`rate(metric[5m])` 而非 `rate(metric)`。
+3. **`max-block-duration` 不能小于 `min-block-duration`**,否则启动报错。
+4. **retention 单位**:`15d` 而非 `15`,默认 15 天。
+5. **`honor_labels: true`** 在联邦中必设,否则从节点会用 job/instance 覆盖原标签。
+6. **remote_write 失败超 2h 才丢数据**,不是立即丢;失败期间内存会涨。
 
-- process_cpu_seconds_total指标
+### 9.3 调优速查
 
-``` txt
-process_cpu_seconds_total是Prometheus指标名称，表示当前进程（一个应用程序）的CPU使用时间总量。
-它是一个累加器指标，可以用来监控进程的CPU利用率和运行时间。
-该指标记录了进程启动以来的总CPU时间，单位为秒。
-```
+| 症状 | 排查 | 优化 |
+|------|------|------|
+| 内存高 | `prometheus_tsdb_head_series` 看基数 | 去高基标签、缩小 retention |
+| 查询慢 | `prometheus_engine_query_duration_seconds` | 缩范围、加标签、降采样 |
+| 磁盘满 | `prometheus_tsdb_storage_blocks_bytes` | 缩 retention、关 remote_write 队列 |
+| remote_write 丢数据 | `prometheus_remote_storage_dropped_samples_total` | 增大队列容量、提高超时 |
+| 卡在 Compaction | `prometheus_tsdb_compactions_total` | 调大 `max-block-duration` |
 
+## 十、相关资料
 
-- WAL落盘机制
-
-> 是每隔2小时落盘1次还是不断地将超过2小时的数据落盘，如果是每隔2小时一次那开始和结束时间怎么计算
-
-``` txt
-Prometheus 默认情况下是每个块的时间范围为 2 个小时。
-当一个块完成时，它将被写入磁盘。
-块的开始时间和结束时间是按照 Prometheus 的时间轴进行计算的。
-例如，如果当前时间是 9:00 AM，那么 Prometheus 将从 7:00 AM 到 9:00 AM 计算该块的开始和结束时间。
-因此，Prometheus会每隔2小时落盘，并且块的开始和结束时间是基于当前时间计算的
-```
-- remote write 丢数据
-
-> remote write如果发送数据时候目标机器挂了，后面目标机器服务又起来了，会丢失多少数据
-
-``` txt 
-prometheus间隔2h落盘在1h55min时候，打了快照，并且在2h1min之后服务才起来，那么是不是意味着这5min的数据丢失了
-```
-
-
-- 如何解决docker exec容器报错su: must be suid to work properly
-
-``` bash
-$ docker exec -ti --user root 容器id /bin/sh
-```
-
-- 在容器中如何访问宿主机服务
-
-``` txt
-ifconfig docker0 网卡IP
-daemon.json 中定义的虚拟网桥来与宿主机进行通讯
-域名 docker.for.mac.host.internal
-```
-
-- 如何配置pfederate拉取所有指标
-
-``` yml
-# slave
-global:
-  scrape_interval: 15s 
-  evaluation_interval: 15s 
-
-scrape_configs:
-  - job_name: 'federate'
-    scrape_interval: 15s
-    honor_labels: true # 保留原有metrics的标签
-    metrics_path: '/federate'
-    params:
-      'match[]':
-        - '{__name__=~".+"}'
-    static_configs:
-      - targets:
-        - 'master:9090'
-    # Endpoint的标签
-    relabel_configs:
-     - target_label: 'instance'
-       replacement: 'docker.for.mac.host.internal:6969'
-```
-
-- 健康检查接口
-
-[http://localhost:8989/-/healthy](http://localhost:8989/-/healthy)
-
-- 基于ETCD选主3台prometheus实现高可用
-
-1. 主节点配置 scrape_configs 直接从exporter_node拉取数据
-2. 从节点配置 scrape_configs 从主节点通过 federate机制同步数据
-3. 每台prometheus守护进程中有一个定时器从 etcd 获取主节点的IP，通过/-/health判定主节点的存活状态
-4. 如果主节点挂了，选主，将新的主IP同步至etcd，并且更改各个节点的 prometheus配置
-5. 如果主节点挂了，发送告警
-6. 主节点拉取数据，从节点继续从主节点同步数据
-
-- 基于ETCD的集群选主设计方案设计
-
-1. master节点直接从http接口拉取数据
-2. node节点从master/federate端口拉取数据
-3. master节点存活信息存储在etcd(etcd有一个TTL key)，master节点每隔30s发送一次心跳，重新设置TTL key否则任务master节点已经挂了
-4. master节点挂了以后，剩下的节点竞选 - master节点出来以后，更新master节点的配置和更新node节点的配置，主要是实现主从
-
-- 如何进入容器内部执行命令
-
-``` bash
-$ docker exec -it --user root ${容器id} /bin/sh
-```
-
-### 相关文档
-
-- [官方计算prometheus理论上的内存消耗](https://www.robustperception.io/how-much-ram-does-prometheus-2-x-need-for-cardinality-and-ingestion/)
-- [Series在prometheus是什么概念](https://www.kancloud.cn/pshizhsysu/prometheus/1803792)
-- [yasongxu.gitbook高可用完问题-大内存问题以及容量规划](https://yasongxu.gitbook.io/container-monitor/yi-.-kai-yuan-fang-an/di-2-zhang-prometheus/prometheus-use)
-- [容器监控实践—Prometheus存储机制](http://www.xuyasong.com/?p=1601)
-- [prometheus.io/docs 官网配置解析](https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
-- [cnblogs.com Prometheus之配置详解](https://www.cnblogs.com/wangguishe/p/15598120.html)
-- [yunlzheng.gitbook.io/prometheus-book/远程存储](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-remote-storage)
-- [yunlzheng.gitbook.io/prometheus-book/高可用方案选型](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-and-high-availability)
-- [robustperception.io/snapshot](https://www.robustperception.io/taking-snapshots-of-prometheus-data/)
-- [prometheus.io/远程写入调整](https://prometheus.io/docs/practices/remote_write/#remote-write-tuning)
-- [prometheus.io/如何使用快照进行数据备份](https://prometheus.io/docs/prometheus/latest/querying/api/#snapshot)
-- [github.com/prometheus的TSDB数据库用法](https://github.com/prometheus/prometheus/blob/main/tsdb/docs/usage.md)
-- [github.com/prometheus关于时序数据库的文档](https://github.com/prometheus/prometheus/tree/main/tsdb/docs/format)
-- [Prometheus TSDB (Part 1): The Head Block](https://blog.csdn.net/chenhuiqqq/article/details/119521435)
-- [Prometheus远程存储](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-remote-storage)
-- [Prometheus高可用](https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/prometheus-and-high-availability)
-- [https://prometheus.io/docs/prometheus/latest/federation/](https://prometheus.io/docs/prometheus/latest/federation/)
-- [快猫监控P高可用](http://flashcat.cloud/docs/content/flashcat-monitor/prometheus/ha/local-storage/)
-- [本地存储配置](https://blog.csdn.net/m0_60244783/article/details/127641195)
-- [https://www.ifsvc.cn/posts/156](https://www.ifsvc.cn/posts/156)
+- [Prometheus 官方文档](https://prometheus.io/docs/prometheus/latest/)
+- [Prometheus TSDB 源码文档](https://github.com/prometheus/prometheus/tree/main/tsdb/docs)
+- [TSDB Head Block 设计](https://github.com/prometheus/prometheus/blob/main/tsdb/docs/head.md)
+- [Gorilla 论文](http://www.vldb.org/pvldb/vol8/p1816-teller.pdf)
+- [官方内存估算](https://www.robustperception.io/how-much-ram-does-prometheus-2-x-need-for-cardinality-and-ingestion/)
+- [Prometheus 远程写入调整](https://prometheus.io/docs/practices/remote_write/)
+- [联邦机制官方文档](https://prometheus.io/docs/prometheus/latest/federation/)
+- [快照 API](https://prometheus.io/docs/prometheus/latest/querying/api/#snapshot)
+- 高可用方案详见 [prometheus高可用.md](./prometheus高可用.md)
+- 告警详见 [alertmanager.md](./alertmanager.md)

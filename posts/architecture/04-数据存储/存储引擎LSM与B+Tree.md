@@ -29,9 +29,9 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Root[根节点<br/>10 | 20 | 30] --> N1[节点<br/>5 | 10]
-    Root --> N2[节点<br/>15 | 20]
-    Root --> N3[节点<br/>25 | 30]
+    Root["根节点<br/>10 | 20 | 30"] --> N1["节点<br/>5 | 10"]
+    Root --> N2["节点<br/>15 | 20"]
+    Root --> N3["节点<br/>25 | 30"]
     N1 --> L1[叶子<br/>1 2 5]
     N1 --> L2[叶子<br/>7 10]
     N2 --> L3[叶子<br/>12 15]
@@ -73,10 +73,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[插入 18] --> B[找到目标叶子节点<br/>12 15 17 20]
-    B --> C[插入后<br/>12 15 17 18 20]
+    A[插入 18] --> B["找到目标叶子节点<br/>12 15 17 20"]
+    B --> C["插入后<br/>12 15 17 18 20"]
     C --> D{超过阶数?}
-    D -->|是| E[分裂<br/>12 15 | 17 18 20]
+    D -->|是| E["分裂<br/>12 15 | 17 18 20"]
     D -->|否| F[完成]
     E --> G[父节点添加索引]
 ```
@@ -201,9 +201,9 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[写入] --> B[B+ Tree<br/>随机写 慢]
+    A[写入] --> B["B+ Tree<br/>随机写 慢"]
     A --> C[LSM Tree<br/>顺序写 快]
-    D[查询] --> E[B+ Tree<br/>O(log N) 快]
+    D[查询] --> E["B+ Tree<br/>O(log N) 快"]
     D --> F[LSM Tree<br/>多层合并 慢]
 ```
 

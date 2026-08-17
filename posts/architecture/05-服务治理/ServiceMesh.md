@@ -100,7 +100,9 @@ flowchart LR
     subgraph Pod
         App[应用容器<br/>127.0.0.1:8080]
         Proxy[Sidecar 容器<br/>15001]
-        Note over App,Proxy: 共享网络命名空间
+        Note1(["共享网络命名空间"])
+        App -.-> Note1
+        Proxy -.-> Note1
     end
     In[入站流量] --> Proxy
     Proxy --> App
@@ -231,7 +233,9 @@ flowchart LR
     App1[应用1] --> S1[Sidecar]
     S1 -->|mTLS 加密| S2[Sidecar]
     S2 --> App2[应用2]
-    Note over S1,S2: 自动双向认证与加密
+    Note1(["自动双向认证与加密"])
+    S1 -.-> Note1
+    S2 -.-> Note1
 ```
 
 ```yaml
@@ -358,7 +362,9 @@ flowchart LR
     A[应用1] --> B[Sidecar1]
     B --> C[Sidecar2]
     C --> D[应用2]
-    Note over B,C: 增加两次跳转<br/>增加 1-3ms 延迟
+    Note1(["增加两次跳转<br/>增加 1-3ms 延迟"])
+    B -.-> Note1
+    C -.-> Note1
 ```
 
 ### 7.2 复杂度

@@ -50,7 +50,8 @@ flowchart LR
     EB -->|订阅| C1[消费者1]
     EB --> C2[消费者2]
     EB --> C3[消费者3]
-    Note over EB: 解耦核心
+    Note1(["解耦核心"])
+    EB -.-> Note1
 ```
 
 | 组件 | 职责 | 示例 |
@@ -163,7 +164,8 @@ flowchart LR
     EB --> SMS[短信服务]
     EB --> Points[积分服务]
     EB --> Analytics[分析服务]
-    Note over EB: 新增分析服务无需改订单服务
+    Note1(["新增分析服务无需改订单服务"])
+    EB -.-> Note1
 ```
 
 ### 5.2 CQRS 模式
